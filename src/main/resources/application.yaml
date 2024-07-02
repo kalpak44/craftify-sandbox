@@ -1,0 +1,43 @@
+# Server configuration
+server:
+  # Maximum size of HTTP request headers
+  max-http-request-header-size: 40960
+  # Enable graceful shutdown
+  shutdown: graceful
+  # Server port
+  port: 8080
+  # HTTP response compression settings
+  compression:
+    enabled: true
+    # MIME types to be compressed
+    mime-types: text/xml,text/plain,application/json
+    # Minimum response size to trigger compression
+    min-response-size: 1024
+
+# Spring configuration
+spring:
+  data:
+    mongodb:
+      # MongoDB URI with placeholders for environment variables
+      uri: mongodb://${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DATABASE:craftify}
+      # MongoDB username and password placeholders
+      username: ${MONGO_USERNAME:craftify}
+      password: ${MONGO_PASSWORD:craftify}
+  jpa:
+    properties:
+      # Ensure the JDBC time zone is set to UTC
+      jdbc:
+        time_zone: UTC
+
+# Springdoc configuration for OpenAPI and Swagger UI
+springdoc:
+  api-docs:
+    # Path for API documentation
+    path: '/v3/api-docs'
+  swagger-ui:
+    # Path for Swagger UI
+    path: '/swagger-ui'
+    # Sort operations alphabetically
+    operationsSorter: alpha
+    # Sort tags alphabetically
+    tagsSorter: alpha
