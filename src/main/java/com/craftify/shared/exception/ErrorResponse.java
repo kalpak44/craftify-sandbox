@@ -1,4 +1,4 @@
-package com.craftify.exception;
+package com.craftify.shared.exception;
 
 import java.time.LocalDateTime;
 

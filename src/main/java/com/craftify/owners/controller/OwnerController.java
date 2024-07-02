@@ -1,8 +1,8 @@
-package com.craftify.controller;
+package com.craftify.owners.controller;
 
-import com.craftify.controller.api.CrudController;
-import com.craftify.documents.Owner;
-import com.craftify.service.OwnerService;
+import com.craftify.owners.documents.Owner;
+import com.craftify.owners.service.OwnerService;
+import com.craftify.shared.controller.capi.CrudController;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.*;
 

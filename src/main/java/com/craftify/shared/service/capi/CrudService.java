@@ -1,4 +1,4 @@
-package com.craftify.service.api;
+package com.craftify.shared.service.capi;
 
 import java.util.Optional;
 import java.util.UUID;

@@ -1,7 +1,7 @@
-package com.craftify.controller.api;
+package com.craftify.shared.controller.capi;
 
-import com.craftify.exception.ApiException;
-import com.craftify.service.api.CrudService;
+import com.craftify.shared.exception.ApiException;
+import com.craftify.shared.service.capi.CrudService;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

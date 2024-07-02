@@ -1,22 +1,23 @@
-package com.craftify.documents;
+package com.craftify.products.documents;
 
 import java.util.UUID;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-public class Owner {
+public class Product {
   @Id private UUID id;
+  private UUID ownerId;
   private String name;
 
-  // Constructors, getters and setters
-  public Owner() {
+  public Product() {
     this.id = UUID.randomUUID();
   }
 
-  public Owner(String name) {
+  public Product(String name, UUID ownerId) {
     this.id = UUID.randomUUID();
     this.name = name;
+    this.ownerId = ownerId;
   }
 
   public UUID getId() {
@@ -25,6 +26,14 @@ public class Owner {
 
   public void setId(UUID id) {
     this.id = id;
+  }
+
+  public UUID getOwnerId() {
+    return ownerId;
+  }
+
+  public void setOwnerId(UUID ownerId) {
+    this.ownerId = ownerId;
   }
 
   public String getName() {
