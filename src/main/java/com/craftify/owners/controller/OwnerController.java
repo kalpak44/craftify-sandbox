@@ -1,26 +1,14 @@
 package com.craftify.owners.controller;
 
-import com.craftify.owners.documents.Owner;
+import com.craftify.owners.dto.OwnerDto;
 import com.craftify.owners.service.OwnerService;
-import com.craftify.shared.controller.capi.CrudController;
-import java.util.UUID;
+import com.craftify.shared.controller.CrudController;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/owners")
-public class OwnerController extends CrudController<Owner> {
-
+public class OwnerController extends CrudController<OwnerDto, String> {
   public OwnerController(OwnerService service) {
     super(service);
-  }
-
-  @Override
-  protected UUID getId(Owner entity) {
-    return entity.getId();
-  }
-
-  @Override
-  protected String getEntityName() {
-    return Owner.class.getSimpleName();
   }
 }

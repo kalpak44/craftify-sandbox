@@ -1,31 +1,11 @@
 package com.craftify.owners.documents;
 
-import java.util.UUID;
-import org.springframework.data.annotation.Id;
+import com.craftify.shared.document.IdentifiedDocument;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-public class Owner {
-  @Id private UUID id;
+public class Owner extends IdentifiedDocument<String> {
   private String name;
-
-  // Constructors, getters and setters
-  public Owner() {
-    this.id = UUID.randomUUID();
-  }
-
-  public Owner(String name) {
-    this.id = UUID.randomUUID();
-    this.name = name;
-  }
-
-  public UUID getId() {
-    return id;
-  }
-
-  public void setId(UUID id) {
-    this.id = id;
-  }
 
   public String getName() {
     return name;

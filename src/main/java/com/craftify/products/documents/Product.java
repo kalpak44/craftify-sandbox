@@ -1,39 +1,23 @@
 package com.craftify.products.documents;
 
-import java.util.UUID;
-import org.springframework.data.annotation.Id;
+import com.craftify.owners.documents.Owner;
+import com.craftify.shared.document.IdentifiedDocument;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-public class Product {
-  @Id private UUID id;
-  private UUID ownerId;
+public class Product extends IdentifiedDocument<String> {
+
+  @DBRef private Owner owner;
+
   private String name;
 
-  public Product() {
-    this.id = UUID.randomUUID();
+  public Owner getOwner() {
+    return owner;
   }
 
-  public Product(String name, UUID ownerId) {
-    this.id = UUID.randomUUID();
-    this.name = name;
-    this.ownerId = ownerId;
-  }
-
-  public UUID getId() {
-    return id;
-  }
-
-  public void setId(UUID id) {
-    this.id = id;
-  }
-
-  public UUID getOwnerId() {
-    return ownerId;
-  }
-
-  public void setOwnerId(UUID ownerId) {
-    this.ownerId = ownerId;
+  public void setOwner(Owner owner) {
+    this.owner = owner;
   }
 
   public String getName() {
