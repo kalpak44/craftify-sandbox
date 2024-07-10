@@ -1,22 +1,22 @@
-package com.craftify.products.documents;
+package com.craftify.products.document;
 
-import com.craftify.owners.documents.Owner;
+import com.craftify.owners.document.OwnerDocument;
 import com.craftify.shared.document.IdentifiedDocument;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-public class Product extends IdentifiedDocument<String> {
+public class ProductDocument extends IdentifiedDocument<String> {
 
-  @DBRef private Owner owner;
+  @DBRef private OwnerDocument owner;
 
   private String name;
 
-  public Owner getOwner() {
+  public OwnerDocument getOwner() {
     return owner;
   }
 
-  public void setOwner(Owner owner) {
+  public void setOwner(OwnerDocument owner) {
     this.owner = owner;
   }
 

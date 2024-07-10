@@ -1,7 +1,7 @@
 package com.craftify.products.service;
 
 import com.craftify.owners.repository.OwnerRepository;
-import com.craftify.products.documents.Product;
+import com.craftify.products.document.ProductDocument;
 import com.craftify.products.dto.ProductDto;
 import com.craftify.products.repository.ProductRepository;
 import com.craftify.shared.exception.ApiException;
@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProductService extends CrudServiceAbstract<Product, ProductDto, String> {
+public class ProductService extends CrudServiceAbstract<ProductDocument, ProductDto, String> {
   private final OwnerRepository ownerRepository;
 
   public ProductService(ProductRepository repository, OwnerRepository ownerRepository) {
@@ -19,7 +19,7 @@ public class ProductService extends CrudServiceAbstract<Product, ProductDto, Str
   }
 
   @Override
-  protected ProductDto toDto(Product entity) throws ApiException {
+  protected ProductDto toDto(ProductDocument entity) throws ApiException {
     final var ownerId = entity.getOwner() != null ? entity.getOwner().getId() : null;
     final var productDto = new ProductDto();
     productDto.setId(entity.getId());
@@ -29,8 +29,8 @@ public class ProductService extends CrudServiceAbstract<Product, ProductDto, Str
   }
 
   @Override
-  protected Product toEntity(ProductDto dto) throws ApiException {
-    final var product = new Product();
+  protected ProductDocument toEntity(ProductDto dto) throws ApiException {
+    final var product = new ProductDocument();
     product.setId(dto.getId());
     product.setName(dto.getName());
 

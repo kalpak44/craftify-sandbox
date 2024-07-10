@@ -1,10 +1,10 @@
-package com.craftify.owners.documents;
+package com.craftify.owners.document;
 
 import com.craftify.shared.document.IdentifiedDocument;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-public class Owner extends IdentifiedDocument<String> {
+public class OwnerDocument extends IdentifiedDocument<String> {
   private String name;
 
   public String getName() {
