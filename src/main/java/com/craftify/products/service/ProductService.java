@@ -1,30 +1,24 @@
 package com.craftify.products.service;
 
-import com.craftify.owners.repository.OwnerRepository;
 import com.craftify.products.document.ProductDocument;
 import com.craftify.products.dto.ProductDto;
 import com.craftify.products.repository.ProductRepository;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudServiceAbstract;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProductService extends CrudServiceAbstract<ProductDocument, ProductDto, String> {
-  private final OwnerRepository ownerRepository;
 
-  public ProductService(ProductRepository repository, OwnerRepository ownerRepository) {
+  public ProductService(ProductRepository repository) {
     super(repository);
-    this.ownerRepository = ownerRepository;
   }
 
   @Override
   protected ProductDto toDto(ProductDocument entity) throws ApiException {
-    final var ownerId = entity.getOwner() != null ? entity.getOwner().getId() : null;
     final var productDto = new ProductDto();
     productDto.setId(entity.getId());
     productDto.setName(entity.getName());
-    productDto.setOwnerId(ownerId);
     return productDto;
   }
 
@@ -33,18 +27,6 @@ public class ProductService extends CrudServiceAbstract<ProductDocument, Product
     final var product = new ProductDocument();
     product.setId(dto.getId());
     product.setName(dto.getName());
-
-    if (dto.getOwnerId() != null) {
-      final var ownerEntityOptional = ownerRepository.findById(dto.getOwnerId());
-      if (ownerEntityOptional.isPresent()) {
-        product.setOwner(ownerEntityOptional.get());
-      } else {
-        throw new ApiException(
-            HttpStatus.BAD_REQUEST, "Owner with ID \"" + dto.getOwnerId() + "\" not found.");
-      }
-    } else {
-      throw new ApiException(HttpStatus.BAD_REQUEST, "Owner ID is required.");
-    }
 
     return product;
   }
