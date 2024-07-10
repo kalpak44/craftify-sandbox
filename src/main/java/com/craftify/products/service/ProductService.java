@@ -40,10 +40,10 @@ public class ProductService extends CrudServiceAbstract<Product, ProductDto, Str
         product.setOwner(ownerEntityOptional.get());
       } else {
         throw new ApiException(
-            HttpStatus.BAD_REQUEST, "owner \"" + dto.getOwnerId() + "\" not found");
+            HttpStatus.BAD_REQUEST, "Owner with ID \"" + dto.getOwnerId() + "\" not found.");
       }
     } else {
-      throw new ApiException(HttpStatus.BAD_REQUEST, "owner id is required");
+      throw new ApiException(HttpStatus.BAD_REQUEST, "Owner ID is required.");
     }
 
     return product;
