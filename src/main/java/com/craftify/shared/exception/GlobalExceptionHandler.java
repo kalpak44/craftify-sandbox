@@ -36,14 +36,13 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<ErrorResponse> handleJsonMappingException(
-      HttpMessageNotReadableException ex) {
+      HttpMessageNotReadableException ignore) {
     var badRequestMessage = "Invalid JSON input";
-    var message = ex.getMessage();
     var errorResponse =
         new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
             HttpStatus.BAD_REQUEST.getReasonPhrase(),
-            message == null ? badRequestMessage : message);
+            badRequestMessage);
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 }
