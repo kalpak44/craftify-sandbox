@@ -19,6 +19,9 @@ public class ProductService extends CrudServiceAbstract<ProductDocument, Product
     final var productDto = new ProductDto();
     productDto.setId(entity.getId());
     productDto.setName(entity.getName());
+    productDto.setAttributes(entity.getAttributes());
+    productDto.setMeasurements(entity.getMeasurements());
+    productDto.setTags(entity.getTags());
     return productDto;
   }
 
@@ -27,7 +30,9 @@ public class ProductService extends CrudServiceAbstract<ProductDocument, Product
     final var product = new ProductDocument();
     product.setId(dto.getId());
     product.setName(dto.getName());
-
+    product.setAttributes(dto.getAttributes());
+    product.setMeasurements(dto.getMeasurements());
+    product.setTags(dto.getTags());
     return product;
   }
 }
