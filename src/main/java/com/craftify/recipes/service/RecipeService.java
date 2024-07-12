@@ -20,6 +20,7 @@ import com.craftify.recipes.repository.RecipeRepository;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudServiceAbstract;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -65,7 +66,11 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   private AvailabilityConditionDto toDto(AvailabilityCondition entity) {
     final var dto = new AvailabilityConditionDto();
     dto.setMeasurements(
-        entity.getMeasurements().stream().map(this::toDto).collect(Collectors.toSet()));
+        checkForNull(
+                entity.getMeasurements(), "Measurements are required for AvailabilityCondition")
+            .stream()
+            .map(this::toDto)
+            .collect(Collectors.toSet()));
     dto.setProductName(entity.getProductName());
     dto.setAttributes(entity.getAttributes());
     dto.setTags(entity.getTags());
@@ -75,7 +80,10 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   private AvailabilityCondition toEntity(AvailabilityConditionDto dto) {
     final var entity = new AvailabilityCondition();
     entity.setMeasurements(
-        dto.getMeasurements().stream().map(this::toEntity).collect(Collectors.toSet()));
+        checkForNull(dto.getMeasurements(), "Measurements are required for AvailabilityCondition")
+            .stream()
+            .map(this::toEntity)
+            .collect(Collectors.toSet()));
     entity.setProductName(dto.getProductName());
     entity.setAttributes(dto.getAttributes());
     entity.setTags(dto.getTags());
@@ -96,7 +104,9 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
 
   private SubtractionActionDto toDto(SubtractionAction entity) {
     final var dto = new SubtractionActionDto();
-    dto.setMeasurement(toDto(entity.getMeasurement()));
+    dto.setMeasurement(
+        checkForNull(
+            toDto(entity.getMeasurement()), "Measurement is required for SubtractionAction"));
     dto.setProductName(entity.getProductName());
     dto.setAttributes(entity.getAttributes());
     dto.setTags(entity.getTags());
@@ -105,7 +115,9 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
 
   private SubtractionAction toEntity(SubtractionActionDto dto) {
     final var entity = new SubtractionAction();
-    entity.setMeasurement(toEntity(dto.getMeasurement()));
+    entity.setMeasurement(
+        checkForNull(
+            toEntity(dto.getMeasurement()), "Measurement is required for SubtractionAction"));
     entity.setProductName(dto.getProductName());
     entity.setAttributes(dto.getAttributes());
     entity.setTags(dto.getTags());
@@ -132,29 +144,38 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
 
   private MeasurementDto toDto(Measurement entity) {
     final var dto = new MeasurementDto();
-    dto.setType(entity.getType());
-    dto.setRequiredAmount(entity.getRequiredAmount());
+    dto.setType(checkForNull(entity.getType(), "Type is required for Measurement"));
+    dto.setRequiredAmount(checkForNull(entity.getRequiredAmount(), "RequiredAmount is required for Measurement"));
     return dto;
   }
 
   private Measurement toEntity(MeasurementDto dto) {
     final var entity = new Measurement();
-    entity.setType(dto.getType());
-    entity.setRequiredAmount(dto.getRequiredAmount());
+    entity.setType(checkForNull(dto.getType(), "Type is required for Measurement"));
+    entity.setRequiredAmount(checkForNull(dto.getRequiredAmount(), "RequiredAmount is required for Measurement"));
     return entity;
   }
 
+
   private SubtractionMeasurementDto toDto(SubtractionMeasurement entity) {
     final var dto = new SubtractionMeasurementDto();
-    dto.setType(entity.getType());
-    dto.setSubtractAmount(entity.getSubtractAmount());
+    dto.setType(checkForNull(entity.getType(), "Type is required for SubtractionMeasurement"));
+    dto.setSubtractAmount(checkForNull(entity.getSubtractAmount(), "SubtractAmount is required for SubtractionMeasurement"));
     return dto;
   }
 
   private SubtractionMeasurement toEntity(SubtractionMeasurementDto dto) {
     final var entity = new SubtractionMeasurement();
-    entity.setType(dto.getType());
-    entity.setSubtractAmount(dto.getSubtractAmount());
+    entity.setType(checkForNull(dto.getType(), "Type is required for SubtractionMeasurement"));
+    entity.setSubtractAmount(checkForNull(dto.getSubtractAmount(), "SubtractAmount is required for SubtractionMeasurement"));
     return entity;
+  }
+
+
+  private <T> T checkForNull(T obj, String message) {
+    if (obj == null) {
+      throw new ApiException(HttpStatus.BAD_REQUEST, message);
+    }
+    return obj;
   }
 }
