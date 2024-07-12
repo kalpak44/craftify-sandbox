@@ -1,11 +1,12 @@
 package com.craftify.recipes.dto;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ConditionDto {
   private String productName;
-  private Map<String, String> attributes;
-  private Map<String, String> tags;
+  private Map<String, String> attributes = new HashMap<>();
+  private Map<String, String> tags = new HashMap<>();
 
   public String getProductName() {
     return productName;

@@ -31,7 +31,7 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
 
   @Override
   protected RecipeDto toDto(RecipeDocument recipeDocument) throws ApiException {
-    RecipeDto dto = new RecipeDto();
+    final var dto = new RecipeDto();
     dto.setId(recipeDocument.getId());
     dto.setAvailabilityCheckLogic(toDto(recipeDocument.getAvailabilityCheckLogic()));
     dto.setSubtractionLogic(toDto(recipeDocument.getSubtractionLogic()));
@@ -41,7 +41,7 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
 
   @Override
   protected RecipeDocument toEntity(RecipeDto dto) throws ApiException {
-    RecipeDocument document = new RecipeDocument();
+    final var document = new RecipeDocument();
     document.setId(dto.getId());
     document.setAvailabilityCheckLogic(toEntity(dto.getAvailabilityCheckLogic()));
     document.setSubtractionLogic(toEntity(dto.getSubtractionLogic()));
@@ -50,22 +50,22 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   }
 
   private AvailabilityCheckLogicDto toDto(AvailabilityCheckLogic entity) {
-    AvailabilityCheckLogicDto dto = new AvailabilityCheckLogicDto();
+    final var dto = new AvailabilityCheckLogicDto();
     dto.setConditions(entity.getConditions().stream().map(this::toDto).collect(Collectors.toSet()));
     return dto;
   }
 
   private AvailabilityCheckLogic toEntity(AvailabilityCheckLogicDto dto) {
-    AvailabilityCheckLogic entity = new AvailabilityCheckLogic();
+    final var entity = new AvailabilityCheckLogic();
     entity.setConditions(
         dto.getConditions().stream().map(this::toEntity).collect(Collectors.toSet()));
     return entity;
   }
 
   private AvailabilityConditionDto toDto(AvailabilityCondition entity) {
-    AvailabilityConditionDto dto = new AvailabilityConditionDto();
-//    dto.setMeasurements(
-//        entity.getMeasurements().stream().map(this::toDto).collect(Collectors.toSet()));
+    final var dto = new AvailabilityConditionDto();
+    dto.setMeasurements(
+        entity.getMeasurements().stream().map(this::toDto).collect(Collectors.toSet()));
     dto.setProductName(entity.getProductName());
     dto.setAttributes(entity.getAttributes());
     dto.setTags(entity.getTags());
@@ -73,9 +73,9 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   }
 
   private AvailabilityCondition toEntity(AvailabilityConditionDto dto) {
-    AvailabilityCondition entity = new AvailabilityCondition();
-   /* entity.setMeasurements(
-        dto.getMeasurements().stream().map(this::toEntity).collect(Collectors.toSet()));*/
+    final var entity = new AvailabilityCondition();
+    entity.setMeasurements(
+        dto.getMeasurements().stream().map(this::toEntity).collect(Collectors.toSet()));
     entity.setProductName(dto.getProductName());
     entity.setAttributes(dto.getAttributes());
     entity.setTags(dto.getTags());
@@ -83,7 +83,7 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   }
 
   private SubtractionLogicDto toDto(SubtractionLogic entity) {
-    SubtractionLogicDto dto = new SubtractionLogicDto();
+    final var dto = new SubtractionLogicDto();
     dto.setActions(entity.getActions().stream().map(this::toDto).collect(Collectors.toSet()));
     return dto;
   }
@@ -95,7 +95,7 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   }
 
   private SubtractionActionDto toDto(SubtractionAction entity) {
-    SubtractionActionDto dto = new SubtractionActionDto();
+    final var dto = new SubtractionActionDto();
     dto.setMeasurement(toDto(entity.getMeasurement()));
     dto.setProductName(entity.getProductName());
     dto.setAttributes(entity.getAttributes());
@@ -104,7 +104,7 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   }
 
   private SubtractionAction toEntity(SubtractionActionDto dto) {
-    SubtractionAction entity = new SubtractionAction();
+    final var entity = new SubtractionAction();
     entity.setMeasurement(toEntity(dto.getMeasurement()));
     entity.setProductName(dto.getProductName());
     entity.setAttributes(dto.getAttributes());
@@ -113,7 +113,7 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   }
 
   private ResultingProductDto toDto(ResultingProduct entity) {
-    ResultingProductDto dto = new ResultingProductDto();
+    final var dto = new ResultingProductDto();
     dto.setName(entity.getName());
     dto.setTags(entity.getTags());
     dto.setAttributes(entity.getAttributes());
@@ -122,7 +122,7 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   }
 
   private ResultingProduct toEntity(ResultingProductDto dto) {
-    ResultingProduct entity = new ResultingProduct();
+    final var entity = new ResultingProduct();
     entity.setName(dto.getName());
     entity.setTags(dto.getTags());
     entity.setAttributes(dto.getAttributes());
@@ -131,28 +131,28 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
   }
 
   private MeasurementDto toDto(Measurement entity) {
-    MeasurementDto dto = new MeasurementDto();
+    final var dto = new MeasurementDto();
     dto.setType(entity.getType());
     dto.setRequiredAmount(entity.getRequiredAmount());
     return dto;
   }
 
   private Measurement toEntity(MeasurementDto dto) {
-    Measurement entity = new Measurement();
+    final var entity = new Measurement();
     entity.setType(dto.getType());
     entity.setRequiredAmount(dto.getRequiredAmount());
     return entity;
   }
 
   private SubtractionMeasurementDto toDto(SubtractionMeasurement entity) {
-    SubtractionMeasurementDto dto = new SubtractionMeasurementDto();
+    final var dto = new SubtractionMeasurementDto();
     dto.setType(entity.getType());
     dto.setSubtractAmount(entity.getSubtractAmount());
     return dto;
   }
 
   private SubtractionMeasurement toEntity(SubtractionMeasurementDto dto) {
-    SubtractionMeasurement entity = new SubtractionMeasurement();
+    final var entity = new SubtractionMeasurement();
     entity.setType(dto.getType());
     entity.setSubtractAmount(dto.getSubtractAmount());
     return entity;
