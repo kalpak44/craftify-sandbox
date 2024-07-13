@@ -1,6 +1,5 @@
 package com.craftify.shared.dto;
 
-
 public abstract class IdentifiedDto<T> {
   private T id;
 

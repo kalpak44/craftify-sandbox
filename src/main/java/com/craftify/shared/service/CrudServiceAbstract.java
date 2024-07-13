@@ -1,9 +1,8 @@
 package com.craftify.shared.service;
 
-import java.util.Optional;
-
 import com.craftify.shared.dto.IdentifiedDto;
 import com.craftify.shared.exception.ApiException;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
