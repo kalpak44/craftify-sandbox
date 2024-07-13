@@ -164,7 +164,7 @@ public class RecipeMappingService {
   private void validateMeasurement(Measurement measurement) {
     if (measurement == null
         || StringUtils.isEmpty(measurement.getType())
-        || measurement.getAmount() != null
+        || measurement.getAmount() == null
         || StringUtils.isEmpty(measurement.getUnit())) {
       throw new ApiException(
           HttpStatus.BAD_REQUEST, "Measurement must contain type, amount (valid number), and unit");
@@ -174,7 +174,7 @@ public class RecipeMappingService {
   private void validateMeasurementDto(MeasurementDto measurementDto) {
     if (measurementDto == null
         || StringUtils.isEmpty(measurementDto.getType())
-        || measurementDto.getAmount() != null
+        || measurementDto.getAmount() == null
         || StringUtils.isEmpty(measurementDto.getUnit())) {
       throw new ApiException(
           HttpStatus.BAD_REQUEST,
