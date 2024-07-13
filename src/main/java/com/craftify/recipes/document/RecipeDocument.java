@@ -1,28 +1,20 @@
 package com.craftify.recipes.document;
 
 import com.craftify.shared.document.IdentifiedDocument;
+import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "recipes")
 public class RecipeDocument extends IdentifiedDocument<String> {
-  private AvailabilityCheckLogic availabilityCheckLogic;
-  private SubtractionLogic subtractionLogic;
+  private List<RecipeItem> recipe;
   private ResultingProduct resultingProduct;
 
-  public AvailabilityCheckLogic getAvailabilityCheckLogic() {
-    return availabilityCheckLogic;
+  public List<RecipeItem> getRecipe() {
+    return recipe;
   }
 
-  public void setAvailabilityCheckLogic(AvailabilityCheckLogic availabilityCheckLogic) {
-    this.availabilityCheckLogic = availabilityCheckLogic;
-  }
-
-  public SubtractionLogic getSubtractionLogic() {
-    return subtractionLogic;
-  }
-
-  public void setSubtractionLogic(SubtractionLogic subtractionLogic) {
-    this.subtractionLogic = subtractionLogic;
+  public void setRecipe(List<RecipeItem> recipe) {
+    this.recipe = recipe;
   }
 
   public ResultingProduct getResultingProduct() {

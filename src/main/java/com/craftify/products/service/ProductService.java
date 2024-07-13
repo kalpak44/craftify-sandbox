@@ -5,6 +5,8 @@ import com.craftify.products.dto.ProductDto;
 import com.craftify.products.repository.ProductRepository;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudServiceAbstract;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +18,7 @@ public class ProductService extends CrudServiceAbstract<ProductDocument, Product
 
   @Override
   protected ProductDto toDto(ProductDocument entity) throws ApiException {
+    validateProduct(entity);
     final var productDto = new ProductDto();
     productDto.setId(entity.getId());
     productDto.setName(entity.getName());
@@ -27,6 +30,7 @@ public class ProductService extends CrudServiceAbstract<ProductDocument, Product
 
   @Override
   protected ProductDocument toEntity(ProductDto dto) throws ApiException {
+    validateProductDto(dto);
     final var product = new ProductDocument();
     product.setId(dto.getId());
     product.setName(dto.getName());
@@ -34,5 +38,17 @@ public class ProductService extends CrudServiceAbstract<ProductDocument, Product
     product.setMeasurements(dto.getMeasurements());
     product.setTags(dto.getTags());
     return product;
+  }
+
+  private void validateProduct(ProductDocument product) {
+    if (StringUtils.isEmpty(product.getName())) {
+      throw new ApiException(HttpStatus.BAD_REQUEST, "ProductDocument must contain a name");
+    }
+  }
+
+  private void validateProductDto(ProductDto productDto) {
+    if (StringUtils.isEmpty(productDto.getName())) {
+      throw new ApiException(HttpStatus.BAD_REQUEST, "ProductDto must contain a name");
+    }
   }
 }

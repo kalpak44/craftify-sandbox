@@ -4,7 +4,8 @@ import java.math.BigDecimal;
 
 public class MeasurementDto {
   private String type;
-  private BigDecimal requiredAmount;
+  private BigDecimal amount;
+  private String unit;
 
   public String getType() {
     return type;
@@ -14,11 +15,19 @@ public class MeasurementDto {
     this.type = type;
   }
 
-  public BigDecimal getRequiredAmount() {
-    return requiredAmount;
+  public BigDecimal getAmount() {
+    return amount;
   }
 
-  public void setRequiredAmount(BigDecimal requiredAmount) {
-    this.requiredAmount = requiredAmount;
+  public void setAmount(BigDecimal amount) {
+    this.amount = amount;
+  }
+
+  public String getUnit() {
+    return unit;
+  }
+
+  public void setUnit(String unit) {
+    this.unit = unit;
   }
 }

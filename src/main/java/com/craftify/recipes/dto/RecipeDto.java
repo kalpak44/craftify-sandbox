@@ -1,26 +1,18 @@
 package com.craftify.recipes.dto;
 
 import com.craftify.shared.dto.IdentifiedDto;
+import java.util.List;
 
 public class RecipeDto extends IdentifiedDto<String> {
-  private AvailabilityCheckLogicDto availabilityCheckLogic;
-  private SubtractionLogicDto subtractionLogic;
+  private List<RecipeItemDto> recipe;
   private ResultingProductDto resultingProduct;
 
-  public AvailabilityCheckLogicDto getAvailabilityCheckLogic() {
-    return availabilityCheckLogic;
+  public List<RecipeItemDto> getRecipe() {
+    return recipe;
   }
 
-  public void setAvailabilityCheckLogic(AvailabilityCheckLogicDto availabilityCheckLogic) {
-    this.availabilityCheckLogic = availabilityCheckLogic;
-  }
-
-  public SubtractionLogicDto getSubtractionLogic() {
-    return subtractionLogic;
-  }
-
-  public void setSubtractionLogic(SubtractionLogicDto subtractionLogic) {
-    this.subtractionLogic = subtractionLogic;
+  public void setRecipe(List<RecipeItemDto> recipe) {
+    this.recipe = recipe;
   }
 
   public ResultingProductDto getResultingProduct() {
