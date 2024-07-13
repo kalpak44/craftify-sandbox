@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class YieldResponseDto {
   private String recipeId;
-  private BigDecimal possibleProducts;
+  private int possibleProducts;
 
   public String getRecipeId() {
     return recipeId;
@@ -14,11 +14,11 @@ public class YieldResponseDto {
     this.recipeId = recipeId;
   }
 
-  public BigDecimal getPossibleProducts() {
+  public int getPossibleProducts() {
     return possibleProducts;
   }
 
-  public void setPossibleProducts(BigDecimal possibleProducts) {
+  public void setPossibleProducts(int possibleProducts) {
     this.possibleProducts = possibleProducts;
   }
 }

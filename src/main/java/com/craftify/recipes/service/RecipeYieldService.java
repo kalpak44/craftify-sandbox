@@ -9,6 +9,7 @@ public class RecipeYieldService {
   public YieldResponseDto calculateYieldByRecipeId(String recipeId) {
     final var yield = new YieldResponseDto();
     yield.setRecipeId(recipeId);
+    yield.setPossibleProducts(99);
     // todo: implement me
     return yield;
   }

@@ -42,6 +42,11 @@ public class RecipeController extends CrudController<RecipeDto, String> {
       operationId = "applyRecipe")
   public ApplyRecipeResponseDto applyRecipe(@PathVariable String id, @RequestParam int count) {
     validateRecipeId(id);
+    var yield = recipeService.getYieldByRecipeId(id);
+    if (yield.getPossibleProducts() < count) {
+      throw new ApiException(
+          HttpStatus.BAD_REQUEST, "The specified count of products exceeds the available yield.");
+    }
     return recipeService.applyRecipe(id, count);
   }
 
@@ -50,7 +55,7 @@ public class RecipeController extends CrudController<RecipeDto, String> {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
     }
     recipeService
-            .findById(id)
-            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Document not found."));
+        .findById(id)
+        .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Document not found."));
   }
 }
