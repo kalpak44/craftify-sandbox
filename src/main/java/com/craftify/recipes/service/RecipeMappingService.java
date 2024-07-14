@@ -1,5 +1,6 @@
 package com.craftify.recipes.service;
 
+import com.craftify.products.document.ProductDocument;
 import com.craftify.recipes.document.Action;
 import com.craftify.recipes.document.Measurement;
 import com.craftify.recipes.document.ProductSearch;
@@ -39,6 +40,15 @@ public class RecipeMappingService {
     recipe.setRecipe(dto.getRecipe().stream().map(this::toEntity).collect(Collectors.toList()));
     recipe.setResultingProduct(toEntity(dto.getResultingProduct()));
     return recipe;
+  }
+
+  public ProductDocument convertToProductDocument(ResultingProduct resultingProduct) {
+    ProductDocument productDocument = new ProductDocument();
+    productDocument.setName(resultingProduct.getName());
+    productDocument.setTags(resultingProduct.getTags());
+    productDocument.setAttributes(resultingProduct.getAttributes());
+    productDocument.setMeasurements(resultingProduct.getMeasurements());
+    return productDocument;
   }
 
   private RecipeItemDto toDto(RecipeItem entity) {
