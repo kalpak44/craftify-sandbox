@@ -14,6 +14,7 @@ MongoDB as the database.
 ### Installation
 
 1. **Clone the repository:**
+
 ```bash
 git clone https://github.com/kalpak44/craftify-sandbox.git
 cd craftify
@@ -21,6 +22,7 @@ cd craftify
 
 2. **Set up MongoDB:**
    Ensure MongoDB is running and configure the connection details in `application.yaml` or via environment variables:
+
 ```yaml
 spring:
   data:
@@ -31,6 +33,7 @@ spring:
 ```
 
 3. **Build and run the application:**
+
 ```bash
 mvn clean install
 mvn spring-boot:run

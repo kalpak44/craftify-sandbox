@@ -1,11 +1,12 @@
 package com.craftify.recipes.dto;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class YieldResponseDto {
   private String recipeId;
-  private int possibleProducts;
+  private BigDecimal yield;
   private List<String> issues = new ArrayList<>();
 
   public String getRecipeId() {
@@ -16,12 +17,12 @@ public class YieldResponseDto {
     this.recipeId = recipeId;
   }
 
-  public int getPossibleProducts() {
-    return possibleProducts;
+  public BigDecimal getYield() {
+    return yield;
   }
 
-  public void setPossibleProducts(int possibleProducts) {
-    this.possibleProducts = possibleProducts;
+  public void setYield(BigDecimal yield) {
+    this.yield = yield;
   }
 
   public List<String> getIssues() {

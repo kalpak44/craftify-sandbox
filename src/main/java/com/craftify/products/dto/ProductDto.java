@@ -1,16 +1,19 @@
 package com.craftify.products.dto;
 
 import com.craftify.shared.dto.IdentifiedDto;
-
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ProductDto extends IdentifiedDto<String> {
   private String name;
   private Map<String, String> attributes = new HashMap<>();
   private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();
   private Map<String, String> tags = new HashMap<>();
+  private Map<String, Map<BigDecimal, String>> availability = new HashMap<>();
+  private Set<String> categories = new HashSet<>();
 
 
   public String getName() {
@@ -43,5 +46,21 @@ public class ProductDto extends IdentifiedDto<String> {
 
   public void setTags(Map<String, String> tags) {
     this.tags = tags;
+  }
+
+  public Map<String, Map<BigDecimal, String>> getAvailability() {
+    return availability;
+  }
+
+  public void setAvailability(Map<String, Map<BigDecimal, String>> availability) {
+    this.availability = availability;
+  }
+
+  public Set<String> getCategories() {
+    return categories;
+  }
+
+  public void setCategories(Set<String> categories) {
+    this.categories = categories;
   }
 }

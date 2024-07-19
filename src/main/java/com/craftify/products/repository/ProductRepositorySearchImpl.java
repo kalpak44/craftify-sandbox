@@ -33,6 +33,23 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
       query.addCriteria(new Criteria().andOperator(attributeCriteria.toArray(new Criteria[0])));
     }
 
+    if (productSearch.getMeasurements() != null && !productSearch.getMeasurements().isEmpty()) {
+      var measurementCriteria = new ArrayList<>();
+      for (var entry : productSearch.getMeasurements().entrySet()) {
+        measurementCriteria.add(
+            Criteria.where("measurements." + entry.getKey()).is(entry.getValue()));
+      }
+      query.addCriteria(new Criteria().andOperator(measurementCriteria.toArray(new Criteria[0])));
+    }
+
+    if (productSearch.getCategories() != null && !productSearch.getCategories().isEmpty()) {
+      var categoryCriteria = new ArrayList<>();
+      for (var categorySearch : productSearch.getCategories()) {
+        categoryCriteria.add(Criteria.where("categories").is(categorySearch));
+      }
+      query.addCriteria(new Criteria().andOperator(categoryCriteria.toArray(new Criteria[0])));
+    }
+
     if (productSearch.getTags() != null && !productSearch.getTags().isEmpty()) {
       var tagCriteria = new ArrayList<>();
       for (var entry : productSearch.getTags().entrySet()) {

@@ -1,7 +1,6 @@
 package com.craftify.recipes.service;
 
 import com.craftify.recipes.document.RecipeDocument;
-import com.craftify.recipes.dto.ApplyRecipeResponseDto;
 import com.craftify.recipes.dto.RecipeDto;
 import com.craftify.recipes.dto.YieldResponseDto;
 import com.craftify.recipes.repository.RecipeRepository;
@@ -35,9 +34,5 @@ public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto
 
   public YieldResponseDto getYieldByRecipeId(String recipeId) throws ApiException {
     return recipeYieldService.calculateYieldByRecipeId(recipeId);
-  }
-
-  public ApplyRecipeResponseDto applyRecipe(String recipeId, int count) throws ApiException {
-    return recipeYieldService.applyYieldByRecipeId(recipeId, count);
   }
 }

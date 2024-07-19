@@ -1,8 +1,11 @@
 package com.craftify.recipes.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ActionDto {
   private String type;
-  private MeasurementDto measurement;
+  private Map<String, Object> parameters = new HashMap<>();
 
   public String getType() {
     return type;
@@ -12,11 +15,11 @@ public class ActionDto {
     this.type = type;
   }
 
-  public MeasurementDto getMeasurement() {
-    return measurement;
+  public Map<String, Object> getParameters() {
+    return parameters;
   }
 
-  public void setMeasurement(MeasurementDto measurement) {
-    this.measurement = measurement;
+  public void setParameters(Map<String, Object> parameters) {
+    this.parameters = parameters;
   }
 }

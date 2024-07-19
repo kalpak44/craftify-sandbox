@@ -1,8 +1,11 @@
 package com.craftify.recipes.document;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Action {
   private String type;
-  private Measurement measurement;
+  private Map<String, Object> parameters = new HashMap<>();
 
   public String getType() {
     return type;
@@ -12,11 +15,11 @@ public class Action {
     this.type = type;
   }
 
-  public Measurement getMeasurement() {
-    return measurement;
+  public Map<String, Object> getParameters() {
+    return parameters;
   }
 
-  public void setMeasurement(Measurement measurement) {
-    this.measurement = measurement;
+  public void setParameters(Map<String, Object> parameters) {
+    this.parameters = parameters;
   }
 }

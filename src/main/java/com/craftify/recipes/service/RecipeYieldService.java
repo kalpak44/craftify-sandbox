@@ -1,13 +1,14 @@
 package com.craftify.recipes.service;
 
 import com.craftify.products.service.ProductSearchService;
-import com.craftify.recipes.dto.ApplyRecipeResponseDto;
 import com.craftify.recipes.dto.YieldResponseDto;
+import com.craftify.recipes.exception.RecipeActionError;
 import com.craftify.recipes.repository.RecipeRepository;
+import com.craftify.recipes.service.actions.RecipeAction;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,15 +16,15 @@ public class RecipeYieldService {
 
   private final RecipeRepository recipeRepository;
   private final ProductSearchService productSearchService;
-  private final RecipeMappingService recipeMappingService;
+  private final Set<RecipeAction> allAvailableRecipeActions;
 
   public RecipeYieldService(
       RecipeRepository recipeRepository,
       ProductSearchService productSearchService,
-      RecipeMappingService recipeMappingService) {
+      Set<RecipeAction> recipeActions) {
     this.recipeRepository = recipeRepository;
     this.productSearchService = productSearchService;
-    this.recipeMappingService = recipeMappingService;
+    this.allAvailableRecipeActions = recipeActions;
   }
 
   public YieldResponseDto calculateYieldByRecipeId(String recipeId) {
@@ -33,94 +34,47 @@ public class RecipeYieldService {
     var optionalRecipe = recipeRepository.findById(recipeId);
     if (optionalRecipe.isEmpty()) {
       yield.setIssues(List.of("Recipe not found"));
-      yield.setPossibleProducts(0);
+      yield.setYield(null);
       return yield;
     }
+    var recipeDocument = optionalRecipe.get();
+    var resultErrors = new ArrayList<String>();
+    var resultYield = BigDecimal.valueOf(Integer.MAX_VALUE);
 
-    var recipe = optionalRecipe.get();
-    var errors = new ArrayList<String>();
-    var possibleProducts = BigDecimal.valueOf(Long.MAX_VALUE);
-
-    for (var item : recipe.getRecipe()) {
-      var productSearch = item.getProductSearch();
+    for (var recipeStep : recipeDocument.getRecipeSteps()) {
+      var productSearch = recipeStep.getProductSearch();
       var matchingProducts = productSearchService.searchProducts(productSearch);
 
       if (matchingProducts.isEmpty()) {
-        errors.add("No matching products found for: " + productSearch.getProductName());
-        possibleProducts = BigDecimal.ZERO;
-        break;
+        resultErrors.add("No matching products found for: " + productSearch.getProductName());
+        continue;
       }
 
-      for (var action : item.getActions()) {
-        var requiredAmount = action.getMeasurement().getAmount();
-        var requiredUnit = action.getMeasurement().getUnit();
-        if (action.getType().equals("subtraction")
-            && requiredAmount.compareTo(BigDecimal.ZERO) <= 0) {
-          errors.add(
-              "Measurement amount for "
-                  + productSearch.getProductName()
-                  + " must be greater than zero");
-          possibleProducts = BigDecimal.ZERO;
-          break;
-        }
+      for (var action : recipeStep.getActions()) {
+        var recipeActions =
+            allAvailableRecipeActions.stream()
+                .filter(supportedActions -> action.getType().equals(supportedActions.getType()))
+                .toList();
 
-        var totalAvailable = BigDecimal.ZERO;
-        var unitMatches = false;
-        for (var product : matchingProducts) {
-          var measurements = product.getMeasurements();
-          var measurement = measurements.get(action.getMeasurement().getType());
-          if (measurement != null) {
-            for (var amount : measurement.keySet()) {
-              if (measurement.get(amount).equals(requiredUnit)) {
-                totalAvailable = totalAvailable.add(amount);
-                unitMatches = true;
-              } else {
-                errors.add(
-                    "Unit mismatch for "
-                        + productSearch.getProductName()
-                        + ": expected "
-                        + requiredUnit
-                        + ", found "
-                        + measurement.get(amount));
-              }
-            }
+        for (var recipeAction : recipeActions) {
+          try {
+            resultYield =
+                recipeAction.calculateNewYield(
+                    matchingProducts, action.getParameters(), resultYield);
+          } catch (RecipeActionError e) {
+            resultErrors.addAll(e.getErrors());
           }
-        }
-
-        if (!unitMatches) {
-          possibleProducts = BigDecimal.ZERO;
-          break;
-        }
-
-        if (totalAvailable.compareTo(requiredAmount) < 0) {
-          errors.add(
-              "Insufficient amount of "
-                  + productSearch.getProductName()
-                  + " to produce the product");
-          possibleProducts = BigDecimal.ZERO;
-          break;
-        }
-
-        var productsFromThisItem = totalAvailable.divide(requiredAmount, RoundingMode.DOWN);
-        if (productsFromThisItem.compareTo(possibleProducts) < 0) {
-          possibleProducts = productsFromThisItem;
         }
       }
     }
 
-    yield.setPossibleProducts(possibleProducts.intValue());
-    if (!errors.isEmpty()) {
-      yield.setIssues(errors);
+    if (!resultErrors.isEmpty()) {
+      yield.setYield(BigDecimal.ZERO);
+      yield.setIssues(resultErrors);
+    } else {
+      yield.setYield(resultYield);
     }
 
     return yield;
-  }
-
-  public ApplyRecipeResponseDto applyYieldByRecipeId(String recipeId, int count) {
-    final var applyStatus = new ApplyRecipeResponseDto();
-    applyStatus.setRecipeId(recipeId);
-    applyStatus.setApplyCount(count);
-    // todo: implement me
-    return applyStatus;
   }
 }

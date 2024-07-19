@@ -2,7 +2,7 @@ package com.craftify.recipes.document;
 
 import java.util.List;
 
-public class RecipeItem {
+public class RecipeStep {
   private ProductSearch productSearch;
   private List<Action> actions;
 

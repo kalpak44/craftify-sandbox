@@ -24,6 +24,8 @@ public class ProductService extends CrudServiceAbstract<ProductDocument, Product
     productDto.setName(entity.getName());
     productDto.setAttributes(entity.getAttributes());
     productDto.setMeasurements(entity.getMeasurements());
+    productDto.setAvailability(entity.getAvailability());
+    productDto.setCategories(entity.getCategories());
     productDto.setTags(entity.getTags());
     return productDto;
   }
@@ -36,6 +38,13 @@ public class ProductService extends CrudServiceAbstract<ProductDocument, Product
     product.setName(dto.getName());
     product.setAttributes(dto.getAttributes());
     product.setMeasurements(dto.getMeasurements());
+    product.setAvailability(
+        dto.getAvailability() == null || dto.getAvailability().isEmpty()
+            ? dto.getMeasurements()
+            : dto.getAvailability());
+    product.setAvailability(dto.getMeasurements());
+
+    product.setCategories(dto.getCategories());
     product.setTags(dto.getTags());
     return product;
   }

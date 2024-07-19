@@ -6,15 +6,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "recipes")
 public class RecipeDocument extends IdentifiedDocument<String> {
-  private List<RecipeItem> recipe;
+  private List<RecipeStep> recipeSteps;
   private ResultingProduct resultingProduct;
 
-  public List<RecipeItem> getRecipe() {
-    return recipe;
+  public List<RecipeStep> getRecipeSteps() {
+    return recipeSteps;
   }
 
-  public void setRecipe(List<RecipeItem> recipe) {
-    this.recipe = recipe;
+  public void setRecipeSteps(List<RecipeStep> recipeSteps) {
+    this.recipeSteps = recipeSteps;
   }
 
   public ResultingProduct getResultingProduct() {
