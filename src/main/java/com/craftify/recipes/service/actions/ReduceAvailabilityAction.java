@@ -27,14 +27,15 @@ public class ReduceAvailabilityAction implements RecipeAction {
       throw new ApiException(
           HttpStatus.BAD_REQUEST, "Missing required parameters 'amount' or 'unit' or 'type'");
     }
-    if (!(parameters.get("amount") instanceof Integer)) {
-      throw new ApiException(HttpStatus.BAD_REQUEST, "'amount' must be a number");
+    if (!(parameters.get("amount") instanceof Integer
+        || parameters.get("amount") instanceof Double)) {
+      throw new ApiException(HttpStatus.BAD_REQUEST, "amount must be a number");
     }
     if (!(parameters.get("unit") instanceof String)) {
-      throw new ApiException(HttpStatus.BAD_REQUEST, "'unit' must be a string");
+      throw new ApiException(HttpStatus.BAD_REQUEST, "unit must be a string");
     }
     if (!(parameters.get("type") instanceof String)) {
-      throw new ApiException(HttpStatus.BAD_REQUEST, "'type' must be a string");
+      throw new ApiException(HttpStatus.BAD_REQUEST, "type must be a string");
     }
   }
 
@@ -44,7 +45,7 @@ public class ReduceAvailabilityAction implements RecipeAction {
       Map<String, Object> actionParameters,
       BigDecimal currentYield)
       throws RecipeActionError {
-    var requiredAmount = new BigDecimal((Integer) actionParameters.get("amount"));
+    var requiredAmount = new BigDecimal(String.valueOf(actionParameters.get("amount")));
     var requiredUnit = (String) actionParameters.get("unit");
     var availabilityType = (String) actionParameters.get("type");
     var errors = new ArrayList<String>();
