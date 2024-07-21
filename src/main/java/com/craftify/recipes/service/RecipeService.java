@@ -4,12 +4,14 @@ import com.craftify.recipes.document.RecipeDocument;
 import com.craftify.recipes.dto.RecipeDto;
 import com.craftify.recipes.dto.YieldResponseDto;
 import com.craftify.recipes.repository.RecipeRepository;
+import com.craftify.shared.dto.SearchFilter;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudServiceAbstract;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RecipeService extends CrudServiceAbstract<RecipeDocument, RecipeDto, String> {
+public class RecipeService
+    extends CrudServiceAbstract<RecipeDocument, RecipeDto, String, SearchFilter> {
   private final RecipeMappingService mappingService;
   private final RecipeYieldService recipeYieldService;
 

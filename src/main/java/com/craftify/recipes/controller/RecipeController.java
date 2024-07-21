@@ -4,6 +4,7 @@ import com.craftify.recipes.dto.RecipeDto;
 import com.craftify.recipes.dto.YieldResponseDto;
 import com.craftify.recipes.service.RecipeService;
 import com.craftify.shared.controller.CrudController;
+import com.craftify.shared.dto.SearchFilter;
 import com.craftify.shared.exception.ApiException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/recipes")
 @Tag(name = "Recipes")
-public class RecipeController extends CrudController<RecipeDto, String> {
+public class RecipeController extends CrudController<RecipeDto, String, SearchFilter> {
   private final RecipeService recipeService;
 
   protected RecipeController(RecipeService service, RecipeService recipeService) {

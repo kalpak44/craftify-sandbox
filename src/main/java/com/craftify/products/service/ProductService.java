@@ -2,18 +2,35 @@ package com.craftify.products.service;
 
 import com.craftify.products.document.ProductDocument;
 import com.craftify.products.dto.ProductDto;
+import com.craftify.products.dto.ProductSearchFilter;
 import com.craftify.products.repository.ProductRepository;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudServiceAbstract;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProductService extends CrudServiceAbstract<ProductDocument, ProductDto, String> {
+public class ProductService
+    extends CrudServiceAbstract<ProductDocument, ProductDto, String, ProductSearchFilter> {
+  private final ProductSearchService productSearchService;
 
-  public ProductService(ProductRepository repository) {
+  public ProductService(ProductRepository repository, ProductSearchService productSearchService) {
     super(repository);
+    this.productSearchService = productSearchService;
+  }
+
+  @Override
+  public Page<ProductDto> findAll(Pageable pageable, ProductSearchFilter searchFilter) {
+    if (searchFilter != null && StringUtils.isNotBlank(searchFilter.getCategory())) {
+      return productSearchService
+          .searchByCategories(Set.of(searchFilter.getCategory()), pageable)
+          .map(this::toDto);
+    }
+    return super.findAll(pageable, searchFilter);
   }
 
   @Override

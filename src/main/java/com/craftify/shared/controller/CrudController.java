@@ -1,6 +1,7 @@
 package com.craftify.shared.controller;
 
 import com.craftify.shared.dto.IdentifiedDto;
+import com.craftify.shared.dto.SearchFilter;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,19 +14,21 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
-public abstract class CrudController<DTO extends IdentifiedDto<ID>, ID> {
+public abstract class CrudController<
+    DTO extends IdentifiedDto<ID>, ID, FILTER extends SearchFilter> {
 
-  private final CrudService<DTO, ID> service;
+  private final CrudService<DTO, ID, FILTER> service;
 
-  protected CrudController(CrudService<DTO, ID> service) {
+  protected CrudController(CrudService<DTO, ID, FILTER> service) {
     this.service = service;
   }
 
   @GetMapping
   @Operation(summary = "List all entries in a paginated response", operationId = "getAll")
-  public Page<DTO> getAll(Pageable pageable) {
-    return service.findAll(pageable);
+  public Page<DTO> getAll(Pageable pageable, @RequestParam(required = false) FILTER searchFilter) {
+    return service.findAll(pageable, searchFilter);
   }
 
   @GetMapping("/{id}")

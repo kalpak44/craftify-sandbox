@@ -15,7 +15,6 @@ public class ProductDto extends IdentifiedDto<String> {
   private Map<String, Map<BigDecimal, String>> availability = new HashMap<>();
   private Set<String> categories = new HashSet<>();
 
-
   public String getName() {
     return name;
   }

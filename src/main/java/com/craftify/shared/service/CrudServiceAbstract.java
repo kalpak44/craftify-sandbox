@@ -1,14 +1,16 @@
 package com.craftify.shared.service;
 
 import com.craftify.shared.dto.IdentifiedDto;
+import com.craftify.shared.dto.SearchFilter;
 import com.craftify.shared.exception.ApiException;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public abstract class CrudServiceAbstract<ENTITY, DTO extends IdentifiedDto<ID>, ID>
-    implements CrudService<DTO, ID> {
+public abstract class CrudServiceAbstract<
+        ENTITY, DTO extends IdentifiedDto<ID>, ID, FILTER extends SearchFilter>
+    implements CrudService<DTO, ID, FILTER> {
 
   private final MongoRepository<ENTITY, ID> repository;
 
@@ -17,7 +19,7 @@ public abstract class CrudServiceAbstract<ENTITY, DTO extends IdentifiedDto<ID>,
   }
 
   @Override
-  public Page<DTO> findAll(Pageable pageable) {
+  public Page<DTO> findAll(Pageable pageable, FILTER searchFilter) {
     return repository.findAll(pageable).map(this::toDto);
   }
 
