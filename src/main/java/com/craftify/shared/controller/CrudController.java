@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -44,6 +45,7 @@ public abstract class CrudController<
 
   @PostMapping
   @Operation(summary = "Create a new entry", operationId = "create")
+  @Transactional
   public DTO create(@RequestBody DTO entity) {
     entity.setId(null);
     return service.save(entity);
@@ -51,6 +53,7 @@ public abstract class CrudController<
 
   @DeleteMapping("/{id}")
   @Operation(summary = "Delete a specific entry by ID", operationId = "deleteById")
+  @Transactional
   public void delete(@PathVariable ID id) {
     if (id == null) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
@@ -63,6 +66,7 @@ public abstract class CrudController<
 
   @PatchMapping("/{id}")
   @Operation(summary = "Update an existing entry by ID", operationId = "update")
+  @Transactional
   public DTO update(@PathVariable ID id, @RequestBody DTO updateEntity) {
     if (id == null) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
