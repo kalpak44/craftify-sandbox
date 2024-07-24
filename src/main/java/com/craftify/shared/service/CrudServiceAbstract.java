@@ -19,17 +19,17 @@ public abstract class CrudServiceAbstract<
   }
 
   @Override
-  public Page<DTO> findAll(Pageable pageable, FILTER searchFilter) {
+  public Page<DTO> findAll(Pageable pageable, FILTER searchFilter, String currentUserId) {
     return repository.findAll(pageable).map(this::toDto);
   }
 
   @Override
-  public Optional<DTO> findById(ID id) {
+  public Optional<DTO> findById(ID id, String currentUserId) {
     return repository.findById(id).map(this::toDto);
   }
 
   @Override
-  public DTO save(DTO dto) {
+  public DTO save(DTO dto, String currentUserId) {
     ENTITY entity = this.toEntity(dto);
     return entity != null ? toDto(repository.save(entity)) : null;
   }

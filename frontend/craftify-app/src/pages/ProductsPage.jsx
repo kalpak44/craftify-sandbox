@@ -2,9 +2,9 @@ import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect, useState } from "react";
 import { getProductsPageable } from "../services/API";
 import { PageLayout } from "../components/page-layout/PageLayout.jsx";
-import {PageLoader} from "../components/page-loader/PageLoader.jsx";
-import {Modal} from "../components/modal/Modal.jsx";
-
+import { PageLoader } from "../components/page-loader/PageLoader.jsx";
+import { Modal } from "../components/modal/Modal.jsx";
+import { Notification } from "../components/notification/Notification.jsx";
 
 export const ProtectedPage = () => {
     const [products, setProducts] = useState([]);
@@ -14,6 +14,7 @@ export const ProtectedPage = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
+    const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
 
     useEffect(() => {
@@ -21,23 +22,30 @@ export const ProtectedPage = () => {
 
         const getProductData = async (page) => {
             setLoading(true);
-            const accessToken = await getAccessTokenSilently();
-            const productsData = await getProductsPageable(accessToken, page);
+            setError(null);
+            try {
+                const accessToken = await getAccessTokenSilently();
+                const productsData = await getProductsPageable(accessToken, page);
 
-            if (!isMounted) {
-                return;
-            }
+                if (!isMounted) {
+                    return;
+                }
 
-            if (productsData && productsData.content) {
-                setProducts(productsData.content);
-                setTotalPages(productsData.totalPages);
+                if (productsData && productsData.content) {
+                    setProducts(productsData.content);
+                    setTotalPages(productsData.totalPages);
+                }
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         getProductData(currentPage).catch((error) => {
             console.error(error);
             setLoading(false);
+            setError(error.message);
         });
 
         return () => {
@@ -114,7 +122,7 @@ export const ProtectedPage = () => {
                 <div className="content__body">
                     <p id="page-description">
                         <span>
-                            This page retrieves a <strong>protected message</strong> from an
+                            This page retrieves a <strong>protected data</strong> from an
                             external API.
                         </span>
                     </p>
@@ -133,7 +141,7 @@ export const ProtectedPage = () => {
                                 <tbody>
                                 {products.map((product) => (
                                     <React.Fragment key={product.id}>
-                                        <tr onClick={() => toggleExpand(product.id)} className="hover:bg-gray-100 cursor-pointer">
+                                        <tr onClick={() => toggleExpand(product.id)} className={`hover:bg-gray-100 cursor-pointer ${expandedProductId === product.id ? 'bg-gray-200' : ''}`}>
                                             <td className="w-1/5 py-3 px-6 border-b border-gray-200 text-black">{product.id}</td>
                                             <td className="w-3/5 py-3 px-6 border-b border-gray-200 text-black">{product.name}</td>
                                             <td className="w-1/5 py-3 px-6 border-b border-gray-200 text-black">
@@ -212,6 +220,11 @@ export const ProtectedPage = () => {
                 onConfirm={confirmDelete}
                 title="Confirm Deletion"
                 message="Are you sure you want to delete this product?"
+            />
+            <Notification
+                show={!!error}
+                message={error}
+                onClose={() => setError(null)}
             />
         </PageLayout>
     );

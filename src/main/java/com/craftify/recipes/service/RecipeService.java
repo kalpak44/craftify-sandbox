@@ -34,7 +34,7 @@ public class RecipeService
     return mappingService.toEntity(dto);
   }
 
-  public YieldResponseDto getYieldByRecipeId(String recipeId) throws ApiException {
-    return recipeYieldService.calculateYieldByRecipeId(recipeId);
+  public YieldResponseDto getYieldByRecipeId(String recipeId, String currentUserId) throws ApiException {
+    return recipeYieldService.calculateYieldByRecipeId(recipeId,currentUserId);
   }
 }

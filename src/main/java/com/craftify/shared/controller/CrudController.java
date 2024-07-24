@@ -4,6 +4,7 @@ import com.craftify.shared.dto.IdentifiedDto;
 import com.craftify.shared.dto.SearchFilter;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudService;
+import com.craftify.shared.service.CurrentUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.data.domain.Page;
@@ -25,15 +26,18 @@ public abstract class CrudController<
     DTO extends IdentifiedDto<ID>, ID, FILTER extends SearchFilter> {
 
   private final CrudService<DTO, ID, FILTER> service;
+  private final CurrentUserService currentUserService;
 
-  protected CrudController(CrudService<DTO, ID, FILTER> service) {
+  protected CrudController(
+      CrudService<DTO, ID, FILTER> service, CurrentUserService currentUserService) {
     this.service = service;
+    this.currentUserService = currentUserService;
   }
 
   @GetMapping
   @Operation(summary = "List all entries in a paginated response", operationId = "getAll")
   public Page<DTO> getAll(Pageable pageable, @RequestParam(required = false) FILTER searchFilter) {
-    return service.findAll(pageable, searchFilter);
+    return service.findAll(pageable, searchFilter, this.getCurrentUserId());
   }
 
   @GetMapping("/{id}")
@@ -43,7 +47,7 @@ public abstract class CrudController<
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
     }
     return service
-        .findById(id)
+        .findById(id, this.getCurrentUserId())
         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Document not found."));
   }
 
@@ -52,7 +56,7 @@ public abstract class CrudController<
   @Transactional
   public DTO create(@RequestBody DTO entity) {
     entity.setId(null);
-    return service.save(entity);
+    return service.save(entity, this.getCurrentUserId());
   }
 
   @DeleteMapping("/{id}")
@@ -62,7 +66,7 @@ public abstract class CrudController<
     if (id == null) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
     }
-    if (service.findById(id).isEmpty()) {
+    if (service.findById(id, this.getCurrentUserId()).isEmpty()) {
       throw new ApiException(HttpStatus.NOT_FOUND, "Document not found.");
     }
     service.deleteById(id);
@@ -76,11 +80,15 @@ public abstract class CrudController<
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
     }
     service
-        .findById(id)
+        .findById(id, this.getCurrentUserId())
         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Document not found."));
     service.deleteById(id);
     updateEntity.setId(id);
 
-    return service.save(updateEntity);
+    return service.save(updateEntity, this.getCurrentUserId());
+  }
+
+  protected String getCurrentUserId() {
+    return currentUserService.getCurrentUserId();
   }
 }

@@ -27,7 +27,7 @@ public class RecipeYieldService {
     this.allAvailableRecipeActions = recipeActions;
   }
 
-  public YieldResponseDto calculateYieldByRecipeId(String recipeId) {
+  public YieldResponseDto calculateYieldByRecipeId(String recipeId, String currentUserId) {
     var yield = new YieldResponseDto();
     yield.setRecipeId(recipeId);
 

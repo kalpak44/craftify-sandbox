@@ -6,6 +6,7 @@ import com.craftify.recipes.service.RecipeService;
 import com.craftify.shared.controller.CrudController;
 import com.craftify.shared.dto.SearchFilter;
 import com.craftify.shared.exception.ApiException;
+import com.craftify.shared.service.CurrentUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecipeController extends CrudController<RecipeDto, String, SearchFilter> {
   private final RecipeService recipeService;
 
-  protected RecipeController(RecipeService service, RecipeService recipeService) {
-    super(service);
+  protected RecipeController(
+      RecipeService service, RecipeService recipeService, CurrentUserService currentUserService) {
+    super(service, currentUserService);
     this.recipeService = recipeService;
   }
 
@@ -31,7 +33,7 @@ public class RecipeController extends CrudController<RecipeDto, String, SearchFi
       operationId = "getYieldByRecipeId")
   public YieldResponseDto getYieldByRecipeId(@PathVariable String id) {
     validateRecipeId(id);
-    return recipeService.getYieldByRecipeId(id);
+    return recipeService.getYieldByRecipeId(id, getCurrentUserId());
   }
 
   private void validateRecipeId(String id) {
@@ -39,7 +41,7 @@ public class RecipeController extends CrudController<RecipeDto, String, SearchFi
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
     }
     recipeService
-        .findById(id)
+        .findById(id, getCurrentUserId())
         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Document not found."));
   }
 }
