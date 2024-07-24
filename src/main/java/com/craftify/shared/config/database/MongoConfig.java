@@ -1,4 +1,4 @@
-package com.craftify.shared.config;
+package com.craftify.shared.config.database;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

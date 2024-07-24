@@ -41,3 +41,11 @@ springdoc:
     operationsSorter: alpha
     # Sort tags alphabetically
     tagsSorter: alpha
+
+# Auth0 configuration
+okta:
+  oauth2:
+    # Replace with the domain of your Auth0 tenant.
+    issuer: ${AUTH0_ISSUER}
+    # Replace with the API Identifier for your Auth0 API.
+    audience: ${AUTH0_AUDIENCE}
