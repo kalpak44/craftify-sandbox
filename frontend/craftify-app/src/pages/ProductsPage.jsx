@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { getProductsPageable } from "../services/API";
 import { PageLayout } from "../components/page-layout/PageLayout.jsx";
 import {PageLoader} from "../components/page-loader/PageLoader.jsx";
+import {Modal} from "../components/modal/Modal.jsx";
+
 
 export const ProtectedPage = () => {
     const [products, setProducts] = useState([]);
@@ -10,6 +12,8 @@ export const ProtectedPage = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [productToDelete, setProductToDelete] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
 
     useEffect(() => {
@@ -51,8 +55,14 @@ export const ProtectedPage = () => {
     };
 
     const handleRemove = (id) => {
-        console.log(`Remove product with id: ${id}`);
-        setProducts((prevProducts) => prevProducts.filter(product => product.id !== id));
+        setProductToDelete(id);
+        setShowModal(true);
+    };
+
+    const confirmDelete = () => {
+        setProducts((prevProducts) => prevProducts.filter(product => product.id !== productToDelete));
+        setShowModal(false);
+        setProductToDelete(null);
     };
 
     const renderTable = (data) => (
@@ -196,6 +206,13 @@ export const ProtectedPage = () => {
                     )}
                 </div>
             </div>
+            <Modal
+                show={showModal}
+                onClose={() => setShowModal(false)}
+                onConfirm={confirmDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this product?"
+            />
         </PageLayout>
     );
 };
