@@ -22,3 +22,31 @@ export const getProductsPageable = async (accessToken, page = 0, size = 10) => {
     const response = await fetchWithAuth(accessToken, `/products?page=${page}&size=${size}`);
     return response.json();
 };
+
+export const createProduct = async (accessToken, productData) => {
+    const response = await fetchWithAuth(accessToken, "/products", {
+        method: "POST",
+        body: JSON.stringify(productData),
+    });
+    return response.json();
+};
+
+export const getProductById = async (accessToken, productId) => {
+    const response = await fetchWithAuth(accessToken, `/products/${productId}`);
+    return response.json();
+};
+
+export const updateProduct = async (accessToken, productId, productData) => {
+    const response = await fetchWithAuth(accessToken, `/products/${productId}`, {
+        method: "PATCH",
+        body: JSON.stringify(productData),
+    });
+    return response.json();
+};
+
+export const deleteProduct = async (accessToken, productId) => {
+    const response = await fetchWithAuth(accessToken, `/products/${productId}`, {
+        method: "DELETE",
+    });
+    return response.ok;
+};

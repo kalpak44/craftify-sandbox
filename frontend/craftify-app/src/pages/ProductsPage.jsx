@@ -1,6 +1,7 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect, useState } from "react";
-import { getProductsPageable } from "../services/API";
+import { useNavigate } from "react-router-dom";
+import { getProductsPageable, deleteProduct } from "../services/API";
 import { PageLayout } from "../components/page-layout/PageLayout.jsx";
 import { PageLoader } from "../components/page-loader/PageLoader.jsx";
 import { Modal } from "../components/modal/Modal.jsx";
@@ -17,6 +18,7 @@ export const ProtectedPage = () => {
     const [productToDelete, setProductToDelete] = useState(null);
     const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
+    const navigate = useNavigate();
 
     useEffect(() => {
         let isMounted = true;
@@ -59,8 +61,7 @@ export const ProtectedPage = () => {
     };
 
     const handleEdit = (id) => {
-        console.log(`Edit product with id: ${id}`);
-        // Implement edit functionality here
+        navigate(`/products/${id}`);
     };
 
     const handleRemove = (id) => {
@@ -68,10 +69,35 @@ export const ProtectedPage = () => {
         setShowModal(true);
     };
 
-    const confirmDelete = () => {
-        setProducts((prevProducts) => prevProducts.filter(product => product.id !== productToDelete));
-        setShowModal(false);
-        setProductToDelete(null);
+    const confirmDelete = async () => {
+        setError(null);
+        setLoading(true);
+        try {
+            const accessToken = await getAccessTokenSilently();
+            await deleteProduct(accessToken, productToDelete);
+            await fetchProducts(currentPage);
+            setShowModal(false);
+            setProductToDelete(null);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchProducts = async (page) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const accessToken = await getAccessTokenSilently();
+            const productsData = await getProductsPageable(accessToken, page);
+            setProducts(productsData.content);
+            setTotalPages(productsData.totalPages);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const renderTable = (data) => (
