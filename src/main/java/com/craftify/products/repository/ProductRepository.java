@@ -1,6 +1,6 @@
 package com.craftify.products.repository;
 
 import com.craftify.products.document.ProductDocument;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import com.craftify.shared.repository.UserDataRepository;
 
-public interface ProductRepository extends MongoRepository<ProductDocument, String> {}
+public interface ProductRepository extends UserDataRepository<ProductDocument, String> {}

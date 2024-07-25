@@ -24,8 +24,9 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
   }
 
   @Override
-  public List<ProductDocument> searchProducts(ProductSearch productSearch) {
+  public List<ProductDocument> searchProducts(ProductSearch productSearch, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addProductNameCriteria(query, productSearch.getProductName());
     addAttributesCriteria(query, productSearch.getAttributes());
     addMeasurementsCriteria(query, productSearch.getMeasurements());
@@ -35,8 +36,10 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
   }
 
   @Override
-  public Page<ProductDocument> searchProducts(ProductSearch productSearch, Pageable pageable) {
+  public Page<ProductDocument> searchProducts(
+      ProductSearch productSearch, Pageable pageable, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addProductNameCriteria(query, productSearch.getProductName());
     addAttributesCriteria(query, productSearch.getAttributes());
     addMeasurementsCriteria(query, productSearch.getMeasurements());
@@ -46,62 +49,78 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
   }
 
   @Override
-  public List<ProductDocument> searchByCategories(Set<String> categories) {
+  public List<ProductDocument> searchByCategories(Set<String> categories, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addCategoriesCriteria(query, categories);
     return mongoTemplate.find(query, ProductDocument.class);
   }
 
   @Override
-  public Page<ProductDocument> searchByCategories(Set<String> categories, Pageable pageable) {
+  public Page<ProductDocument> searchByCategories(
+      Set<String> categories, Pageable pageable, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addCategoriesCriteria(query, categories);
     return executePagedQuery(query, pageable);
   }
 
   @Override
-  public List<ProductDocument> searchByAttributes(Map<String, String> attributes) {
+  public List<ProductDocument> searchByAttributes(Map<String, String> attributes, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addAttributesCriteria(query, attributes);
     return mongoTemplate.find(query, ProductDocument.class);
   }
 
   @Override
   public Page<ProductDocument> searchByAttributes(
-      Map<String, String> attributes, Pageable pageable) {
+      Map<String, String> attributes, Pageable pageable, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addAttributesCriteria(query, attributes);
     return executePagedQuery(query, pageable);
   }
 
   @Override
   public List<ProductDocument> searchByMeasurements(
-      Map<String, Map<BigDecimal, String>> measurements) {
+      Map<String, Map<BigDecimal, String>> measurements, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addMeasurementsCriteria(query, measurements);
     return mongoTemplate.find(query, ProductDocument.class);
   }
 
   @Override
   public Page<ProductDocument> searchByMeasurements(
-      Map<String, Map<BigDecimal, String>> measurements, Pageable pageable) {
+      Map<String, Map<BigDecimal, String>> measurements, Pageable pageable, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addMeasurementsCriteria(query, measurements);
     return executePagedQuery(query, pageable);
   }
 
   @Override
-  public List<ProductDocument> searchByTags(Map<String, String> tags) {
+  public List<ProductDocument> searchByTags(Map<String, String> tags, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addTagsCriteria(query, tags);
     return mongoTemplate.find(query, ProductDocument.class);
   }
 
   @Override
-  public Page<ProductDocument> searchByTags(Map<String, String> tags, Pageable pageable) {
+  public Page<ProductDocument> searchByTags(
+      Map<String, String> tags, Pageable pageable, String userId) {
     var query = new Query();
+    addUserIdCriteria(query, userId);
     addTagsCriteria(query, tags);
     return executePagedQuery(query, pageable);
+  }
+
+  private void addUserIdCriteria(Query query, String userId) {
+    if (userId != null && !userId.isEmpty()) {
+      query.addCriteria(Criteria.where("userId").is(userId));
+    }
   }
 
   private void addProductNameCriteria(Query query, String productName) {

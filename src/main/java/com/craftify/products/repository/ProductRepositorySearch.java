@@ -10,24 +10,28 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ProductRepositorySearch {
-  List<ProductDocument> searchProducts(ProductSearch productSearch);
+  List<ProductDocument> searchProducts(ProductSearch productSearch, String userId);
 
-  Page<ProductDocument> searchProducts(ProductSearch productSearch, Pageable pageable);
+  Page<ProductDocument> searchProducts(
+      ProductSearch productSearch, Pageable pageable, String userId);
 
-  List<ProductDocument> searchByCategories(Set<String> categories);
+  List<ProductDocument> searchByCategories(Set<String> categories, String userId);
 
-  Page<ProductDocument> searchByCategories(Set<String> categories, Pageable pageable);
+  Page<ProductDocument> searchByCategories(
+      Set<String> categories, Pageable pageable, String userId);
 
-  List<ProductDocument> searchByAttributes(Map<String, String> attributes);
+  List<ProductDocument> searchByAttributes(Map<String, String> attributes, String userId);
 
-  Page<ProductDocument> searchByAttributes(Map<String, String> attributes, Pageable pageable);
+  Page<ProductDocument> searchByAttributes(
+      Map<String, String> attributes, Pageable pageable, String userId);
 
-  List<ProductDocument> searchByMeasurements(Map<String, Map<BigDecimal, String>> measurements);
+  List<ProductDocument> searchByMeasurements(
+      Map<String, Map<BigDecimal, String>> measurements, String userId);
 
   Page<ProductDocument> searchByMeasurements(
-      Map<String, Map<BigDecimal, String>> measurements, Pageable pageable);
+      Map<String, Map<BigDecimal, String>> measurements, Pageable pageable, String userId);
 
-  List<ProductDocument> searchByTags(Map<String, String> tags);
+  List<ProductDocument> searchByTags(Map<String, String> tags, String userId);
 
-  Page<ProductDocument> searchByTags(Map<String, String> tags, Pageable pageable);
+  Page<ProductDocument> searchByTags(Map<String, String> tags, Pageable pageable, String userId);
 }

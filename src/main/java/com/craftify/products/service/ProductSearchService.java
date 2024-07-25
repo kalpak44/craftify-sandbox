@@ -20,46 +20,49 @@ public class ProductSearchService {
     this.productRepositorySearch = productRepositorySearch;
   }
 
-  public List<ProductDocument> searchProducts(ProductSearch productSearch) {
-    return productRepositorySearch.searchProducts(productSearch);
+  public List<ProductDocument> searchProducts(ProductSearch productSearch, String userId) {
+    return productRepositorySearch.searchProducts(productSearch, userId);
   }
 
-  public Page<ProductDocument> searchProducts(ProductSearch productSearch, Pageable pageable) {
-    return productRepositorySearch.searchProducts(productSearch, pageable);
+  public Page<ProductDocument> searchProducts(
+      ProductSearch productSearch, Pageable pageable, String userId) {
+    return productRepositorySearch.searchProducts(productSearch, pageable, userId);
   }
 
-  public List<ProductDocument> searchByCategories(Set<String> categories) {
-    return productRepositorySearch.searchByCategories(categories);
+  public List<ProductDocument> searchByCategories(Set<String> categories, String userId) {
+    return productRepositorySearch.searchByCategories(categories, userId);
   }
 
-  public Page<ProductDocument> searchByCategories(Set<String> categories, Pageable pageable) {
-    return productRepositorySearch.searchByCategories(categories, pageable);
+  public Page<ProductDocument> searchByCategories(
+      Set<String> categories, Pageable pageable, String userId) {
+    return productRepositorySearch.searchByCategories(categories, pageable, userId);
   }
 
-  public List<ProductDocument> searchByAttributes(Map<String, String> attributes) {
-    return productRepositorySearch.searchByAttributes(attributes);
+  public List<ProductDocument> searchByAttributes(Map<String, String> attributes, String userId) {
+    return productRepositorySearch.searchByAttributes(attributes, userId);
   }
 
   public Page<ProductDocument> searchByAttributes(
-      Map<String, String> attributes, Pageable pageable) {
-    return productRepositorySearch.searchByAttributes(attributes, pageable);
+      Map<String, String> attributes, Pageable pageable, String userId) {
+    return productRepositorySearch.searchByAttributes(attributes, pageable, userId);
   }
 
   public List<ProductDocument> searchByMeasurements(
-      Map<String, Map<BigDecimal, String>> measurements) {
-    return productRepositorySearch.searchByMeasurements(measurements);
+      Map<String, Map<BigDecimal, String>> measurements, String userId) {
+    return productRepositorySearch.searchByMeasurements(measurements, userId);
   }
 
   public Page<ProductDocument> searchByMeasurements(
-      Map<String, Map<BigDecimal, String>> measurements, Pageable pageable) {
-    return productRepositorySearch.searchByMeasurements(measurements, pageable);
+      Map<String, Map<BigDecimal, String>> measurements, Pageable pageable, String userId) {
+    return productRepositorySearch.searchByMeasurements(measurements, pageable, userId);
   }
 
-  public List<ProductDocument> searchByTags(Map<String, String> tags) {
-    return productRepositorySearch.searchByTags(tags);
+  public List<ProductDocument> searchByTags(Map<String, String> tags, String userId) {
+    return productRepositorySearch.searchByTags(tags, userId);
   }
 
-  public Page<ProductDocument> searchByTags(Map<String, String> tags, Pageable pageable) {
-    return productRepositorySearch.searchByTags(tags, pageable);
+  public Page<ProductDocument> searchByTags(
+      Map<String, String> tags, Pageable pageable, String userId) {
+    return productRepositorySearch.searchByTags(tags, pageable, userId);
   }
 }

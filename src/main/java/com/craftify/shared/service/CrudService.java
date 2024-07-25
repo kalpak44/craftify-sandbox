@@ -12,5 +12,5 @@ public interface CrudService<DTO, ID, FILTER extends SearchFilter> {
 
   DTO save(DTO entity, String currentUserId);
 
-  void deleteById(ID id);
+  void deleteById(ID id, String currentUserId);
 }

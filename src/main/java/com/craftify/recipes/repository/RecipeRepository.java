@@ -1,6 +1,6 @@
 package com.craftify.recipes.repository;
 
 import com.craftify.recipes.document.RecipeDocument;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import com.craftify.shared.repository.UserDataRepository;
 
-public interface RecipeRepository extends MongoRepository<RecipeDocument, String> {}
+public interface RecipeRepository extends UserDataRepository<RecipeDocument, String> {}

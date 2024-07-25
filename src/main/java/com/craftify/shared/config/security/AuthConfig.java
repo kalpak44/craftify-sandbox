@@ -17,7 +17,15 @@ public class AuthConfig {
       final HttpSecurity http, AuthenticationErrorHandler authenticationErrorHandler)
       throws Exception {
     return http.authorizeHttpRequests(
-            auth -> auth.requestMatchers("/**").authenticated().anyRequest().permitAll())
+            auth ->
+                auth.requestMatchers(
+                        "/v3/api-docs/**", // OpenAPI documentation endpoints
+                        "/swagger-ui/**", // Swagger UI endpoint
+                        "/swagger-ui.html" // Swagger UI HTML file
+                        )
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
         .oauth2ResourceServer(
             oauth2 ->
                 oauth2

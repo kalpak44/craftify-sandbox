@@ -1,6 +1,8 @@
 package com.craftify.products.document;
 
 import com.craftify.shared.document.IdentifiedDocument;
+import com.craftify.shared.document.UserDataDocument;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,14 +11,26 @@ import java.util.Set;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "products")
-public class ProductDocument extends IdentifiedDocument<String> {
+public class ProductDocument extends IdentifiedDocument<String> implements UserDataDocument {
 
   private String name;
+  @NotNull
+  private String userId;
   private Map<String, String> tags = new HashMap<>();
   private Map<String, String> attributes = new HashMap<>();
   private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();
   private Map<String, Map<BigDecimal, String>> availability = new HashMap<>();
   private Set<String> categories = new HashSet<>();
+
+  @Override
+  public String getUserId() {
+    return userId;
+  }
+
+  @Override
+  public void setUserId(String userId) {
+    this.userId = userId;
+  }
 
   public String getName() {
     return name;

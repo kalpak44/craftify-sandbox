@@ -43,7 +43,7 @@ public class RecipeYieldService {
 
     for (var recipeStep : recipeDocument.getRecipeSteps()) {
       var productSearch = recipeStep.getProductSearch();
-      var matchingProducts = productSearchService.searchProducts(productSearch);
+      var matchingProducts = productSearchService.searchProducts(productSearch, currentUserId);
 
       if (matchingProducts.isEmpty()) {
         resultErrors.add("No matching products found for: " + productSearch.getProductName());

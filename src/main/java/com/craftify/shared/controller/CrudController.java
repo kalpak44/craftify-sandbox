@@ -66,10 +66,11 @@ public abstract class CrudController<
     if (id == null) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
     }
-    if (service.findById(id, this.getCurrentUserId()).isEmpty()) {
+    var currentUserId = this.getCurrentUserId();
+    if (service.findById(id, currentUserId).isEmpty()) {
       throw new ApiException(HttpStatus.NOT_FOUND, "Document not found.");
     }
-    service.deleteById(id);
+    service.deleteById(id, currentUserId);
   }
 
   @PatchMapping("/{id}")
@@ -79,13 +80,14 @@ public abstract class CrudController<
     if (id == null) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Path ID is required.");
     }
+    var currentUserId = this.getCurrentUserId();
     service
-        .findById(id, this.getCurrentUserId())
+        .findById(id, currentUserId)
         .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Document not found."));
-    service.deleteById(id);
+    service.deleteById(id, currentUserId);
     updateEntity.setId(id);
 
-    return service.save(updateEntity, this.getCurrentUserId());
+    return service.save(updateEntity, currentUserId);
   }
 
   protected String getCurrentUserId() {
