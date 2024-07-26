@@ -146,108 +146,140 @@ export const ProtectedPage = () => {
                 <h1 id="page-title" className="content__title">
                     Protected Page
                 </h1>
-                <div className="content__body">
+                <div className="content__body flex justify-between items-center">
                     <p id="page-description">
                         <span>
                             This page retrieves a <strong>protected data</strong> from an
                             external API.
                         </span>
                     </p>
-                    {loading ? (
-                        <PageLoader />
-                    ) : (
-                        <div className="overflow-x-auto">
-                            {products.length > 0 ? (
-                                <>
-                                    <table className="min-w-full bg-white">
-                                        <thead>
-                                        <tr>
-                                            <th className="w-1/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black" style={{ cursor: 'pointer', background: 'var(--pink-yellow-gradient)' }}>ID</th>
-                                            <th className="w-3/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black" style={{ cursor: 'pointer', background: 'var(--pink-yellow-gradient)' }}>Name</th>
-                                            <th className="w-1/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black" style={{ cursor: 'pointer', background: 'var(--pink-yellow-gradient)' }}>Actions</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {products.map((product) => (
-                                            <React.Fragment key={product.id}>
-                                                <tr onClick={() => toggleExpand(product.id)} className={`hover:bg-gray-100 cursor-pointer ${expandedProductId === product.id ? 'bg-gray-200' : ''}`}>
-                                                    <td className="w-1/5 py-3 px-6 border-b border-gray-200 text-black">{product.id}</td>
-                                                    <td className="w-3/5 py-3 px-6 border-b border-gray-200 text-black">{product.name}</td>
-                                                    <td className="w-1/5 py-3 px-6 border-b border-gray-200 text-black">
-                                                        <button
-                                                            className="text-white font-bold py-2 px-4 rounded mr-2"
-                                                            style={{ background: 'var(--blue-aqua-gradient)' }}
-                                                            onClick={(e) => { e.stopPropagation(); handleEdit(product.id); }}
-                                                        >
-                                                            Edit
-                                                        </button>
-                                                        <button
-                                                            className="text-white font-bold py-2 px-4 rounded"
-                                                            style={{ background: 'var(--pink-yellow-gradient)' }}
-                                                            onClick={(e) => { e.stopPropagation(); handleRemove(product.id); }}
-                                                        >
-                                                            Remove
-                                                        </button>
+                    <button
+                        className="text-white font-bold py-2 px-4 rounded"
+                        style={{
+                            minWidth: '8.4rem',
+                            border: '0.1rem solid var(--indigo)',
+                            color: 'var(--white)',
+                            background: 'var(--indigo)',
+                            width: '17%',
+                            fontSize: '1.6rem',
+                            marginRight: '1.6rem',
+                            fontFamily: 'var(--font-primary)',
+                            fontStyle: 'normal',
+                            fontWeight: '600',
+                            lineHeight: '3.2rem',
+                            padding: '0.8rem 0',
+                            borderRadius: '0.8rem',
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            WebkitUserSelect: 'none',
+                            MozUserSelect: 'none',
+                            userSelect: 'none',
+                            marginBottom: '15px',
+                            transition: 'background 0.3s ease-out, color 0.3s ease-out'
+                        }}
+                        onClick={() => navigate('/products/add')}
+                    >
+                        Add Product
+                    </button>
+
+                </div>
+                {loading ? (
+                    <PageLoader/>
+                ) : (
+                    <div className="overflow-x-auto">
+                        {products.length > 0 ? (
+                            <>
+                                <table className="min-w-full bg-white">
+                                    <thead>
+                                    <tr>
+                                        <th className="w-1/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black"
+                                            style={{cursor: 'pointer', background: 'var(--pink-yellow-gradient)'}}>ID
+                                        </th>
+                                        <th className="w-3/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black"
+                                            style={{cursor: 'pointer', background: 'var(--pink-yellow-gradient)' }}>Name</th>
+                                        <th className="w-1/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black" style={{ cursor: 'pointer', background: 'var(--pink-yellow-gradient)' }}>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {products.map((product) => (
+                                        <React.Fragment key={product.id}>
+                                            <tr onClick={() => toggleExpand(product.id)} className={`hover:bg-gray-100 cursor-pointer ${expandedProductId === product.id ? 'bg-gray-200' : ''}`}>
+                                                <td className="w-1/5 py-3 px-6 border-b border-gray-200 text-black">{product.id}</td>
+                                                <td className="w-3/5 py-3 px-6 border-b border-gray-200 text-black">{product.name}</td>
+                                                <td className="w-1/5 py-3 px-6 border-b border-gray-200 text-black">
+                                                    <button
+                                                        className="text-white font-bold py-2 px-4 rounded mr-2"
+                                                        style={{ background: 'var(--blue-aqua-gradient)' }}
+                                                        onClick={(e) => { e.stopPropagation(); handleEdit(product.id); }}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        className="text-white font-bold py-2 px-4 rounded"
+                                                        style={{ background: 'var(--pink-yellow-gradient)' }}
+                                                        onClick={(e) => { e.stopPropagation(); handleRemove(product.id); }}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {expandedProductId === product.id && (
+                                                <tr>
+                                                    <td colSpan="3" className="py-3 px-6 border-b border-gray-200 text-black">
+                                                        <div className="border-t border-gray-200">
+                                                            <h3 className="py-2 px-4 bg-gray-100 font-semibold">Measurements</h3>
+                                                            {renderTable(product.measurements)}
+                                                        </div>
+                                                        <div className="border-t border-gray-200">
+                                                            <h3 className="py-2 px-4 bg-gray-100 font-semibold">Availability</h3>
+                                                            {renderTable(product.availability)}
+                                                        </div>
+                                                        <div className="border-t border-gray-200">
+                                                            <h3 className="py-2 px-4 bg-gray-100 font-semibold">Attributes</h3>
+                                                            {renderTable(product.attributes)}
+                                                        </div>
+                                                        <div className="border-t border-gray-200">
+                                                            <h3 className="py-2 px-4 bg-gray-100 font-semibold">Tags</h3>
+                                                            {renderTable(product.tags)}
+                                                        </div>
+                                                        <div className="border-t border-gray-200">
+                                                            <h3 className="py-2 px-4 bg-gray-100 font-semibold">Categories</h3>
+                                                            {product.categories.join(', ')}
+                                                        </div>
                                                     </td>
                                                 </tr>
-                                                {expandedProductId === product.id && (
-                                                    <tr>
-                                                        <td colSpan="3" className="py-3 px-6 border-b border-gray-200 text-black">
-                                                            <div className="border-t border-gray-200">
-                                                                <h3 className="py-2 px-4 bg-gray-100 font-semibold">Measurements</h3>
-                                                                {renderTable(product.measurements)}
-                                                            </div>
-                                                            <div className="border-t border-gray-200">
-                                                                <h3 className="py-2 px-4 bg-gray-100 font-semibold">Availability</h3>
-                                                                {renderTable(product.availability)}
-                                                            </div>
-                                                            <div className="border-t border-gray-200">
-                                                                <h3 className="py-2 px-4 bg-gray-100 font-semibold">Attributes</h3>
-                                                                {renderTable(product.attributes)}
-                                                            </div>
-                                                            <div className="border-t border-gray-200">
-                                                                <h3 className="py-2 px-4 bg-gray-100 font-semibold">Tags</h3>
-                                                                {renderTable(product.tags)}
-                                                            </div>
-                                                            <div className="border-t border-gray-200">
-                                                                <h3 className="py-2 px-4 bg-gray-100 font-semibold">Categories</h3>
-                                                                {product.categories.join(', ')}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </React.Fragment>
-                                        ))}
-                                        </tbody>
-                                    </table>
-                                    <div className="flex justify-between items-center py-4">
-                                        <button
-                                            className="text-white font-bold py-2 px-4 rounded"
-                                            style={{ background: 'var(--blue-aqua-gradient)' }}
-                                            onClick={handlePreviousPage}
-                                            disabled={currentPage === 0}
-                                        >
-                                            Previous
-                                        </button>
-                                        <span>Page {currentPage + 1} of {totalPages}</span>
-                                        <button
-                                            className="text-white font-bold py-2 px-4 rounded"
-                                            style={{ background: 'var(--pink-yellow-gradient)' }}
-                                            onClick={handleNextPage}
-                                            disabled={currentPage === totalPages - 1}
-                                        >
-                                            Next
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="flex justify-center items-center">
-                                    <img src={noDataImage} alt="No Data" />
+                                            )}
+                                        </React.Fragment>
+                                    ))}
+                                    </tbody>
+                                </table>
+                                <div className="flex justify-between items-center py-4">
+                                    <button
+                                        className="text-white font-bold py-2 px-4 rounded"
+                                        style={{ background: 'var(--blue-aqua-gradient)' }}
+                                        onClick={handlePreviousPage}
+                                        disabled={currentPage === 0}
+                                    >
+                                        Previous
+                                    </button>
+                                    <span>Page {currentPage + 1} of {totalPages}</span>
+                                    <button
+                                        className="text-white font-bold py-2 px-4 rounded"
+                                        style={{ background: 'var(--pink-yellow-gradient)' }}
+                                        onClick={handleNextPage}
+                                        disabled={currentPage === totalPages - 1}
+                                    >
+                                        Next
+                                    </button>
                                 </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+                            </>
+                        ) : (
+                            <div className="flex justify-center items-center">
+                                <img src={noDataImage} alt="No Data" />
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
             <Modal
                 show={showModal}

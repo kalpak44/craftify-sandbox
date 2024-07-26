@@ -60,7 +60,6 @@ public class ProductService
         dto.getAvailability() == null || dto.getAvailability().isEmpty()
             ? dto.getMeasurements()
             : dto.getAvailability());
-    product.setAvailability(dto.getMeasurements());
 
     product.setCategories(dto.getCategories());
     product.setTags(dto.getTags());
