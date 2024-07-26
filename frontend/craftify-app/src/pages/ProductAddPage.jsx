@@ -6,13 +6,134 @@ import { PageLoader } from "../components/page-loader/PageLoader.jsx";
 import { Notification } from "../components/notification/Notification.jsx";
 import { Modal } from "../components/modal/Modal.jsx";
 import { createProduct } from "../services/API";
-import {DynamicProductSection} from "../components/dynamic-product-section/DynamicProductSection.jsx";
+import { DynamicProductSection } from "../components/dynamic-product-section/DynamicProductSection.jsx";
+
+const demoProducts = [
+    {
+        name: "Olive Oil",
+        attributes: {
+            brand: "Extra Virgin",
+            origin: "Italy",
+            type: "Cold Pressed"
+        },
+        measurements: {
+            volume: {
+                1000: "ml"
+            }
+        },
+        tags: {
+            category: "Oil",
+            usage: "Cooking",
+            diet: "Vegan"
+        },
+        availability: {},
+        categories: ["Oils", "Vegan"]
+    },
+    {
+        name: "Parmesan Cheese",
+        attributes: {
+            brand: "Parmigiano Reggiano",
+            origin: "Italy",
+            type: "Aged"
+        },
+        measurements: {
+            weight: {
+                200: "g"
+            }
+        },
+        tags: {
+            usage: "Cooking",
+            diet: "Vegetarian"
+        },
+        availability: {
+            weight: {
+                20: "g"
+            }
+        },
+        categories: ["Vegetarian"]
+    },
+    {
+        name: "Basil",
+        attributes: {
+            variety: "Genovese",
+            origin: "Italy",
+            type: "Fresh"
+        },
+        measurements: {
+            weight: {
+                30: "g"
+            },
+            package: {
+                4: "count"
+            }
+        },
+        tags: {
+            usage: "Cooking",
+            diet: "Vegan"
+        },
+        availability: {
+            weight: {
+                30: "g"
+            },
+            package: {
+                1: "count"
+            }
+        },
+        categories: ["Vegan", "Herb"]
+    },
+    {
+        name: "Eggs",
+        attributes: {
+            variety: "Free-range",
+            origin: "Bulgaria",
+            type: "Organic",
+            size: "XL"
+        },
+        measurements: {
+            quantity: {
+                10: "count"
+            },
+            price: {
+                5: "usd"
+            }
+        },
+        tags: {
+            usage: "Cooking",
+            diet: "Vegetarian",
+            product: "Eggs"
+        },
+        availability: {},
+        categories: ["Dairy", "Vegetarian"]
+    },
+    {
+        name: "Eggs",
+        attributes: {
+            variety: "Free-range",
+            type: "Organic",
+            size: "M"
+        },
+        measurements: {
+            quantity: {
+                6: "count"
+            }
+        },
+        tags: {
+            category: "Dairy",
+            usage: "Cooking",
+            diet: "Vegetarian",
+            product: "Eggs"
+        },
+        availability: {},
+        categories: ["Dairy", "Vegetarian"]
+    }
+];
 
 export const ProductAddPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showDemoModal, setShowDemoModal] = useState(false);
     const [product, setProduct] = useState({
         name: "",
         attributes: [],
@@ -86,6 +207,28 @@ export const ProductAddPage = () => {
         }
     };
 
+    const handleCreateDemoProducts = () => {
+        setShowDemoModal(true);
+    };
+
+    const confirmCreateDemoProducts = async () => {
+        setLoading(true);
+        setError(null);
+        setShowDemoModal(false);
+        try {
+            const accessToken = await getAccessTokenSilently();
+            for (const demoProduct of demoProducts) {
+                await createProduct(accessToken, demoProduct);
+            }
+            setSuccess("Demo products created successfully!");
+            navigate("/products");
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <PageLayout>
             {loading ? (
@@ -94,15 +237,10 @@ export const ProductAddPage = () => {
                 <Notification show={true} message={error || success} onClose={() => { setError(null); setSuccess(null); }} />
             ) : (
                 <div className="max-w-4xl mx-auto p-6">
-                    <button
-                        onClick={() => navigate("/products")}
-                        className="text-white font-bold py-2 px-4 rounded mb-4 bg-blue-500 hover:bg-blue-700"
-                    >
-                        Back to List
-                    </button>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="block font-medium">Product Name:<span className="text-red-500">*</span></label>
+                            <label className="block font-medium">Product Name:<span
+                                className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="name"
@@ -157,9 +295,25 @@ export const ProductAddPage = () => {
                         />
                         <button
                             type="submit"
-                            className="w-full py-2 px-4 rounded bg-green-500 text-white font-bold hover:bg-green-700"
+                            className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                            style={{background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)'}}
                         >
-                            Create new product
+                            Create New Product
+                        </button>
+
+                        <button
+                            onClick={() => navigate("/products")}
+                            className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                            style={{ background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)' }}
+                        >
+                            Back to List
+                        </button>
+                        <button
+                            onClick={handleCreateDemoProducts}
+                            className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                            style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                        >
+                            Create Demo Products
                         </button>
                     </form>
                     <Modal
@@ -168,6 +322,13 @@ export const ProductAddPage = () => {
                         onConfirm={confirmSubmit}
                         title="Confirm Submission"
                         message="Are you sure you want to submit this product?"
+                    />
+                    <Modal
+                        show={showDemoModal}
+                        onClose={() => setShowDemoModal(false)}
+                        onConfirm={confirmCreateDemoProducts}
+                        title="Confirm Demo Creation"
+                        message="Are you sure you want to create demo products?"
                     />
                 </div>
             )}
