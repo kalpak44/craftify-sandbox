@@ -4,12 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { PageLayout } from "../components/page-layout/PageLayout.jsx";
 import { PageLoader } from "../components/page-loader/PageLoader.jsx";
 import { Notification } from "../components/notification/Notification.jsx";
+import { Modal } from "../components/modal/Modal.jsx";
 import { createProduct } from "../services/API";
 import {DynamicProductSection} from "../components/dynamic-product-section/DynamicProductSection.jsx";
 
 export const ProductAddPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
+    const [showModal, setShowModal] = useState(false);
     const [product, setProduct] = useState({
         name: "",
         attributes: [],
@@ -54,10 +57,15 @@ export const ProductAddPage = () => {
         }));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
+        setShowModal(true);
+    };
+
+    const confirmSubmit = async () => {
         setLoading(true);
         setError(null);
+        setShowModal(false);
         try {
             const accessToken = await getAccessTokenSilently();
             const formattedProduct = {
@@ -68,8 +76,9 @@ export const ProductAddPage = () => {
                 tags: Object.fromEntries(product.tags.map((tag) => [tag.key, tag.value])),
                 categories: product.categories.map((cat) => cat.value)
             };
-            await createProduct(accessToken, formattedProduct);
-            navigate("/products");
+            const createdProduct = await createProduct(accessToken, formattedProduct);
+            setSuccess("Product created successfully!");
+            navigate(`/products/${createdProduct.id}`);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -81,15 +90,15 @@ export const ProductAddPage = () => {
         <PageLayout>
             {loading ? (
                 <PageLoader />
-            ) : error ? (
-                <Notification show={true} message={error} onClose={() => setError(null)} />
+            ) : error || success ? (
+                <Notification show={true} message={error || success} onClose={() => { setError(null); setSuccess(null); }} />
             ) : (
                 <div className="max-w-4xl mx-auto p-6">
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate("/products")}
                         className="text-white font-bold py-2 px-4 rounded mb-4 bg-blue-500 hover:bg-blue-700"
                     >
-                        Back
+                        Back to List
                     </button>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
@@ -150,9 +159,16 @@ export const ProductAddPage = () => {
                             type="submit"
                             className="w-full py-2 px-4 rounded bg-green-500 text-white font-bold hover:bg-green-700"
                         >
-                            Submit
+                            Create new product
                         </button>
                     </form>
+                    <Modal
+                        show={showModal}
+                        onClose={() => setShowModal(false)}
+                        onConfirm={confirmSubmit}
+                        title="Confirm Submission"
+                        message="Are you sure you want to submit this product?"
+                    />
                 </div>
             )}
         </PageLayout>

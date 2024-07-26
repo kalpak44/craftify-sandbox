@@ -1,17 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getProductById, updateProduct } from "../services/API";
+import { getProductById, updateProduct, deleteProduct } from "../services/API";
 import { PageLayout } from "../components/page-layout/PageLayout.jsx";
 import { PageLoader } from "../components/page-loader/PageLoader.jsx";
 import { Notification } from "../components/notification/Notification.jsx";
-import {DynamicProductSection} from "../components/dynamic-product-section/DynamicProductSection.jsx";
+import { Modal } from "../components/modal/Modal.jsx";
+import { DynamicProductSection } from "../components/dynamic-product-section/DynamicProductSection.jsx";
 
 export const ProductEditPage = () => {
     const { id } = useParams();
+    const [originalProduct, setOriginalProduct] = useState(null);
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const { getAccessTokenSilently } = useAuth0();
     const navigate = useNavigate();
 
@@ -33,6 +38,7 @@ export const ProductEditPage = () => {
                     categories: (productData.categories || []).map(value => ({ value }))
                 };
                 setProduct(formattedProduct);
+                setOriginalProduct(formattedProduct);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -76,10 +82,23 @@ export const ProductEditPage = () => {
         }));
     };
 
-    const handleSubmit = async (e) => {
+    const hasChanges = useCallback(() => {
+        return JSON.stringify(product) !== JSON.stringify(originalProduct);
+    }, [product, originalProduct]);
+
+    const handleSubmit = (e) => {
         e.preventDefault();
+        if (hasChanges()) {
+            setShowModal(true);
+        } else {
+            navigate("/products");
+        }
+    };
+
+    const confirmSubmit = async () => {
         setLoading(true);
         setError(null);
+        setShowModal(false);
         try {
             const accessToken = await getAccessTokenSilently();
             const formattedProduct = {
@@ -90,8 +109,28 @@ export const ProductEditPage = () => {
                 tags: Object.fromEntries(product.tags.map(tag => [tag.key, tag.value])),
                 categories: product.categories.map(cat => cat.value)
             };
-            console.log(JSON.stringify(formattedProduct, null, 2))
             await updateProduct(accessToken, id, formattedProduct);
+            setSuccess(`Product updated successfully!`);
+            navigate("/products");
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = () => {
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        setLoading(true);
+        setError(null);
+        setShowDeleteModal(false);
+        try {
+            const accessToken = await getAccessTokenSilently();
+            await deleteProduct(accessToken, id);
+            setSuccess(`Product deleted successfully!`);
             navigate("/products");
         } catch (err) {
             setError(err.message);
@@ -101,26 +140,21 @@ export const ProductEditPage = () => {
     };
 
     const handleBackClick = () => {
-        navigate(-1);
+        navigate("/products");
     };
 
     return (
         <PageLayout>
             {loading ? (
                 <PageLoader />
-            ) : error ? (
-                <Notification show={true} message={error} onClose={() => setError(null)} />
+            ) : error || success ? (
+                <Notification show={true} message={error || success} onClose={() => { setError(null); setSuccess(null); }} />
             ) : (
                 <div className="max-w-4xl mx-auto p-6">
-                    <button
-                        onClick={handleBackClick}
-                        className="text-white font-bold py-2 px-4 rounded mb-4 bg-blue-500 hover:bg-blue-700"
-                    >
-                        Back
-                    </button>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="block font-medium">Product Name:<span className="text-red-500">*</span></label>
+                            <label className="block font-medium">Product Name:<span
+                                className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="name"
@@ -173,15 +207,49 @@ export const ProductEditPage = () => {
                             handleRemoveField={handleRemoveField}
                             isCategory
                         />
-                        <button
-                            type="submit"
-                            className="w-full py-2 px-4 rounded bg-green-500 text-white font-bold hover:bg-green-700"
-                        >
-                            Submit
-                        </button>
+                        <div className="flex space-x-4">
+                            <button
+                                type="submit"
+                                className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                                style={{ background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)' }}
+                            >
+                                Update Product
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleBackClick}
+                                className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                                style={{ background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)' }}
+                            >
+                                Back to List
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDelete}
+                                className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                                style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                            >
+                                Delete Product
+                            </button>
+                        </div>
                     </form>
+                    <Modal
+                        show={showModal}
+                        onClose={() => setShowModal(false)}
+                        onConfirm={confirmSubmit}
+                        title="Confirm Submission"
+                        message="Are you sure you want to submit these changes?"
+                    />
+                    <Modal
+                        show={showDeleteModal}
+                        onClose={() => setShowDeleteModal(false)}
+                        onConfirm={confirmDelete}
+                        title="Confirm Deletion"
+                        message="Are you sure you want to delete this product?"
+                    />
                 </div>
             )}
         </PageLayout>
     );
 };
+``
