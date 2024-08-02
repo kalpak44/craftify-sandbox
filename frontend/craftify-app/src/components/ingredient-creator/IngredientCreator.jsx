@@ -4,12 +4,13 @@ import {Modal} from "../modal/Modal.jsx";
 
 const IngredientCreator = ({ addIngredient, accessToken }) => {
     const [ingredientName, setIngredientName] = useState("");
+    const [id, setId] = useState("");
     const [name, setName] = useState("");
     const [attributes, setAttributes] = useState([]);
-    const [measurements, setMeasurements] = useState([]);
     const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [searchResults, setSearchResults] = useState([]);
+
+    const [ searchResults, setSearchResults] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [modalContent, setModalContent] = useState(null);
     const [currentPage, setCurrentPage] = useState(0);
@@ -30,7 +31,7 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
         try {
             setLoading(true);
             const categoryNames = categories.map(c => c.value).filter(c => c);
-            const response = await getProductsPageable(accessToken, { name, categories: categoryNames, page: currentPage, size: 10 });
+            const response = await getProductsPageable(accessToken, { id, name, categories: categoryNames, attributes, tags, page: currentPage, size: 10 });
             setSearchResults(response.content || []);
             setTotalPages(response.totalPages || 1);
             setShowModal(true);
@@ -50,15 +51,15 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
             });
             return;
         }
-        addIngredient({ ingredientName, name, attributes, measurements, tags, categories });
+        addIngredient({ id, ingredientName, name, attributes, tags, categories });
         resetFields();
     };
 
     const resetFields = () => {
+        setId("")
         setIngredientName("");
         setName("");
         setAttributes([]);
-        setMeasurements([]);
         setTags([]);
         setCategories([]);
     };
@@ -114,6 +115,15 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
             <div className="p-4 border rounded-lg shadow-md bg-gray-800">
                 <h2 className="text-xl font-bold mb-4 text-white">Products Search</h2>
                 <div className="mb-4">
+                    <label className="block font-medium text-white">Id:</label>
+                    <input
+                        type="text"
+                        value={id}
+                        onChange={(e) => setId(e.target.value)}
+                        className="w-full p-2 border rounded bg-gray-700 text-white"
+                    />
+                </div>
+                <div className="mb-4">
                     <label className="block font-medium text-white">Name:</label>
                     <input
                         type="text"
@@ -148,41 +158,6 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
                     ))}
                     <button onClick={addRow(setAttributes)} className="p-2 bg-blue-500 text-white rounded">
                         Add Attribute
-                    </button>
-                </div>
-                <div className="mb-4">
-                    <h3 className="font-medium text-white">Measurements</h3>
-                    {measurements.map((measurement, index) => (
-                        <div key={index} className="flex items-center mb-2">
-                            <input
-                                type="text"
-                                placeholder="Type (e.g., volume)"
-                                value={measurement.key}
-                                onChange={(e) => updateRow(setMeasurements, index, "key", e.target.value)}
-                                className="p-2 border rounded mr-2 bg-gray-700 text-white"
-                            />
-                            <input
-                                type="number"
-                                placeholder="Amount"
-                                value={measurement.amount}
-                                onChange={(e) => updateRow(setMeasurements, index, "amount", e.target.value)}
-                                className="p-2 border rounded mr-2 bg-gray-700 text-white"
-                            />
-                            <input
-                                type="text"
-                                placeholder="Unit (e.g., ml)"
-                                value={measurement.unit}
-                                onChange={(e) => updateRow(setMeasurements, index, "unit", e.target.value)}
-                                className="p-2 border rounded mr-2 bg-gray-700 text-white"
-                            />
-                            <button onClick={removeRow(setMeasurements, index)}
-                                    className="p-2 bg-red-500 text-white rounded">
-                                Remove
-                            </button>
-                        </div>
-                    ))}
-                    <button onClick={addRow(setMeasurements)} className="p-2 bg-blue-500 text-white rounded">
-                        Add Measurement
                     </button>
                 </div>
                 <div className="mb-4">
@@ -257,18 +232,20 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
                                     <table className="min-w-full bg-gray-800 text-white">
                                         <thead>
                                         <tr>
+                                            <th className="py-2 px-4 border-b border-gray-700">Id</th>
                                             <th className="py-2 px-4 border-b border-gray-700">Name</th>
                                             <th className="py-2 px-4 border-b border-gray-700">Attributes</th>
-                                            <th className="py-2 px-4 border-b border-gray-700">Measurements</th>
+                                            <th className="py-2 px-4 border-b border-gray-700">Tags</th>
                                             <th className="py-2 px-4 border-b border-gray-700">Categories</th>
                                         </tr>
                                         </thead>
                                         <tbody>
                                         {searchResults.map((product) => (
                                             <tr key={product.id}>
+                                                <td className="py-2 px-4 border-b border-gray-700">{product.id}</td>
                                                 <td className="py-2 px-4 border-b border-gray-700">{product.name}</td>
                                                 <td className="py-2 px-4 border-b border-gray-700">{JSON.stringify(product.attributes)}</td>
-                                                <td className="py-2 px-4 border-b border-gray-700">{JSON.stringify(product.measurements)}</td>
+                                                <td className="py-2 px-4 border-b border-gray-700">{JSON.stringify(product.tags)}</td>
                                                 <td className="py-2 px-4 border-b border-gray-700">{product.categories.join(', ')}</td>
                                             </tr>
                                         ))}

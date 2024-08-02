@@ -7,11 +7,20 @@ import java.util.Map;
 import java.util.Set;
 
 public class ProductSearch {
+  private String id;
   private String productName;
   private Map<String, String> attributes = new HashMap<>();
   private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();
   private Map<String, String> tags = new HashMap<>();
   private Set<String> categories = new HashSet<>();
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
+  }
 
   public String getProductName() {
     return productName;

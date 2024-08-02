@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
   @Override
   public List<ProductDocument> searchProducts(ProductSearch productSearch, String userId) {
     var query = new Query();
+    addIdCriteria(query, productSearch.getId());
     addUserIdCriteria(query, userId);
     addProductNameCriteria(query, productSearch.getProductName());
     addAttributesCriteria(query, productSearch.getAttributes());
@@ -40,12 +42,19 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
       ProductSearch productSearch, Pageable pageable, String userId) {
     var query = new Query();
     addUserIdCriteria(query, userId);
+    addIdCriteria(query, productSearch.getId());
     addProductNameCriteria(query, productSearch.getProductName());
     addAttributesCriteria(query, productSearch.getAttributes());
     addMeasurementsCriteria(query, productSearch.getMeasurements());
     addCategoriesCriteria(query, productSearch.getCategories());
     addTagsCriteria(query, productSearch.getTags());
     return executePagedQuery(query, pageable);
+  }
+
+  private void addIdCriteria(Query query, String id) {
+    if (StringUtils.isNotBlank(id)) {
+      query.addCriteria(Criteria.where("id").is(id));
+    }
   }
 
   private void addUserIdCriteria(Query query, String userId) {

@@ -18,14 +18,31 @@ const fetchWithAuth = async (accessToken, url, options = {}) => {
     return response;
 };
 
-export const getProductsPageable = async (accessToken, { page = 0, size = 10, name = "", categories = [] }) => {
+export const getProductsPageable = async (accessToken, { page = 0, size = 10, id, name = "", categories = [], attributes = [], tags = [] }) => {
     const queryParams = [`page=${page}`, `size=${size}`];
+
+    if (id) {
+        queryParams.push(`id=${encodeURIComponent(id)}`);
+    }
 
     if (name) {
         queryParams.push(`name=${encodeURIComponent(name)}`);
     }
 
-    if (categories.length > 0) {
+    if(attributes && attributes.length > 0){
+        console.log(attributes)
+        attributes.forEach(attribute => {
+            if (attribute) queryParams.push(`attributes${encodeURIComponent(`[${attribute.key}]`)}=${encodeURIComponent(attribute.value)}`);
+        });
+    }
+
+    if(tags && tags.length > 0){
+        tags.forEach(tag => {
+            if (tag) queryParams.push(`tags${encodeURIComponent(`[${tag.key}]`)}=${encodeURIComponent(tag.value)}`);
+        });
+    }
+
+    if (categories && categories.length > 0) {
         categories.forEach(category => {
             if (category) queryParams.push(`categories=${encodeURIComponent(category)}`);
         });

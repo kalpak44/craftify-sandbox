@@ -6,7 +6,6 @@ import com.craftify.products.dto.ProductSearchFilter;
 import com.craftify.products.repository.ProductRepository;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudServiceAbstract;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
