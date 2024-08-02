@@ -5,6 +5,7 @@ URL="http://localhost:8080/recipes"
 
 # Define the JSON data for the recipe
 recipe='{
+  "recipeName": "Omelette",
   "recipe": [
     {
       "productSearch": {

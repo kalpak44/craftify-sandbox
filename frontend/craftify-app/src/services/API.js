@@ -18,10 +18,24 @@ const fetchWithAuth = async (accessToken, url, options = {}) => {
     return response;
 };
 
-export const getProductsPageable = async (accessToken, page = 0, size = 10) => {
-    const response = await fetchWithAuth(accessToken, `/products?page=${page}&size=${size}`);
+export const getProductsPageable = async (accessToken, { page = 0, size = 10, name = "", categories = [] }) => {
+    const queryParams = [`page=${page}`, `size=${size}`];
+
+    if (name) {
+        queryParams.push(`name=${encodeURIComponent(name)}`);
+    }
+
+    if (categories.length > 0) {
+        categories.forEach(category => {
+            if (category) queryParams.push(`categories=${encodeURIComponent(category)}`);
+        });
+    }
+
+    const queryString = queryParams.join("&");
+    const response = await fetchWithAuth(accessToken, `/products?${queryString}`);
     return response.json();
 };
+
 
 export const createProduct = async (accessToken, productData) => {
     const response = await fetchWithAuth(accessToken, "/products", {
@@ -49,4 +63,18 @@ export const deleteProduct = async (accessToken, productId) => {
         method: "DELETE",
     });
     return response.ok;
+};
+
+export const getRecipesPageable = async (accessToken, page = 0, size = 10) => {
+    const response = await fetchWithAuth(accessToken, `/recipes?page=${page}&size=${size}`);
+    return response.json();
+};
+
+export const deleteRecipe = async (accessToken, recipeId) => {
+    const response = await fetchWithAuth(accessToken, `/recipes/${recipeId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        throw new Error('Failed to delete recipe');
+    }
 };

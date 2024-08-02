@@ -32,6 +32,8 @@ public class RecipeMappingService {
     validateRecipe(recipe);
     var dto = new RecipeDto();
     dto.setId(recipe.getId());
+    validateRecipe(recipe);
+    dto.setRecipeName(recipe.getRecipeName());
     dto.setRecipe(recipe.getRecipeSteps().stream().map(this::toDto).collect(Collectors.toList()));
     dto.setResultingProduct(toDto(recipe.getResultingProduct()));
     return dto;
@@ -41,6 +43,8 @@ public class RecipeMappingService {
     validateRecipeDto(dto);
     var recipe = new RecipeDocument();
     recipe.setId(dto.getId());
+    validateRecipeDto(dto);
+    recipe.setRecipeName(dto.getRecipeName());
     recipe.setRecipeSteps(
         dto.getRecipe().stream().map(this::toEntity).collect(Collectors.toList()));
     recipe.setResultingProduct(toEntity(dto.getResultingProduct()));
@@ -199,6 +203,17 @@ public class RecipeMappingService {
   private void validateRecipeDto(RecipeDto recipeDto) {
     if (recipeDto.getRecipe() == null || recipeDto.getRecipe().isEmpty()) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "RecipeDto must contain at least one entry");
+    }
+  }
+
+  private void validateRecipeName(RecipeDocument recipeDocument) {
+    if (recipeDocument.getRecipeName() == null || recipeDocument.getRecipeName().isBlank()) {
+      throw new ApiException(HttpStatus.BAD_REQUEST, "RecipeDocument must contain a name");
+    }
+  }
+  private void validateRecipeNameDto(RecipeDto recipeDto){
+    if(recipeDto.getRecipeName() == null || recipeDto.getRecipeName().isBlank()){
+      throw new ApiException(HttpStatus.BAD_REQUEST, "RecipeDto must contain a name");
     }
   }
 }

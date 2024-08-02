@@ -1,6 +1,8 @@
 package com.craftify.products.dto;
 
 import com.craftify.shared.dto.IdentifiedDto;
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ProductDto extends IdentifiedDto<String> {
+  @NotNull
   private String name;
   private Map<String, String> attributes = new HashMap<>();
   private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();

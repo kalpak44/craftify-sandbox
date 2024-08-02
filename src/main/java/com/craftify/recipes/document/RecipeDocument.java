@@ -8,8 +8,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "recipes")
 public class RecipeDocument extends IdentifiedDocument<String> implements UserDataDocument {
   private String userId;
+  private String recipeName;
   private List<RecipeStep> recipeSteps;
   private ResultingProduct resultingProduct;
+
+  public String getRecipeName() {
+    return recipeName;
+  }
+
+  public void setRecipeName(String recipeName) {
+    this.recipeName = recipeName;
+  }
 
   public List<RecipeStep> getRecipeSteps() {
     return recipeSteps;

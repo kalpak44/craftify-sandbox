@@ -7,6 +7,7 @@ import com.craftify.shared.service.CrudService;
 import com.craftify.shared.service.CurrentUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ public abstract class CrudController<
 
   @GetMapping
   @Operation(summary = "List all entries in a paginated response", operationId = "getAll")
-  public Page<DTO> getAll(Pageable pageable, @RequestParam(required = false) FILTER searchFilter) {
+  public Page<DTO> getAll(Pageable pageable, @ParameterObject FILTER searchFilter) {
     return service.findAll(pageable, searchFilter, this.getCurrentUserId());
   }
 

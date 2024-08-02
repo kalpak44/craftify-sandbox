@@ -26,12 +26,12 @@ public class ProductService
   @Override
   public Page<ProductDto> findAll(
       Pageable pageable, ProductSearchFilter searchFilter, String currentUserId) {
-    if (searchFilter != null && StringUtils.isNotBlank(searchFilter.getCategory())) {
+    if (searchFilter != null) {
       return productSearchService
-          .searchByCategories(Set.of(searchFilter.getCategory()), pageable, currentUserId)
+          .searchProducts(searchFilter, pageable, currentUserId)
           .map(this::toDto);
     }
-    return super.findAll(pageable, searchFilter, currentUserId);
+    return super.findAll(pageable, null, currentUserId);
   }
 
   @Override
