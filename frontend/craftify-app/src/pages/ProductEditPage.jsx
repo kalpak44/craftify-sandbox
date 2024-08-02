@@ -150,9 +150,16 @@ export const ProductEditPage = () => {
             ) : error || success ? (
                 <Notification show={true} message={error || success} onClose={() => { setError(null); setSuccess(null); }} />
             ) : (
-                <div className="max-w-4xl mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-md mt-8 min-w-full">
-                    <h1 style={{color: "white", fontSize:"medium"}}>Product edit</h1>
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="relative w-full p-6 bg-gray-800 text-white rounded-lg shadow-md mt-8">
+                    <button
+                        onClick={handleBackClick}
+                        className="absolute top-0 right-0 mt-4 mr-4 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                        style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                    >
+                        Close
+                    </button>
+                    <h1 className="text-white text-lg font-bold">Edit Product</h1>
+                    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                         <div className="space-y-2">
                             <label className="block font-medium">Product Name:<span
                                 className="text-red-500">*</span></label>
@@ -215,14 +222,6 @@ export const ProductEditPage = () => {
                                 style={{ background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)' }}
                             >
                                 Update Product
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleBackClick}
-                                className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                                style={{ background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)' }}
-                            >
-                                Back to List
                             </button>
                             <button
                                 type="button"
