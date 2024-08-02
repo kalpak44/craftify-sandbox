@@ -4,8 +4,12 @@ import { PageLayout } from "../components/page-layout/PageLayout.jsx";
 import IngredientActionCreator from "../components/ingredient-action-creator/IngredientActionCreator.jsx";
 import IngredientCreator from "../components/ingredient-creator/IngredientCreator.jsx";
 import ProductResultCreator from "../components/product-result-creator/ProductResultCreator.jsx";
+import {Modal} from "../components/modal/Modal.jsx";
+import {createRecipe} from "../services/API.js";
+import { useNavigate } from "react-router-dom";
 
-    export const RecipeAddPage = () => {
+
+export const RecipeAddPage = () => {
     const [recipeName, setRecipeName] = useState("");
     const [ingredients, setIngredients] = useState([]);
     const [resultProduct, setResultProduct] = useState(null);
@@ -13,6 +17,9 @@ import ProductResultCreator from "../components/product-result-creator/ProductRe
     const [expandedIngredientIndex, setExpandedIngredientIndex] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
     const [accessToken, setAccessToken] = useState("");
+    const [showModal, setShowModal] = useState(false);
+    const [modalContent, setModalContent] = useState({ title: "", message: "", onConfirm: null });
+    const navigate = useNavigate();
 
     // Fetch the access token on component mount
     useState(() => {
@@ -67,26 +74,114 @@ import ProductResultCreator from "../components/product-result-creator/ProductRe
         setCurrentCreator(null);
     };
 
-    const handleSaveRecipe = () => {
+    const convertToNumberIfApplicable = (value) => {
+        if (typeof value === 'string' && !isNaN(value)) {
+            return Number(value);
+        }
+        return value;
+    };
+
+    const handleSaveRecipe = async () => {
         if (!recipeName.trim()) {
-            alert("Recipe name is required.");
+            setModalContent({
+                title: "Error",
+                message: "Recipe name is required.",
+                onConfirm: () => setShowModal(false),
+            });
+            setShowModal(true);
             return;
         }
 
         if (ingredients.length === 0) {
-            alert("Please add at least one ingredient.");
+            setModalContent({
+                title: "Error",
+                message: "Please add at least one ingredient.",
+                onConfirm: () => setShowModal(false),
+            });
+            setShowModal(true);
             return;
         }
 
-        // Logic to save the recipe
-        console.log({
-            recipeName,
-            ingredients,
-            resultProduct
-        });
+        for (let i = 0; i < ingredients.length; i++) {
+            if (ingredients[i].actions.length === 0) {
+                setModalContent({
+                    title: "Error",
+                    message: `Please add at least one action to the ingredient "${ingredients[i].ingredientName}".`,
+                    onConfirm: () => setShowModal(false),
+                });
+                setShowModal(true);
+                return;
+            }
+        }
 
-        alert("Recipe saved successfully!");
+        if (!resultProduct || !resultProduct.name) {
+            setModalContent({
+                title: "Error",
+                message: "Please define the result product with a name.",
+                onConfirm: () => setShowModal(false),
+            });
+            setShowModal(true);
+            return;
+        }
+
+        const transformedRecipe = {
+            recipeName,
+            recipe: ingredients.map(ingredient => ({
+                ingredientName: ingredient.ingredientName,
+                productSearch: {
+                    productName: ingredient.name,
+                    attributes: ingredient.attributes.reduce((acc, { key, value }) => ({
+                        ...acc,
+                        [key]: convertToNumberIfApplicable(value)
+                    }), {}),
+                    tags: ingredient.tags.reduce((acc, { key, value }) => ({
+                        ...acc,
+                        [key]: convertToNumberIfApplicable(value)
+                    }), {})
+                },
+                actions: ingredient.actions.map(action => ({
+                    type: action.actionType,
+                    parameters: action.parameters.reduce((acc, { key, value }) => ({
+                        ...acc,
+                        [key]: convertToNumberIfApplicable(value)
+                    }), {})
+                }))
+            })),
+            resultingProduct: {
+                name: resultProduct.name,
+                attributes: Object.fromEntries(
+                    Object.entries(resultProduct.attributes).map(([key, value]) => [key, convertToNumberIfApplicable(value)])
+                ),
+                tags: Object.fromEntries(
+                    Object.entries(resultProduct.tags).map(([key, value]) => [key, convertToNumberIfApplicable(value)])
+                )
+            }
+        };
+
+        try {
+            const response = await createRecipe(accessToken, transformedRecipe);
+            console.log('Recipe created successfully:', response);
+            setModalContent({
+                title: "Success",
+                message: "Recipe saved successfully!",
+                onConfirm: () => {
+                    setShowModal(false);
+                    navigate("/recipes")
+                },
+            });
+            setShowModal(true);
+        } catch (error) {
+            console.error('Failed to save recipe:', error);
+            setModalContent({
+                title: "Error",
+                message: error.message,
+                onConfirm: () => setShowModal(false),
+            });
+            setShowModal(true);
+        }
     };
+
+
 
     return (
         <PageLayout>
@@ -285,6 +380,13 @@ import ProductResultCreator from "../components/product-result-creator/ProductRe
                     )}
                 </div>
             </div>
+            <Modal
+                show={showModal}
+                onClose={() => setShowModal(false)}
+                onConfirm={modalContent.onConfirm}
+                title={modalContent.title}
+                message={modalContent.message}
+            />
         </PageLayout>
     );
 };

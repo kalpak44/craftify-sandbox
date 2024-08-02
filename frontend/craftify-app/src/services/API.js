@@ -11,7 +11,6 @@ const fetchWithAuth = async (accessToken, url, options = {}) => {
 
     if (response.status === 401) {
         console.error("Unauthorized, logging out...");
-        //localStorage.removeItem("jwt_token");
         throw new Error("Unauthorized");
     }
 
@@ -92,6 +91,19 @@ export const deleteRecipe = async (accessToken, recipeId) => {
         method: "DELETE",
     });
     if (!response.ok) {
-        throw new Error('Failed to delete recipe');
+        const body = await response.json();
+        throw new Error(`Failed to delete recipe. ${body.message}`);
     }
+};
+
+export const createRecipe = async (accessToken, recipeData) => {
+    const response = await fetchWithAuth(accessToken, "/recipes", {
+        method: "POST",
+        body: JSON.stringify(recipeData),
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to create recipe. ${body.message}`);
+    }
+    return response.json();
 };

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import {Modal} from "../modal/Modal.jsx";
+
 
 const ProductResultCreator = ({ addProductResult, onClose, productResult }) => {
     const [name, setName] = useState("");
@@ -7,6 +9,8 @@ const ProductResultCreator = ({ addProductResult, onClose, productResult }) => {
     const [tags, setTags] = useState([]);
     const [availability, setAvailability] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [modalContent, setModalContent] = useState({ title: "", message: "", onConfirm: null });
 
     useEffect(() => {
         if (productResult) {
@@ -30,6 +34,16 @@ const ProductResultCreator = ({ addProductResult, onClose, productResult }) => {
     };
 
     const handleSave = () => {
+        if (!name.trim()) {
+            setModalContent({
+                title: "Error",
+                message: "Product name is required.",
+                onConfirm: () => setShowModal(false),
+            });
+            setShowModal(true);
+            return;
+        }
+
         const product = {
             name,
             attributes: Object.fromEntries(attributes.map(({ key, value }) => [key, value])),
@@ -175,6 +189,14 @@ const ProductResultCreator = ({ addProductResult, onClose, productResult }) => {
                 <button onClick={() => setCategories([...categories, ""])} className="p-2 bg-blue-500 text-white rounded">Add Category</button>
             </div>
             <button onClick={handleSave} className="mt-4 p-2 bg-green-500 text-white rounded">Save Product Result</button>
+
+            <Modal
+                show={showModal}
+                onClose={() => setShowModal(false)}
+                onConfirm={modalContent.onConfirm}
+                title={modalContent.title}
+                message={modalContent.message}
+            />
         </div>
     );
 };
