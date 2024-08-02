@@ -3,11 +3,12 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { PageLayout } from "../components/page-layout/PageLayout.jsx";
 import IngredientActionCreator from "../components/ingredient-action-creator/IngredientActionCreator.jsx";
 import IngredientCreator from "../components/ingredient-creator/IngredientCreator.jsx";
-
+import ProductResultCreator from "../components/product-result-creator/ProductResultCreator.jsx";
 
 export const RecipeAddPage = () => {
     const [recipeName, setRecipeName] = useState("");
     const [ingredients, setIngredients] = useState([]);
+    const [resultProduct, setResultProduct] = useState(null);
     const [currentCreator, setCurrentCreator] = useState(null);
     const [expandedIngredientIndex, setExpandedIngredientIndex] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
@@ -61,6 +62,11 @@ export const RecipeAddPage = () => {
         setExpandedIngredientIndex(expandedIngredientIndex === index ? null : index);
     };
 
+    const addProductResult = (product) => {
+        setResultProduct(product);
+        setCurrentCreator(null);
+    };
+
     const handleSaveRecipe = () => {
         if (!recipeName.trim()) {
             alert("Recipe name is required.");
@@ -76,6 +82,7 @@ export const RecipeAddPage = () => {
         console.log({
             recipeName,
             ingredients,
+            resultProduct
         });
 
         alert("Recipe saved successfully!");
@@ -175,6 +182,41 @@ export const RecipeAddPage = () => {
                                 </button>
                             </div>
                         </div>
+                        <div className="mt-4">
+                            <h3 className="text-lg font-bold mb-2 text-white">Product Result</h3>
+                            {resultProduct ? (
+                                <div className="text-white mb-2 p-2 border border-white rounded">
+                                    <p className="font-bold">{resultProduct.name}</p>
+                                    <p>Attributes: {JSON.stringify(resultProduct.attributes)}</p>
+                                    <p>Measurements: {JSON.stringify(resultProduct.measurements)}</p>
+                                    <p>Tags: {JSON.stringify(resultProduct.tags)}</p>
+                                    <p>Availability: {JSON.stringify(resultProduct.availability)}</p>
+                                    <p>Categories: {resultProduct.categories.join(", ")}</p>
+                                    <button
+                                        className="p-2 bg-yellow-500 text-white rounded mt-2 mr-2"
+                                        onClick={() => setCurrentCreator({ type: "productResult" })}
+                                    >
+                                        Edit Product Result
+                                    </button>
+                                    <button
+                                        className="p-2 bg-red-500 text-white rounded mt-2"
+                                        onClick={() => setResultProduct(null)}
+                                    >
+                                        Remove Product Result
+                                    </button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <p className="text-white mb-2">No product result added yet.</p>
+                                    <button
+                                        onClick={() => setCurrentCreator({ type: "productResult" })}
+                                        className="p-2 bg-blue-500 text-white rounded"
+                                    >
+                                        Create Product Result
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         <button
                             onClick={handleSaveRecipe}
                             className="mt-4 p-2 bg-green-500 text-white rounded"
@@ -217,6 +259,23 @@ export const RecipeAddPage = () => {
                                                 ? ingredients[currentCreator.ingredientIndex].actions[currentCreator.actionIndex]
                                                 : null
                                         }
+                                    />
+                                </>
+                            )}
+                            {currentCreator.type === "productResult" && (
+                                <>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-xl font-bold text-white">Product Result Creator</h2>
+                                        <button
+                                            onClick={() => setCurrentCreator(null)}
+                                            className="p-2 bg-red-500 text-white rounded"
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                    <ProductResultCreator
+                                        addProductResult={addProductResult}
+                                        productResult={resultProduct}
                                     />
                                 </>
                             )}
