@@ -4,6 +4,7 @@ const IngredientActionCreator = ({ addAction, onClose, action }) => {
     const [actionType, setActionType] = useState("subtraction");
     const [amount, setAmount] = useState("");
     const [unit, setUnit] = useState("");
+    const [type, setType] = useState("");
 
     // Use effect to populate fields if editing an action
     useEffect(() => {
@@ -11,8 +12,10 @@ const IngredientActionCreator = ({ addAction, onClose, action }) => {
             setActionType(action.actionType || "subtraction");
             const amountParam = action.parameters.find(param => param.key === "amount");
             const unitParam = action.parameters.find(param => param.key === "unit");
+            const typeParam = action.parameters.find(param => param.key === "type");
             if (amountParam) setAmount(amountParam.value);
             if (unitParam) setUnit(unitParam.value);
+            if (typeParam) setType(typeParam.value);
         }
     }, [action]);
 
@@ -21,7 +24,7 @@ const IngredientActionCreator = ({ addAction, onClose, action }) => {
             addAction({
                 actionType,
                 parameters: [
-                    { key: "type", value: "quantity" },
+                    { key: "type", value: type },
                     { key: "amount", value: amount },
                     { key: "unit", value: unit },
                 ],
@@ -40,7 +43,6 @@ const IngredientActionCreator = ({ addAction, onClose, action }) => {
                     value={actionType}
                     onChange={(e) => setActionType(e.target.value)}
                     className="w-full p-2 border rounded bg-gray-700 text-white"
-                    disabled
                 >
                     <option value="subtraction">Subtraction</option>
                 </select>
@@ -56,9 +58,10 @@ const IngredientActionCreator = ({ addAction, onClose, action }) => {
                     />
                     <input
                         type="text"
-                        value="quantity"
+                        placeholder="Type (e.g., weight)"
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
                         className="p-2 border rounded mr-2 bg-gray-700 text-white"
-                        readOnly
                     />
                 </div>
                 <div className="flex items-center mb-2">
@@ -85,7 +88,7 @@ const IngredientActionCreator = ({ addAction, onClose, action }) => {
                     />
                     <input
                         type="text"
-                        placeholder="Unit (e.g., ml)"
+                        placeholder="Unit (e.g., kg)"
                         value={unit}
                         onChange={(e) => setUnit(e.target.value)}
                         className="p-2 border rounded bg-gray-700 text-white"

@@ -116,7 +116,7 @@ export const ProtectedPage = () => {
     );
 
     const renderNestedTable = (nestedData) => (
-        <table className="min-w-full bg-gray-800 text-white">
+            <table className="min-w-full bg-gray-800 text-white">
             <tbody>
             {Object.entries(nestedData).map(([nestedKey, nestedValue]) => (
                 <tr key={nestedKey}>
@@ -214,25 +214,25 @@ export const ProtectedPage = () => {
                                             </tr>
                                             {expandedProductId === product.id && (
                                                 <tr>
-                                                    <td colSpan="3" className="py-3 px-6 border-b border-gray-600">
+                                                    <td colSpan="3" className="py-3 px-6 border-b border-gray-600 ">
                                                         <div className="border-t border-gray-600">
-                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold">Measurements</h3>
+                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold text-white">Measurements</h3>
                                                             {renderTable(product.measurements)}
                                                         </div>
                                                         <div className="border-t border-gray-600">
-                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold">Availability</h3>
+                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold text-white">Availability</h3>
                                                             {renderTable(product.availability)}
                                                         </div>
                                                         <div className="border-t border-gray-600">
-                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold">Attributes</h3>
+                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold text-white">Attributes</h3>
                                                             {renderTable(product.attributes)}
                                                         </div>
                                                         <div className="border-t border-gray-600">
-                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold">Tags</h3>
+                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold text-white">Tags</h3>
                                                             {renderTable(product.tags)}
                                                         </div>
                                                         <div className="border-t border-gray-600">
-                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold">Categories</h3>
+                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold text-white">Categories</h3>
                                                             {product.categories.join(', ')}
                                                         </div>
                                                     </td>
