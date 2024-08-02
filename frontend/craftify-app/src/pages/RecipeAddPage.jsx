@@ -5,7 +5,7 @@ import IngredientActionCreator from "../components/ingredient-action-creator/Ing
 import IngredientCreator from "../components/ingredient-creator/IngredientCreator.jsx";
 import ProductResultCreator from "../components/product-result-creator/ProductResultCreator.jsx";
 
-export const RecipeAddPage = () => {
+    export const RecipeAddPage = () => {
     const [recipeName, setRecipeName] = useState("");
     const [ingredients, setIngredients] = useState([]);
     const [resultProduct, setResultProduct] = useState(null);
@@ -25,7 +25,7 @@ export const RecipeAddPage = () => {
             }
         };
 
-        fetchAccessToken();
+        fetchAccessToken().catch(console.error);
     }, [getAccessTokenSilently]);
 
     const addIngredient = (ingredient) => {
@@ -259,6 +259,8 @@ export const RecipeAddPage = () => {
                                                 ? ingredients[currentCreator.ingredientIndex].actions[currentCreator.actionIndex]
                                                 : null
                                         }
+                                        accessToken={accessToken}
+                                        searchCriteria={ingredients[currentCreator.ingredientIndex]}
                                     />
                                 </>
                             )}
