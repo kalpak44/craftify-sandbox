@@ -236,7 +236,8 @@ export const ProductAddPage = () => {
             ) : error || success ? (
                 <Notification show={true} message={error || success} onClose={() => { setError(null); setSuccess(null); }} />
             ) : (
-                <div className="max-w-4xl mx-auto p-6">
+                <div className="max-w-4xl mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-md mt-8 min-w-full">
+                    <h1 style={{color: "white", fontSize: "medium", width: "482px"}}>New product</h1>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
                             <label className="block font-medium">Product Name:<span
@@ -246,7 +247,7 @@ export const ProductAddPage = () => {
                                 name="name"
                                 value={product.name}
                                 onChange={handleChange}
-                                className="w-full p-2 border border-gray-300 rounded text-black"
+                                className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white"
                                 required
                             />
                         </div>
@@ -304,14 +305,14 @@ export const ProductAddPage = () => {
                         <button
                             onClick={() => navigate("/products")}
                             className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                            style={{ background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)' }}
+                            style={{background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)'}}
                         >
                             Back to List
                         </button>
                         <button
                             onClick={handleCreateDemoProducts}
                             className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                            style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                            style={{background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)'}}
                         >
                             Create Demo Products
                         </button>

@@ -101,12 +101,12 @@ export const RecipesPage = () => {
     };
 
     const renderTable = (data) => (
-        <table className="min-w-full bg-white">
+        <table className="min-w-full bg-gray-800 text-white">
             <tbody>
             {Object.entries(data).map(([key, value]) => (
                 <tr key={key}>
-                    <td className="py-2 px-4 border-b border-gray-200 font-semibold">{key}</td>
-                    <td className="py-2 px-4 border-b border-gray-200">
+                    <td className="py-2 px-4 border-b border-gray-600 font-semibold">{key}</td>
+                    <td className="py-2 px-4 border-b border-gray-600">
                         {typeof value === 'object' ? renderNestedTable(value) : value}
                     </td>
                 </tr>
@@ -116,12 +116,12 @@ export const RecipesPage = () => {
     );
 
     const renderNestedTable = (nestedData) => (
-        <table className="min-w-full bg-white">
+        <table className="min-w-full bg-gray-800 text-white">
             <tbody>
             {Object.entries(nestedData).map(([nestedKey, nestedValue]) => (
                 <tr key={nestedKey}>
-                    <td className="py-1 px-2 border-b border-gray-200">{nestedKey}</td>
-                    <td className="py-1 px-2 border-b border-gray-200">{nestedValue}</td>
+                    <td className="py-1 px-2 border-b border-gray-600">{nestedKey}</td>
+                    <td className="py-1 px-2 border-b border-gray-600">{nestedValue}</td>
                 </tr>
             ))}
             </tbody>
@@ -142,17 +142,9 @@ export const RecipesPage = () => {
 
     return (
         <PageLayout>
-            <div className="content-layout">
-                <h1 id="page-title" className="content__title">
-                    Recipes Page
-                </h1>
-                <div className="content__body flex justify-between items-center">
-                    <p id="page-description">
-                        <span>
-                            This page retrieves a <strong>protected data</strong> from an
-                            external API.
-                        </span>
-                    </p>
+            <div className="container mx-auto p-4">
+                <div className="flex justify-between items-center mb-4">
+                    <h1 className="text-xl font-bold text-white">Recipes Page</h1>
                     <button
                         className="text-white font-bold py-2 px-4 rounded"
                         style={{
@@ -185,37 +177,34 @@ export const RecipesPage = () => {
                 {loading ? (
                     <PageLoader />
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto p-4 border rounded-lg shadow-md bg-gray-800">
                         {recipes.length > 0 ? (
                             <>
-                                <table className="min-w-full bg-white">
+                                <table className="min-w-full bg-gray-800 text-white">
                                     <thead>
                                     <tr>
-                                        <th className="w-1/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black"
-                                            style={{ cursor: 'pointer', background: 'var(--pink-yellow-gradient)' }}>ID
-                                        </th>
-                                        <th className="w-3/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black"
-                                            style={{ cursor: 'pointer', background: 'var(--pink-yellow-gradient)' }}>Recipe Name</th>
-                                        <th className="w-1/5 py-3 px-6 border-b-2 border-gray-300 text-left leading-tight text-black" style={{ cursor: 'pointer', background: 'var(--pink-yellow-gradient)' }}>Actions</th>
+                                        <th className="py-3 px-6 border-b-2 border-gray-600 text-left">ID</th>
+                                        <th className="py-3 px-6 border-b-2 border-gray-600 text-left">Recipe Name</th>
+                                        <th className="py-3 px-6 border-b-2 border-gray-600 text-left">Actions</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     {recipes.map((recipe) => (
                                         <React.Fragment key={recipe.id}>
-                                            <tr onClick={() => toggleExpand(recipe.id)} className={`hover:bg-gray-100 cursor-pointer ${expandedRecipeId === recipe.id ? 'bg-gray-200' : ''}`}>
-                                                <td className="w-1/5 py-3 px-6 border-b border-gray-200 text-black">{recipe.id}</td>
-                                                <td className="w-3/5 py-3 px-6 border-b border-gray-200 text-black">{recipe.recipeName}</td>
-                                                <td className="w-1/5 py-3 px-6 border-b border-gray-200 text-black">
+                                            <tr
+                                                className={`hover:bg-gray-700 ${expandedRecipeId === recipe.id ? 'bg-gray-900' : ''}`}
+                                            >
+                                                <td className="py-3 px-6 border-b border-gray-600">{recipe.id}</td>
+                                                <td className="py-3 px-6 border-b border-gray-600">{recipe.recipeName}</td>
+                                                <td className="py-3 px-6 border-b border-gray-600">
                                                     <button
-                                                        className="text-white font-bold py-2 px-4 rounded mr-2"
-                                                        style={{ background: 'var(--blue-aqua-gradient)' }}
+                                                        className="p-2 bg-green-500 text-white rounded mr-2"
                                                         onClick={(e) => { e.stopPropagation(); handleEdit(recipe.id); }}
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
-                                                        className="text-white font-bold py-2 px-4 rounded"
-                                                        style={{ background: 'var(--pink-yellow-gradient)' }}
+                                                        className="p-2 bg-red-500 text-white rounded"
                                                         onClick={(e) => { e.stopPropagation(); handleRemove(recipe.id); }}
                                                     >
                                                         Remove
@@ -224,17 +213,17 @@ export const RecipesPage = () => {
                                             </tr>
                                             {expandedRecipeId === recipe.id && (
                                                 <tr>
-                                                    <td colSpan="3" className="py-3 px-6 border-b border-gray-200 text-black">
-                                                        <div className="border-t border-gray-200">
-                                                            <h3 className="py-2 px-4 bg-gray-100 font-semibold">Ingredients</h3>
+                                                    <td colSpan="3" className="py-3 px-6 border-b border-gray-600">
+                                                        <div className="border-t border-gray-600">
+                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold">Ingredients</h3>
                                                             {renderTable(recipe.ingredients)}
                                                         </div>
-                                                        <div className="border-t border-gray-200">
-                                                            <h3 className="py-2 px-4 bg-gray-100 font-semibold">Instructions</h3>
+                                                        <div className="border-t border-gray-600">
+                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold">Instructions</h3>
                                                             {renderTable(recipe.instructions)}
                                                         </div>
-                                                        <div className="border-t border-gray-200">
-                                                            <h3 className="py-2 px-4 bg-gray-100 font-semibold">Tags</h3>
+                                                        <div className="border-t border-gray-600">
+                                                            <h3 className="py-2 px-4 bg-gray-700 font-semibold">Tags</h3>
                                                             {renderTable(recipe.tags)}
                                                         </div>
                                                     </td>
@@ -246,17 +235,15 @@ export const RecipesPage = () => {
                                 </table>
                                 <div className="flex justify-between items-center py-4">
                                     <button
-                                        className="text-white font-bold py-2 px-4 rounded"
-                                        style={{ background: 'var(--blue-aqua-gradient)' }}
+                                        className="p-2 bg-blue-500 text-white rounded"
                                         onClick={handlePreviousPage}
                                         disabled={currentPage === 0}
                                     >
                                         Previous
                                     </button>
-                                    <span>Page {currentPage + 1} of {totalPages}</span>
+                                    <span className="text-white">Page {currentPage + 1} of {totalPages}</span>
                                     <button
-                                        className="text-white font-bold py-2 px-4 rounded"
-                                        style={{ background: 'var(--pink-yellow-gradient)' }}
+                                        className="p-2 bg-blue-500 text-white rounded"
                                         onClick={handleNextPage}
                                         disabled={currentPage === totalPages - 1}
                                     >

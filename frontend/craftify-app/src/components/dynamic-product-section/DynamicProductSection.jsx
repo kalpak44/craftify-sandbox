@@ -1,10 +1,8 @@
-import React from "react";
-
 export const DynamicProductSection = ({ sectionName, sectionKey, fields, handleNestedChange, handleAddField, handleRemoveField, isMeasurement, isCategory }) => (
-    <div className="space-y-2">
-        <h3 className="font-semibold">{sectionName}</h3>
+    <div className="space-y-2 text-white">
+        <h3 className="font-semibold" style={{color: "white"}}>{sectionName}</h3>
         {fields.map((field, index) => (
-            <div key={index} className="flex items-center space-x-2">
+            <div key={index} className="flex items-center space-x-2 mb-2">
                 {!isCategory && (
                     <>
                         <input
@@ -12,7 +10,7 @@ export const DynamicProductSection = ({ sectionName, sectionKey, fields, handleN
                             placeholder="Key"
                             value={field.key || ""}
                             onChange={(e) => handleNestedChange(e, sectionKey, index, "key")}
-                            className="w-1/3 p-2 border border-gray-300 rounded text-black"
+                            className="w-1/3 p-2 border border-gray-600 rounded bg-gray-700 text-white"
                         />
                         {isMeasurement && (
                             <>
@@ -21,14 +19,14 @@ export const DynamicProductSection = ({ sectionName, sectionKey, fields, handleN
                                     placeholder="Value"
                                     value={field.value || ""}
                                     onChange={(e) => handleNestedChange(e, sectionKey, index, "value")}
-                                    className="w-1/3 p-2 border border-gray-300 rounded text-black"
+                                    className="w-1/3 p-2 border border-gray-600 rounded bg-gray-700 text-white"
                                 />
                                 <input
                                     type="text"
                                     placeholder="Unit"
                                     value={field.unit || ""}
                                     onChange={(e) => handleNestedChange(e, sectionKey, index, "unit")}
-                                    className="w-1/3 p-2 border border-gray-300 rounded text-black"
+                                    className="w-1/3 p-2 border border-gray-600 rounded bg-gray-700 text-white"
                                 />
                             </>
                         )}
@@ -38,7 +36,7 @@ export const DynamicProductSection = ({ sectionName, sectionKey, fields, handleN
                                 placeholder="Value"
                                 value={field.value || ""}
                                 onChange={(e) => handleNestedChange(e, sectionKey, index, "value")}
-                                className="w-2/3 p-2 border border-gray-300 rounded text-black"
+                                className="w-2/3 p-2 border border-gray-600 rounded bg-gray-700 text-white"
                             />
                         )}
                     </>
@@ -49,7 +47,7 @@ export const DynamicProductSection = ({ sectionName, sectionKey, fields, handleN
                         placeholder="Category"
                         value={field.value || ""}
                         onChange={(e) => handleNestedChange(e, sectionKey, index, "value")}
-                        className="w-full p-2 border border-gray-300 rounded text-black"
+                        className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white"
                     />
                 )}
                 <button
