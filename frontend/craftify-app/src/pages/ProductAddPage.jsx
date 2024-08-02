@@ -251,7 +251,8 @@ export const ProductAddPage = () => {
                     <h1 className="text-white text-lg font-bold">New Product</h1>
                     <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                         <div className="space-y-2">
-                            <label className="block font-medium">Product Name:<span className="text-red-500">*</span></label>
+                            <label className="block font-medium">Product Name:<span
+                                className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="name"
@@ -307,27 +308,32 @@ export const ProductAddPage = () => {
                         <div className="flex flex-wrap md:flex-nowrap gap-4">
                             <button
                                 type="button"
-                                onClick={() => confirmSubmit(true)}
+                                onClick={handleCreateDemoProducts}
                                 className="flex-1 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                                style={{ background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)' }}
+                                style={{
+                                    background: 'var(--mandarine-orange-gradient)',
+                                    fontFamily: 'var(--font-primary)'
+                                }}
                             >
-                                OK
+                                Create Demo Products
                             </button>
+                        </div>
+                        <div className="flex flex-wrap md:flex-nowrap gap-4">
                             <button
                                 type="button"
                                 onClick={() => confirmSubmit(false)}
                                 className="flex-1 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                                style={{ background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)' }}
+                                style={{background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)'}}
                             >
                                 Apply
                             </button>
                             <button
                                 type="button"
-                                onClick={handleCreateDemoProducts}
+                                onClick={() => confirmSubmit(true)}
                                 className="flex-1 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                                style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                                style={{background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)'}}
                             >
-                                Create Demo Products
+                                OK
                             </button>
                         </div>
                     </form>

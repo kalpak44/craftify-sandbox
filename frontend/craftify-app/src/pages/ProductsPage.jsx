@@ -93,6 +93,7 @@ export const ProtectedPage = () => {
             const productsData = await getProductsPageable(accessToken, page);
             setProducts(productsData.content);
             setTotalPages(productsData.totalPages);
+            setCurrentPage(0)
         } catch (err) {
             setError(err.message);
         } finally {
