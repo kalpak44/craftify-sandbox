@@ -3,8 +3,17 @@ package com.craftify.recipes.document;
 import java.util.List;
 
 public class RecipeStep {
+  private String ingredientName;
   private ProductSearch productSearch;
   private List<Action> actions;
+
+  public String getIngredientName() {
+    return ingredientName;
+  }
+
+  public void setIngredientName(String ingredientName) {
+    this.ingredientName = ingredientName;
+  }
 
   public ProductSearch getProductSearch() {
     return productSearch;

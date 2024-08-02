@@ -8,6 +8,7 @@ recipe='{
   "recipeName": "Omelette",
   "recipe": [
     {
+      "ingredientName" : "Eggs",
       "productSearch": {
         "productName": "Eggs",
         "attributes": {},
@@ -25,6 +26,7 @@ recipe='{
       ]
     },
     {
+      "ingredientName" : "Oil",
       "productSearch": {
         "productName": "Olive Oil",
         "attributes": {

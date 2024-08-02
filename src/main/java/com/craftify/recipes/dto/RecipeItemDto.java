@@ -3,8 +3,17 @@ package com.craftify.recipes.dto;
 import java.util.List;
 
 public class RecipeItemDto {
+  private String ingredientName;
   private ProductSearchDto productSearch;
   private List<ActionDto> actions;
+
+  public String getIngredientName() {
+    return ingredientName;
+  }
+
+  public void setIngredientName(String ingredientName) {
+    this.ingredientName = ingredientName;
+  }
 
   public ProductSearchDto getProductSearch() {
     return productSearch;

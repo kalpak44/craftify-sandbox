@@ -62,6 +62,8 @@ public class RecipeMappingService {
 
   private RecipeItemDto toDto(RecipeStep entity) {
     var dto = new RecipeItemDto();
+    validateRecipeStepName(entity);
+    dto.setIngredientName(entity.getIngredientName());
     dto.setProductSearch(toDto(entity.getProductSearch()));
     dto.setActions(entity.getActions().stream().map(this::toDto).collect(Collectors.toList()));
     return dto;
@@ -69,6 +71,8 @@ public class RecipeMappingService {
 
   private RecipeStep toEntity(RecipeItemDto dto) {
     var entity = new RecipeStep();
+    validateRecipeStepName(dto);
+    entity.setIngredientName(dto.getIngredientName());
     entity.setProductSearch(toEntity(dto.getProductSearch()));
     entity.setActions(dto.getActions().stream().map(this::toEntity).collect(Collectors.toList()));
     return entity;
@@ -128,6 +132,17 @@ public class RecipeMappingService {
     entity.setMeasurements(dto.getMeasurements());
     entity.setCategories(dto.getCategories());
     return entity;
+  }
+
+  private void validateRecipeStepName(RecipeStep recipeStep){
+    if(StringUtils.isBlank(recipeStep.getIngredientName())){
+      throw new ApiException(HttpStatus.BAD_REQUEST, "Ingredient name is required");
+    }
+  }
+  private void validateRecipeStepName(RecipeItemDto recipeStep){
+    if(StringUtils.isBlank(recipeStep.getIngredientName())){
+      throw new ApiException(HttpStatus.BAD_REQUEST, "Ingredient name is required");
+    }
   }
 
   private void validateProductSearch(ProductSearch productSearch) {
