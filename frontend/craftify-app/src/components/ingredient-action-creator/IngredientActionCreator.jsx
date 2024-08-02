@@ -171,7 +171,7 @@ const IngredientActionCreator = ({addAction, onClose, action, accessToken, searc
             {
                 availabilityBlockVisible && (
                     <div className="p-4 border rounded-lg shadow-md bg-gray-800 mt-8">
-                        <h3 className="font-medium text-white mb-4">Available Products</h3>
+                        <h3 className="font-medium text-white mb-4">Availability</h3>
                         <table className="w-full bg-gray-700 text-white rounded">
                             <thead>
                             <tr>
