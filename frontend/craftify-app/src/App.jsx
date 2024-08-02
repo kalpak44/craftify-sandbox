@@ -12,6 +12,7 @@ import {ProductEditPage} from "./pages/ProductEditPage.jsx";
 import {ProductAddPage} from "./pages/ProductAddPage.jsx";
 import {RecipesPage} from "./pages/RecipesPage.jsx";
 import {RecipeAddPage} from "./pages/RecipeAddPage.jsx";
+import {RecipeEditPage} from "./pages/RecipeEditPage.jsx";
 
 export default function App() {
     const {isLoading} = useAuth0();
@@ -50,6 +51,10 @@ export default function App() {
             <Route
                 path="/recipes/add"
                 element={<AuthenticationGuard component={RecipeAddPage}/>}
+            />
+            <Route
+                path="/recipes/:id"
+                element={<AuthenticationGuard component={RecipeEditPage}/>}
             />
             <Route path="/callback" element={<CallbackPage/>}/>
             <Route path="*" element={<NotFoundPage/>}/>
