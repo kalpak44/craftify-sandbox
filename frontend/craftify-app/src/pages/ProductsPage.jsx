@@ -1,11 +1,11 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getProductsPageable, deleteProduct } from "../services/API";
-import { PageLayout } from "../components/page-layout/PageLayout.jsx";
-import { PageLoader } from "../components/page-loader/PageLoader.jsx";
-import { Modal } from "../components/modal/Modal.jsx";
-import { Notification } from "../components/notification/Notification.jsx";
+import {useAuth0} from "@auth0/auth0-react";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
+import {deleteProduct, getProductsPageable} from "../services/API";
+import {PageLayout} from "../components/page-layout/PageLayout.jsx";
+import {PageLoader} from "../components/page-loader/PageLoader.jsx";
+import {Modal} from "../components/modal/Modal.jsx";
+import {Notification} from "../components/notification/Notification.jsx";
 import noDataImage from '../assets/no-data.png';
 
 export const ProtectedPage = () => {
@@ -17,7 +17,7 @@ export const ProtectedPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
     const [error, setError] = useState(null);
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,7 +28,7 @@ export const ProtectedPage = () => {
             setError(null);
             try {
                 const accessToken = await getAccessTokenSilently();
-                const productsData = await getProductsPageable(accessToken, page);
+                const productsData = await getProductsPageable(accessToken, {page: page});
 
                 if (!isMounted) {
                     return;
@@ -116,7 +116,7 @@ export const ProtectedPage = () => {
     );
 
     const renderNestedTable = (nestedData) => (
-            <table className="min-w-full bg-gray-800 text-white">
+        <table className="min-w-full bg-gray-800 text-white">
             <tbody>
             {Object.entries(nestedData).map(([nestedKey, nestedValue]) => (
                 <tr key={nestedKey}>
@@ -175,7 +175,7 @@ export const ProtectedPage = () => {
                     </button>
                 </div>
                 {loading ? (
-                    <PageLoader />
+                    <PageLoader/>
                 ) : (
                     <div className="overflow-x-auto p-4 border rounded-lg shadow-md bg-gray-800">
                         {products.length > 0 ? (
@@ -200,13 +200,19 @@ export const ProtectedPage = () => {
                                                 <td className="py-3 px-6 border-b border-gray-600">
                                                     <button
                                                         className="p-2 bg-green-500 text-white rounded mr-2"
-                                                        onClick={(e) => { e.stopPropagation(); handleEdit(product.id); }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEdit(product.id);
+                                                        }}
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
                                                         className="p-2 bg-red-500 text-white rounded"
-                                                        onClick={(e) => { e.stopPropagation(); handleRemove(product.id); }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRemove(product.id);
+                                                        }}
                                                     >
                                                         Remove
                                                     </button>
@@ -244,7 +250,7 @@ export const ProtectedPage = () => {
                                 </table>
                                 <div className="flex justify-between items-center py-4">
                                     <button
-                                        className="p-2 bg-blue-500 text-white rounded"
+                                        className={`p-2 rounded ${currentPage === 0 ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white cursor-pointer'}`}
                                         onClick={handlePreviousPage}
                                         disabled={currentPage === 0}
                                     >
@@ -252,18 +258,21 @@ export const ProtectedPage = () => {
                                     </button>
                                     <span className="text-white">Page {currentPage + 1} of {totalPages}</span>
                                     <button
-                                        className="p-2 bg-blue-500 text-white rounded"
+                                        className={`p-2 rounded ${currentPage === totalPages - 1 ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white cursor-pointer'}`}
                                         onClick={handleNextPage}
                                         disabled={currentPage === totalPages - 1}
                                     >
                                         Next
                                     </button>
                                 </div>
+
                             </>
                         ) : (
-                            <div className="flex justify-center items-center">
-                                <img src={noDataImage} alt="No Data" />
-                            </div>
+                            noDataImage && (
+                                <div className="flex justify-center items-center">
+                                    <img src={noDataImage || undefined} alt="No Data"/>
+                                </div>
+                            )
                         )}
                     </div>
                 )}
