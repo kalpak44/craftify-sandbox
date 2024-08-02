@@ -183,7 +183,7 @@ export const ProductAddPage = () => {
         setShowModal(true);
     };
 
-    const confirmSubmit = async () => {
+    const confirmSubmit = async (navigateToList = true) => {
         setLoading(true);
         setError(null);
         setShowModal(false);
@@ -199,7 +199,11 @@ export const ProductAddPage = () => {
             };
             const createdProduct = await createProduct(accessToken, formattedProduct);
             setSuccess("Product created successfully!");
-            navigate(`/products/${createdProduct.id}`);
+            if (navigateToList) {
+                navigate(`/products`);
+            } else {
+                navigate(`/products/${createdProduct.id}`);
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -236,12 +240,18 @@ export const ProductAddPage = () => {
             ) : error || success ? (
                 <Notification show={true} message={error || success} onClose={() => { setError(null); setSuccess(null); }} />
             ) : (
-                <div className="max-w-4xl mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-md mt-8 min-w-full">
-                    <h1 style={{color: "white", fontSize: "medium", width: "482px"}}>New product</h1>
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="relative w-full p-6 bg-gray-800 text-white rounded-lg shadow-md mt-8">
+                    <button
+                        onClick={() => navigate("/products")}
+                        className="absolute top-0 right-0 mt-4 mr-4 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                        style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                    >
+                        Close
+                    </button>
+                    <h1 className="text-white text-lg font-bold">New Product</h1>
+                    <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                         <div className="space-y-2">
-                            <label className="block font-medium">Product Name:<span
-                                className="text-red-500">*</span></label>
+                            <label className="block font-medium">Product Name:<span className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 name="name"
@@ -294,33 +304,37 @@ export const ProductAddPage = () => {
                             handleRemoveField={handleRemoveField}
                             isCategory
                         />
-                        <button
-                            type="submit"
-                            className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                            style={{background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)'}}
-                        >
-                            Create New Product
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/products")}
-                            className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                            style={{background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)'}}
-                        >
-                            Back to List
-                        </button>
-                        <button
-                            onClick={handleCreateDemoProducts}
-                            className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                            style={{background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)'}}
-                        >
-                            Create Demo Products
-                        </button>
+                        <div className="flex flex-wrap md:flex-nowrap gap-4">
+                            <button
+                                type="button"
+                                onClick={() => confirmSubmit(true)}
+                                className="flex-1 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                                style={{ background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)' }}
+                            >
+                                OK
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => confirmSubmit(false)}
+                                className="flex-1 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                                style={{ background: 'var(--blue-aqua-gradient)', fontFamily: 'var(--font-primary)' }}
+                            >
+                                Apply
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCreateDemoProducts}
+                                className="flex-1 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
+                                style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                            >
+                                Create Demo Products
+                            </button>
+                        </div>
                     </form>
                     <Modal
                         show={showModal}
                         onClose={() => setShowModal(false)}
-                        onConfirm={confirmSubmit}
+                        onConfirm={() => confirmSubmit(true)}
                         title="Confirm Submission"
                         message="Are you sure you want to submit this product?"
                     />
