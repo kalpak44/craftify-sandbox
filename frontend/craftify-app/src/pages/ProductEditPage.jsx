@@ -34,14 +34,14 @@ export const ProductEditPage = () => {
                     attributes: Object.entries(productData.attributes || {}).map(([key, value]) => ({key, value})),
                     measurements: Object.entries(productData.measurements || {}).map(([key, value]) => ({
                         key,
-                        value: Object.keys(value)[0],
-                        unit: Object.values(value)[0]
+                        value: value.value,
+                        unit: value.unit
                     })),
                     tags: Object.entries(productData.tags || {}).map(([key, value]) => ({key, value})),
                     availability: Object.entries(productData.availability || {}).map(([key, value]) => ({
                         key,
-                        value: Object.keys(value)[0],
-                        unit: Object.values(value)[0]
+                        value: value.value,
+                        unit: value.unit,
                     })),
                     categories: (productData.categories || []).map(value => ({value}))
                 };
@@ -112,8 +112,8 @@ export const ProductEditPage = () => {
             const formattedProduct = {
                 ...product,
                 attributes: Object.fromEntries(product.attributes.map(attr => [attr.key, attr.value])),
-                measurements: Object.fromEntries(product.measurements.map(meas => [meas.key, {[meas.value]: meas.unit}])),
-                availability: Object.fromEntries(product.availability.map(avail => [avail.key, {[avail.value]: avail.unit}])),
+                measurements: Object.fromEntries(product.measurements.map(meas => [meas.key, {value: meas.value, unit: meas.unit}])),
+                availability: Object.fromEntries(product.availability.map(avail => [avail.key, {value: avail.value, unit: avail.unit}])),
                 tags: Object.fromEntries(product.tags.map(tag => [tag.key, tag.value])),
                 categories: product.categories.map(cat => cat.value)
             };
