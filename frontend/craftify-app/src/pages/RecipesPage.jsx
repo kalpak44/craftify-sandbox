@@ -16,7 +16,6 @@ export const RecipesPage = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [recipeToDelete, setRecipeToDelete] = useState(null);
-    const [yieldResponse, setYieldResponse] = useState({});
     const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
     const navigate = useNavigate();
@@ -111,10 +110,9 @@ export const RecipesPage = () => {
         try {
             const accessToken = await getAccessTokenSilently();
             const maxYieldResponse = await getRecipeYield(accessToken, recipe.id);
-            setYieldResponse(maxYieldResponse);
             setModalContent({
                 title: "Cooking confirmation",
-                message: JSON.stringify(yieldResponse, null, 2),
+                message: JSON.stringify(maxYieldResponse, null, 2),
                 onConfirm: ()=>setShowModal(false),
             });
             setShowModal(true);
