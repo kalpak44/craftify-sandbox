@@ -20,6 +20,7 @@ export const RecipesPage = () => {
     const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
     const navigate = useNavigate();
+    const [modalContent, setModalContent] = useState({title: "", message: "", onConfirm: null});
 
     useEffect(() => {
         let isMounted = true;
@@ -111,6 +112,11 @@ export const RecipesPage = () => {
             const accessToken = await getAccessTokenSilently();
             const maxYieldResponse = await getRecipeYield(accessToken, recipe.id);
             setYieldResponse(maxYieldResponse);
+            setModalContent({
+                title: "Cooking confirmation",
+                message: JSON.stringify(yieldResponse, null, 2),
+                onConfirm: ()=>setShowModal(false),
+            });
             setShowModal(true);
         } catch (err) {
             setError(err.message);
@@ -294,9 +300,9 @@ export const RecipesPage = () => {
             <Modal
                 show={showModal}
                 onClose={() => setShowModal(false)}
-                onConfirm={() => setShowModal(false)}
-                title="Cook confirmation"
-                message={JSON.stringify(yieldResponse, null, 2)}
+                onConfirm={modalContent.onConfirm}
+                title={modalContent.title}
+                message={modalContent.message}
             />
             <Notification
                 show={!!error}
