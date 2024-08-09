@@ -231,6 +231,7 @@ export const ProductEditPage = () => {
                                 type="submit"
                                 className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
                                 style={{background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)'}}
+                                onClick={handleChange}
                             >
                                 Update Product
                             </button>
