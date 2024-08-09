@@ -1,10 +1,10 @@
-import { useAuth0 } from "@auth0/auth0-react";
+import {useAuth0} from "@auth0/auth0-react";
 import React from "react";
 import {PageLayout} from "../components/page-layout/PageLayout.jsx";
 import {NavBar} from "../components/nav-bar/NavBar.jsx";
 
 export const CallbackPage = () => {
-    const { error } = useAuth0();
+    const {error} = useAuth0();
 
     if (error) {
         return (
@@ -25,8 +25,8 @@ export const CallbackPage = () => {
 
     return (
         <div className="page-layout">
-            <NavBar />
-            <div className="page-layout__content" />
+            <NavBar/>
+            <div className="page-layout__content"/>
         </div>
     );
 };

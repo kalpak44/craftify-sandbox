@@ -6,6 +6,7 @@ public class RecipeItemDto {
   private String ingredientName;
   private ProductSearchDto productSearch;
   private List<ActionDto> actions;
+  private List<ActionDto> categories;
 
   public String getIngredientName() {
     return ingredientName;
@@ -29,5 +30,13 @@ public class RecipeItemDto {
 
   public void setActions(List<ActionDto> actions) {
     this.actions = actions;
+  }
+
+  public List<ActionDto> getCategories() {
+    return categories;
+  }
+
+  public void setCategories(List<ActionDto> categories) {
+    this.categories = categories;
   }
 }

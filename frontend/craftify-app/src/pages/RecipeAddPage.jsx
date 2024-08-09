@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { PageLayout } from "../components/page-layout/PageLayout.jsx";
+import React, {useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
+import {PageLayout} from "../components/page-layout/PageLayout.jsx";
 import IngredientActionCreator from "../components/ingredient-action-creator/IngredientActionCreator.jsx";
 import IngredientCreator from "../components/ingredient-creator/IngredientCreator.jsx";
 import ProductResultCreator from "../components/product-result-creator/ProductResultCreator.jsx";
 import {Modal} from "../components/modal/Modal.jsx";
 import {createRecipe} from "../services/API.js";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 
 export const RecipeAddPage = () => {
@@ -15,10 +15,10 @@ export const RecipeAddPage = () => {
     const [resultProduct, setResultProduct] = useState(null);
     const [currentCreator, setCurrentCreator] = useState(null);
     const [expandedIngredientIndex, setExpandedIngredientIndex] = useState(null);
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const [accessToken, setAccessToken] = useState("");
     const [showModal, setShowModal] = useState(false);
-    const [modalContent, setModalContent] = useState({ title: "", message: "", onConfirm: null });
+    const [modalContent, setModalContent] = useState({title: "", message: "", onConfirm: null});
     const navigate = useNavigate();
 
     // Fetch the access token on component mount
@@ -36,7 +36,7 @@ export const RecipeAddPage = () => {
     }, [getAccessTokenSilently]);
 
     const addIngredient = (ingredient) => {
-        setIngredients([...ingredients, { ...ingredient, actions: [] }]);
+        setIngredients([...ingredients, {...ingredient, actions: []}]);
         setCurrentCreator(null);
     };
 
@@ -130,18 +130,19 @@ export const RecipeAddPage = () => {
                 ingredientName: ingredient.ingredientName,
                 productSearch: {
                     productName: ingredient.name,
-                    attributes: ingredient.attributes.reduce((acc, { key, value }) => ({
+                    attributes: ingredient.attributes.reduce((acc, {key, value}) => ({
                         ...acc,
                         [key]: convertToNumberIfApplicable(value)
                     }), {}),
-                    tags: ingredient.tags.reduce((acc, { key, value }) => ({
+                    tags: ingredient.tags.reduce((acc, {key, value}) => ({
                         ...acc,
                         [key]: convertToNumberIfApplicable(value)
-                    }), {})
+                    }), {}),
+                    categories: ingredient.categories || []
                 },
                 actions: ingredient.actions.map(action => ({
                     type: action.actionType,
-                    parameters: action.parameters.reduce((acc, { key, value }) => ({
+                    parameters: action.parameters.reduce((acc, {key, value}) => ({
                         ...acc,
                         [key]: convertToNumberIfApplicable(value)
                     }), {})
@@ -182,7 +183,6 @@ export const RecipeAddPage = () => {
     };
 
 
-
     return (
         <PageLayout>
             <div className="container mx-auto p-4">
@@ -212,7 +212,10 @@ export const RecipeAddPage = () => {
                                                 <div>
                                                     <button
                                                         className="p-2 bg-blue-500 text-white rounded mr-2"
-                                                        onClick={() => setCurrentCreator({ type: "action", ingredientIndex: index })}
+                                                        onClick={() => setCurrentCreator({
+                                                            type: "action",
+                                                            ingredientIndex: index
+                                                        })}
                                                     >
                                                         Add Action
                                                     </button>
@@ -236,14 +239,19 @@ export const RecipeAddPage = () => {
                                                     {ingredient.actions.length > 0 ? (
                                                         <ul className="pl-4">
                                                             {ingredient.actions.map((action, actionIndex) => (
-                                                                <li key={actionIndex} className="text-white flex justify-between items-center mb-2">
+                                                                <li key={actionIndex}
+                                                                    className="text-white flex justify-between items-center mb-2">
                                                                     <div>
                                                                         {action.actionType} - {action.parameters.map(param => `${param.key}: ${param.value}`).join(", ")}
                                                                     </div>
                                                                     <div>
                                                                         <button
                                                                             className="p-2 bg-yellow-500 text-white rounded mr-2"
-                                                                            onClick={() => setCurrentCreator({ type: "action", ingredientIndex: index, actionIndex })}
+                                                                            onClick={() => setCurrentCreator({
+                                                                                type: "action",
+                                                                                ingredientIndex: index,
+                                                                                actionIndex
+                                                                            })}
                                                                         >
                                                                             Edit
                                                                         </button>
@@ -270,7 +278,7 @@ export const RecipeAddPage = () => {
                             )}
                             <div className="mt-4">
                                 <button
-                                    onClick={() => setCurrentCreator({ type: "ingredient" })}
+                                    onClick={() => setCurrentCreator({type: "ingredient"})}
                                     className="p-2 bg-blue-500 text-white rounded"
                                 >
                                     Create Ingredient
@@ -289,7 +297,7 @@ export const RecipeAddPage = () => {
                                     <p>Categories: {resultProduct.categories.join(", ")}</p>
                                     <button
                                         className="p-2 bg-yellow-500 text-white rounded mt-2 mr-2"
-                                        onClick={() => setCurrentCreator({ type: "productResult" })}
+                                        onClick={() => setCurrentCreator({type: "productResult"})}
                                     >
                                         Edit Product Result
                                     </button>
@@ -304,7 +312,7 @@ export const RecipeAddPage = () => {
                                 <div>
                                     <p className="text-white mb-2">No product result added yet.</p>
                                     <button
-                                        onClick={() => setCurrentCreator({ type: "productResult" })}
+                                        onClick={() => setCurrentCreator({type: "productResult"})}
                                         className="p-2 bg-blue-500 text-white rounded"
                                     >
                                         Create Product Result
@@ -332,7 +340,7 @@ export const RecipeAddPage = () => {
                                             Close
                                         </button>
                                     </div>
-                                    <IngredientCreator addIngredient={addIngredient} accessToken={accessToken} />
+                                    <IngredientCreator addIngredient={addIngredient} accessToken={accessToken}/>
                                 </>
                             )}
                             {currentCreator.type === "action" && (

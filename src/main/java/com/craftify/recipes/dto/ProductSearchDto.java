@@ -1,12 +1,15 @@
 package com.craftify.recipes.dto;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ProductSearchDto {
   private String productName;
   private Map<String, String> attributes = new HashMap<>();
   private Map<String, String> tags = new HashMap<>();
+  private Set<String> categories = new HashSet<>();
 
   public String getProductName() {
     return productName;
@@ -30,5 +33,13 @@ public class ProductSearchDto {
 
   public void setTags(Map<String, String> tags) {
     this.tags = tags;
+  }
+
+  public Set<String> getCategories() {
+    return categories;
+  }
+
+  public void setCategories(Set<String> categories) {
+    this.categories = categories;
   }
 }

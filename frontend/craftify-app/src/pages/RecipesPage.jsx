@@ -1,11 +1,11 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getRecipesPageable, deleteRecipe } from "../services/API";
-import { PageLayout } from "../components/page-layout/PageLayout.jsx";
-import { PageLoader } from "../components/page-loader/PageLoader.jsx";
-import { Modal } from "../components/modal/Modal.jsx";
-import { Notification } from "../components/notification/Notification.jsx";
+import {useAuth0} from "@auth0/auth0-react";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
+import {deleteRecipe, getRecipesPageable} from "../services/API";
+import {PageLayout} from "../components/page-layout/PageLayout.jsx";
+import {PageLoader} from "../components/page-loader/PageLoader.jsx";
+import {Modal} from "../components/modal/Modal.jsx";
+import {Notification} from "../components/notification/Notification.jsx";
 import noDataImage from '../assets/no-data.png';
 
 export const RecipesPage = () => {
@@ -17,7 +17,7 @@ export const RecipesPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [recipeToDelete, setRecipeToDelete] = useState(null);
     const [error, setError] = useState(null);
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -175,7 +175,7 @@ export const RecipesPage = () => {
                     </button>
                 </div>
                 {loading ? (
-                    <PageLoader />
+                    <PageLoader/>
                 ) : (
                     <div className="overflow-x-auto p-4 border rounded-lg shadow-md bg-gray-800">
                         {recipes.length > 0 ? (
@@ -199,13 +199,19 @@ export const RecipesPage = () => {
                                                 <td className="py-3 px-6 border-b border-gray-600">
                                                     <button
                                                         className="p-2 bg-green-500 text-white rounded mr-2"
-                                                        onClick={(e) => { e.stopPropagation(); handleEdit(recipe.id); }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEdit(recipe.id);
+                                                        }}
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
                                                         className="p-2 bg-red-500 text-white rounded"
-                                                        onClick={(e) => { e.stopPropagation(); handleRemove(recipe.id); }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRemove(recipe.id);
+                                                        }}
                                                     >
                                                         Remove
                                                     </button>
@@ -253,7 +259,7 @@ export const RecipesPage = () => {
                             </>
                         ) : (
                             <div className="flex justify-center items-center">
-                                <img src={noDataImage} alt="No Data" />
+                                <img src={noDataImage} alt="No Data"/>
                             </div>
                         )}
                     </div>

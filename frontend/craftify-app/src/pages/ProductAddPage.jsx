@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useNavigate } from "react-router-dom";
-import { PageLayout } from "../components/page-layout/PageLayout.jsx";
-import { PageLoader } from "../components/page-loader/PageLoader.jsx";
-import { Notification } from "../components/notification/Notification.jsx";
-import { Modal } from "../components/modal/Modal.jsx";
-import { createProduct } from "../services/API";
-import { DynamicProductSection } from "../components/dynamic-product-section/DynamicProductSection.jsx";
+import React, {useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
+import {useNavigate} from "react-router-dom";
+import {PageLayout} from "../components/page-layout/PageLayout.jsx";
+import {PageLoader} from "../components/page-loader/PageLoader.jsx";
+import {Notification} from "../components/notification/Notification.jsx";
+import {Modal} from "../components/modal/Modal.jsx";
+import {createProduct} from "../services/API";
+import {DynamicProductSection} from "../components/dynamic-product-section/DynamicProductSection.jsx";
 
 const demoProducts = [
     {
@@ -142,11 +142,11 @@ export const ProductAddPage = () => {
         availability: [],
         categories: []
     });
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setProduct((prevState) => ({
             ...prevState,
             [name]: value
@@ -154,7 +154,7 @@ export const ProductAddPage = () => {
     };
 
     const handleNestedChange = (e, section, index, key) => {
-        const { value } = e.target;
+        const {value} = e.target;
         const newSection = [...product[section]];
         newSection[index][key] = value;
         setProduct((prevState) => ({
@@ -192,8 +192,8 @@ export const ProductAddPage = () => {
             const formattedProduct = {
                 ...product,
                 attributes: Object.fromEntries(product.attributes.map((attr) => [attr.key, attr.value])),
-                measurements: Object.fromEntries(product.measurements.map((meas) => [meas.key, { [meas.value]: meas.unit }])),
-                availability: Object.fromEntries(product.availability.map((avail) => [avail.key, { [avail.value]: avail.unit }])),
+                measurements: Object.fromEntries(product.measurements.map((meas) => [meas.key, {[meas.value]: meas.unit}])),
+                availability: Object.fromEntries(product.availability.map((avail) => [avail.key, {[avail.value]: avail.unit}])),
                 tags: Object.fromEntries(product.tags.map((tag) => [tag.key, tag.value])),
                 categories: product.categories.map((cat) => cat.value)
             };
@@ -236,15 +236,18 @@ export const ProductAddPage = () => {
     return (
         <PageLayout>
             {loading ? (
-                <PageLoader />
+                <PageLoader/>
             ) : error || success ? (
-                <Notification show={true} message={error || success} onClose={() => { setError(null); setSuccess(null); }} />
+                <Notification show={true} message={error || success} onClose={() => {
+                    setError(null);
+                    setSuccess(null);
+                }}/>
             ) : (
                 <div className="relative w-full p-6 bg-gray-800 text-white rounded-lg shadow-md mt-8">
                     <button
                         onClick={() => navigate("/products")}
                         className="absolute top-0 right-0 mt-4 mr-4 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                        style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                        style={{background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)'}}
                     >
                         Close
                     </button>

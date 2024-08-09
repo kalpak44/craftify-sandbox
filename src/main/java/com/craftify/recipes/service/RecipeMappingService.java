@@ -83,6 +83,7 @@ public class RecipeMappingService {
     var dto = new ProductSearchDto();
     dto.setProductName(entity.getProductName());
     dto.setAttributes(entity.getAttributes());
+    dto.setCategories(entity.getCategories());
     dto.setTags(entity.getTags());
     return dto;
   }
@@ -93,6 +94,7 @@ public class RecipeMappingService {
     entity.setProductName(dto.getProductName());
     entity.setAttributes(dto.getAttributes());
     entity.setTags(dto.getTags());
+    entity.setCategories(dto.getCategories());
     return entity;
   }
 
@@ -149,7 +151,8 @@ public class RecipeMappingService {
   private void validateProductSearch(ProductSearch productSearch) {
     if (StringUtils.isEmpty(productSearch.getProductName())
         && (productSearch.getAttributes() == null || productSearch.getAttributes().isEmpty())
-        && (productSearch.getTags() == null || productSearch.getTags().isEmpty())) {
+        && (productSearch.getTags() == null || productSearch.getTags().isEmpty())
+        && (productSearch.getCategories() == null || productSearch.getCategories().isEmpty())) {
       throw new ApiException(
           HttpStatus.BAD_REQUEST,
           "ProductSearch must contain productName or non-empty attributes or non-empty tags");
@@ -159,10 +162,12 @@ public class RecipeMappingService {
   private void validateProductSearchDto(ProductSearchDto productSearchDto) {
     if (StringUtils.isEmpty(productSearchDto.getProductName())
         && (productSearchDto.getAttributes() == null || productSearchDto.getAttributes().isEmpty())
-        && (productSearchDto.getTags() == null || productSearchDto.getTags().isEmpty())) {
+        && (productSearchDto.getTags() == null || productSearchDto.getTags().isEmpty())
+        && (productSearchDto.getCategories() == null
+            || productSearchDto.getCategories().isEmpty())) {
       throw new ApiException(
           HttpStatus.BAD_REQUEST,
-          "ProductSearchDto must contain productName or non-empty attributes or non-empty tags");
+          "ProductSearchDto must contain productName or non-empty attributes or non-empty tags or categories");
     }
   }
 

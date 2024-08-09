@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useNavigate, useParams } from "react-router-dom";
-import { getProductById, updateProduct, deleteProduct } from "../services/API";
-import { PageLayout } from "../components/page-layout/PageLayout.jsx";
-import { PageLoader } from "../components/page-loader/PageLoader.jsx";
-import { Notification } from "../components/notification/Notification.jsx";
-import { Modal } from "../components/modal/Modal.jsx";
-import { DynamicProductSection } from "../components/dynamic-product-section/DynamicProductSection.jsx";
+import React, {useCallback, useEffect, useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
+import {useNavigate, useParams} from "react-router-dom";
+import {deleteProduct, getProductById, updateProduct} from "../services/API";
+import {PageLayout} from "../components/page-layout/PageLayout.jsx";
+import {PageLoader} from "../components/page-loader/PageLoader.jsx";
+import {Notification} from "../components/notification/Notification.jsx";
+import {Modal} from "../components/modal/Modal.jsx";
+import {DynamicProductSection} from "../components/dynamic-product-section/DynamicProductSection.jsx";
 
 export const ProductEditPage = () => {
-    const { id } = useParams();
+    const {id} = useParams();
     const [originalProduct, setOriginalProduct] = useState(null);
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ export const ProductEditPage = () => {
     const [success, setSuccess] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,11 +31,19 @@ export const ProductEditPage = () => {
                 // Format the product data to match the state structure
                 const formattedProduct = {
                     name: productData.name,
-                    attributes: Object.entries(productData.attributes || {}).map(([key, value]) => ({ key, value })),
-                    measurements: Object.entries(productData.measurements || {}).map(([key, value]) => ({ key, value: Object.keys(value)[0], unit: Object.values(value)[0] })),
-                    tags: Object.entries(productData.tags || {}).map(([key, value]) => ({ key, value })),
-                    availability: Object.entries(productData.availability || {}).map(([key, value]) => ({ key, value: Object.keys(value)[0], unit: Object.values(value)[0] })),
-                    categories: (productData.categories || []).map(value => ({ value }))
+                    attributes: Object.entries(productData.attributes || {}).map(([key, value]) => ({key, value})),
+                    measurements: Object.entries(productData.measurements || {}).map(([key, value]) => ({
+                        key,
+                        value: Object.keys(value)[0],
+                        unit: Object.values(value)[0]
+                    })),
+                    tags: Object.entries(productData.tags || {}).map(([key, value]) => ({key, value})),
+                    availability: Object.entries(productData.availability || {}).map(([key, value]) => ({
+                        key,
+                        value: Object.keys(value)[0],
+                        unit: Object.values(value)[0]
+                    })),
+                    categories: (productData.categories || []).map(value => ({value}))
                 };
                 setProduct(formattedProduct);
                 setOriginalProduct(formattedProduct);
@@ -50,7 +58,7 @@ export const ProductEditPage = () => {
     }, [getAccessTokenSilently, id]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setProduct(prevState => ({
             ...prevState,
             [name]: value
@@ -58,7 +66,7 @@ export const ProductEditPage = () => {
     };
 
     const handleNestedChange = (e, section, index, key) => {
-        const { value } = e.target;
+        const {value} = e.target;
         const newSection = [...product[section]];
         newSection[index][key] = value;
         setProduct(prevState => ({
@@ -104,8 +112,8 @@ export const ProductEditPage = () => {
             const formattedProduct = {
                 ...product,
                 attributes: Object.fromEntries(product.attributes.map(attr => [attr.key, attr.value])),
-                measurements: Object.fromEntries(product.measurements.map(meas => [meas.key, { [meas.value]: meas.unit }])),
-                availability: Object.fromEntries(product.availability.map(avail => [avail.key, { [avail.value]: avail.unit }])),
+                measurements: Object.fromEntries(product.measurements.map(meas => [meas.key, {[meas.value]: meas.unit}])),
+                availability: Object.fromEntries(product.availability.map(avail => [avail.key, {[avail.value]: avail.unit}])),
                 tags: Object.fromEntries(product.tags.map(tag => [tag.key, tag.value])),
                 categories: product.categories.map(cat => cat.value)
             };
@@ -146,15 +154,18 @@ export const ProductEditPage = () => {
     return (
         <PageLayout>
             {loading ? (
-                <PageLoader />
+                <PageLoader/>
             ) : error || success ? (
-                <Notification show={true} message={error || success} onClose={() => { setError(null); setSuccess(null); }} />
+                <Notification show={true} message={error || success} onClose={() => {
+                    setError(null);
+                    setSuccess(null);
+                }}/>
             ) : (
                 <div className="relative w-full p-6 bg-gray-800 text-white rounded-lg shadow-md mt-8">
                     <button
                         onClick={handleBackClick}
                         className="absolute top-0 right-0 mt-4 mr-4 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                        style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                        style={{background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)'}}
                     >
                         Close
                     </button>
@@ -219,7 +230,7 @@ export const ProductEditPage = () => {
                             <button
                                 type="submit"
                                 className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                                style={{ background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)' }}
+                                style={{background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)'}}
                             >
                                 Update Product
                             </button>
@@ -227,7 +238,10 @@ export const ProductEditPage = () => {
                                 type="button"
                                 onClick={handleDelete}
                                 className="w-full py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
-                                style={{ background: 'var(--mandarine-orange-gradient)', fontFamily: 'var(--font-primary)' }}
+                                style={{
+                                    background: 'var(--mandarine-orange-gradient)',
+                                    fontFamily: 'var(--font-primary)'
+                                }}
                             >
                                 Delete Product
                             </button>
