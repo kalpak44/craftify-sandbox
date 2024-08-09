@@ -1,11 +1,11 @@
-import {useAuth0} from "@auth0/auth0-react";
-import React, {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
-import {deleteRecipe, getRecipesPageable} from "../services/API";
-import {PageLayout} from "../components/page-layout/PageLayout.jsx";
-import {PageLoader} from "../components/page-loader/PageLoader.jsx";
-import {Modal} from "../components/modal/Modal.jsx";
-import {Notification} from "../components/notification/Notification.jsx";
+import { useAuth0 } from "@auth0/auth0-react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { deleteRecipe, getRecipesPageable, getRecipeYield } from "../services/API"; // Import the new method
+import { PageLayout } from "../components/page-layout/PageLayout.jsx";
+import { PageLoader } from "../components/page-loader/PageLoader.jsx";
+import { Modal } from "../components/modal/Modal.jsx";
+import { Notification } from "../components/notification/Notification.jsx";
 import noDataImage from '../assets/no-data.png';
 
 export const RecipesPage = () => {
@@ -16,8 +16,9 @@ export const RecipesPage = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [recipeToDelete, setRecipeToDelete] = useState(null);
+    const [yieldResponse, setYieldResponse] = useState({});
     const [error, setError] = useState(null);
-    const {getAccessTokenSilently} = useAuth0();
+    const { getAccessTokenSilently } = useAuth0();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -66,6 +67,11 @@ export const RecipesPage = () => {
 
     const handleRemove = (id) => {
         setRecipeToDelete(id);
+        setModalContent({
+            title: "Confirm Deletion",
+            message: "Are you sure you want to delete this recipe?",
+            onConfirm: confirmDelete,
+        });
         setShowModal(true);
     };
 
@@ -97,6 +103,17 @@ export const RecipesPage = () => {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCook = async (recipe) => {
+        try {
+            const accessToken = await getAccessTokenSilently();
+            const maxYieldResponse = await getRecipeYield(accessToken, recipe.id);
+            setYieldResponse(maxYieldResponse);
+            setShowModal(true);
+        } catch (err) {
+            setError(err.message);
         }
     };
 
@@ -207,13 +224,22 @@ export const RecipesPage = () => {
                                                         Edit
                                                     </button>
                                                     <button
-                                                        className="p-2 bg-red-500 text-white rounded"
+                                                        className="p-2 bg-red-500 text-white rounded mr-2"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleRemove(recipe.id);
                                                         }}
                                                     >
                                                         Remove
+                                                    </button>
+                                                    <button
+                                                        className="p-2 bg-blue-500 text-white rounded"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCook(recipe);
+                                                        }}
+                                                    >
+                                                        Cook
                                                     </button>
                                                 </td>
                                             </tr>
@@ -268,9 +294,9 @@ export const RecipesPage = () => {
             <Modal
                 show={showModal}
                 onClose={() => setShowModal(false)}
-                onConfirm={confirmDelete}
-                title="Confirm Deletion"
-                message="Are you sure you want to delete this recipe?"
+                onConfirm={() => setShowModal(false)}
+                title="Cook confirmation"
+                message={JSON.stringify(yieldResponse, null, 2)}
             />
             <Notification
                 show={!!error}

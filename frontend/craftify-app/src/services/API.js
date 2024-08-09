@@ -107,3 +107,12 @@ export const createRecipe = async (accessToken, recipeData) => {
     }
     return response.json();
 };
+
+export const getRecipeYield = async (accessToken, recipeId) => {
+    const response = await fetchWithAuth(accessToken, `/recipes/${recipeId}/yield`);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to get recipe yield. ${body.message}`);
+    }
+    return response.json();
+};
