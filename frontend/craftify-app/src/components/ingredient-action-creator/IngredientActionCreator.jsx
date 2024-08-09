@@ -71,11 +71,11 @@ const IngredientActionCreator = ({addAction, onClose, action, accessToken, searc
     };
 
     const handleCheckAvailability = () => {
-        fetchProducts(0);
+        fetchProducts(0).catch(console.error);
     };
 
     const handlePageChange = (newPage) => {
-        fetchProducts(newPage);
+        fetchProducts(newPage).catch(console.error);
         setPage(newPage);
     };
 

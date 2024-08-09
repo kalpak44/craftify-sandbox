@@ -51,8 +51,9 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
             });
             return;
         }
-        addIngredient({ id, ingredientName, name, attributes, tags, categories });
-        resetFields();
+        const ingredient = { id, ingredientName, name, attributes, tags, categories: categories.map(c => c.value).filter(c => c) };
+        addIngredient(ingredient);
+         resetFields();
     };
 
     const resetFields = () => {
