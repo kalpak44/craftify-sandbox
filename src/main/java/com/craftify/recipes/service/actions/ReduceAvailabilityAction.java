@@ -3,6 +3,7 @@ package com.craftify.recipes.service.actions;
 import com.craftify.products.document.ProductDocument;
 import com.craftify.products.repository.ProductRepository;
 import com.craftify.recipes.exception.RecipeActionError;
+import com.craftify.recipes.models.Pair;
 import com.craftify.shared.exception.ApiException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -78,26 +79,24 @@ public class ReduceAvailabilityAction implements RecipeAction {
         continue;
       }
 
-      for (var entry : availability.entrySet()) {
-        var productUnit = entry.getValue();
-        if (requiredUnit.equals(productUnit)) {
-          totalAvailable = totalAvailable.add(entry.getKey());
-        } else {
-          try {
-            var convertedAmount = convertUnits(entry.getKey(), productUnit, requiredUnit);
-            totalAvailable = totalAvailable.add(convertedAmount);
-          } catch (IllegalArgumentException e) {
-            errors.add(
-                "Cannot convert "
-                    + productUnit
-                    + " to "
-                    + requiredUnit
-                    + " for product: "
-                    + product.getName()
-                    + " ("
-                    + product.getId()
-                    + ")");
-          }
+      var productUnit = availability.getUnit();
+      if (requiredUnit.equals(productUnit)) {
+        totalAvailable = totalAvailable.add(availability.getValue());
+      } else {
+        try {
+          var convertedAmount = convertUnits(availability.getValue(), productUnit, requiredUnit);
+          totalAvailable = totalAvailable.add(convertedAmount);
+        } catch (IllegalArgumentException e) {
+          errors.add(
+              "Cannot convert "
+                  + productUnit
+                  + " to "
+                  + requiredUnit
+                  + " for product: "
+                  + product.getName()
+                  + " ("
+                  + product.getId()
+                  + ")");
         }
       }
     }
@@ -121,12 +120,13 @@ public class ReduceAvailabilityAction implements RecipeAction {
 
   @Override
   public void apply(
-          List<ProductDocument> matchingProducts, Map<String, Object> parameters, BigDecimal amount)
-          throws RecipeActionError {
+      List<ProductDocument> matchingProducts, Map<String, Object> parameters, BigDecimal amount)
+      throws RecipeActionError {
     var requiredAmountPerPortion = new BigDecimal(String.valueOf(parameters.get("amount")));
     var requiredUnit = (String) parameters.get("unit");
     var availabilityType = (String) parameters.get("type");
-    var totalRequired = requiredAmountPerPortion.multiply(amount); // Total amount needed for all portions
+    var totalRequired =
+        requiredAmountPerPortion.multiply(amount); // Total amount needed for all portions
     var errors = new ArrayList<String>();
 
     for (var matchingProduct : matchingProducts) {
@@ -135,64 +135,59 @@ public class ReduceAvailabilityAction implements RecipeAction {
 
       if (availability == null) {
         errors.add(
-                "No availability for type: "
-                        + availabilityType
-                        + " in product: "
-                        + matchingProduct.getName());
+            "No availability for type: "
+                + availabilityType
+                + " in product: "
+                + matchingProduct.getName());
         continue;
       }
 
       var totalExtracted = BigDecimal.ZERO;
 
-      var entries = new ArrayList<>(availability.entrySet());
-      entries.sort(Map.Entry.comparingByKey());
+      var availableAmount = availability.getValue();
+      var productUnit = availability.getUnit();
 
-      for (var entry : entries) {
-        var availableAmount = entry.getKey();
-        var productUnit = entry.getValue();
+      BigDecimal extractableAmount;
 
-        BigDecimal extractableAmount;
+      if (requiredUnit.equals(productUnit)) {
+        extractableAmount = availableAmount.min(totalRequired.subtract(totalExtracted));
+      } else {
+        try {
+          var convertedAmount = convertUnits(availableAmount, productUnit, requiredUnit);
+          extractableAmount = convertedAmount.min(totalRequired.subtract(totalExtracted));
+        } catch (IllegalArgumentException e) {
+          errors.add(
+              "Cannot convert "
+                  + productUnit
+                  + " to "
+                  + requiredUnit
+                  + " in product: "
+                  + matchingProduct.getName());
+          continue;
+        }
+      }
 
-        if (requiredUnit.equals(productUnit)) {
-          extractableAmount = availableAmount.min(totalRequired.subtract(totalExtracted));
+      if (extractableAmount.compareTo(BigDecimal.ZERO) > 0) {
+        totalExtracted = totalExtracted.add(extractableAmount);
+
+        var newAvailableAmount = availableAmount.subtract(extractableAmount);
+        if (newAvailableAmount.compareTo(BigDecimal.ZERO) > 0) {
+          availability = new Pair<>(newAvailableAmount, productUnit);
         } else {
-          try {
-            var convertedAmount = convertUnits(availableAmount, productUnit, requiredUnit);
-            extractableAmount = convertedAmount.min(totalRequired.subtract(totalExtracted));
-          } catch (IllegalArgumentException e) {
-            errors.add(
-                    "Cannot convert "
-                            + productUnit
-                            + " to "
-                            + requiredUnit
-                            + " in product: "
-                            + matchingProduct.getName());
-            continue;
-          }
+          availability = new Pair<>(availableAmount, productUnit);
         }
 
-        if (extractableAmount.compareTo(BigDecimal.ZERO) > 0) {
-          totalExtracted = totalExtracted.add(extractableAmount);
-
-          var newAvailableAmount = availableAmount.subtract(extractableAmount);
-          if (newAvailableAmount.compareTo(BigDecimal.ZERO) > 0) {
-            availability.put(newAvailableAmount, productUnit);
-          } else {
-            availability.remove(availableAmount);
-          }
-
-          if (totalExtracted.compareTo(totalRequired) >= 0) {
-            break;
-          }
+        if (totalExtracted.compareTo(totalRequired) >= 0) {
+          break;
         }
       }
 
       if (totalExtracted.compareTo(totalRequired) < 0) {
         errors.add(
-                "Insufficient availability for type: "
-                        + availabilityType
-                        + " in product: "
-                        + matchingProduct.getName());
+            "Insufficient availability for type: "
+                + availabilityType
+                + " in product: "
+                + matchingProduct.getName());
       }
 
       availabilities.put(availabilityType, availability);

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.craftify.recipes.models.Pair;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -80,7 +82,7 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
   }
 
   private void addMeasurementsCriteria(
-      Query query, Map<String, Map<BigDecimal, String>> measurements) {
+      Query query, Map<String, Pair<BigDecimal, String>> measurements) {
     if (measurements != null && !measurements.isEmpty()) {
       var measurementCriteria = new ArrayList<>();
       for (var entry : measurements.entrySet()) {

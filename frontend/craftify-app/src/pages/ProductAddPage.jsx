@@ -18,7 +18,8 @@ const demoProducts = [
         },
         measurements: {
             volume: {
-                1000: "ml"
+                value: 1000,
+                unit: "ml"
             }
         },
         tags: {
@@ -38,7 +39,8 @@ const demoProducts = [
         },
         measurements: {
             weight: {
-                200: "g"
+                value: 200,
+                unit: "g"
             }
         },
         tags: {
@@ -47,7 +49,8 @@ const demoProducts = [
         },
         availability: {
             weight: {
-                20: "g"
+                value: 20,
+                unit: "g"
             }
         },
         categories: ["Vegetarian"]
@@ -61,10 +64,8 @@ const demoProducts = [
         },
         measurements: {
             weight: {
-                30: "g"
-            },
-            package: {
-                4: "count"
+                value: 30,
+                unit: "g"
             }
         },
         tags: {
@@ -73,10 +74,12 @@ const demoProducts = [
         },
         availability: {
             weight: {
-                30: "g"
+                value: 30,
+                unit: "g"
             },
             package: {
-                1: "count"
+                value: 1,
+                unit: "count"
             }
         },
         categories: ["Vegan", "Herb"]
@@ -91,10 +94,8 @@ const demoProducts = [
         },
         measurements: {
             quantity: {
-                10: "count"
-            },
-            price: {
-                5: "usd"
+                value: 6,
+                unit: "count"
             }
         },
         tags: {
@@ -114,7 +115,8 @@ const demoProducts = [
         },
         measurements: {
             quantity: {
-                6: "count"
+                value: 10,
+                unit: "count"
             }
         },
         tags: {

@@ -1,5 +1,7 @@
 package com.craftify.recipes.document;
 
+import com.craftify.recipes.models.Pair;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,7 +12,7 @@ public class ProductSearch {
   private String id;
   private String productName;
   private Map<String, String> attributes = new HashMap<>();
-  private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();
+  private Map<String, Pair<BigDecimal, String>> measurements = new HashMap<>();
   private Map<String, String> tags = new HashMap<>();
   private Set<String> categories = new HashSet<>();
 
@@ -46,11 +48,11 @@ public class ProductSearch {
     this.tags = tags;
   }
 
-  public Map<String, Map<BigDecimal, String>> getMeasurements() {
+  public Map<String, Pair<BigDecimal, String>> getMeasurements() {
     return measurements;
   }
 
-  public void setMeasurements(Map<String, Map<BigDecimal, String>> measurements) {
+  public void setMeasurements(Map<String, Pair<BigDecimal, String>> measurements) {
     this.measurements = measurements;
   }
 

@@ -1,11 +1,13 @@
 package com.craftify.recipes.dto;
 
+import com.craftify.recipes.models.Pair;
 import com.craftify.recipes.service.commons.merge.AttributeMergeStrategy;
 import com.craftify.recipes.service.commons.merge.AvailabilityMergeStrategy;
 import com.craftify.recipes.service.commons.merge.CategoryMergeStrategy;
 import com.craftify.recipes.service.commons.merge.MeasurementMergeStrategy;
 import com.craftify.recipes.service.commons.merge.NameMergeStrategy;
 import com.craftify.recipes.service.commons.merge.TagMergeStrategy;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,9 +24,9 @@ public class ResultingProductDto {
   private AttributeMergeStrategy attributeMergeStrategy = new AttributeMergeStrategy();
   private Map<String, String> attributes = new HashMap<>();
   private MeasurementMergeStrategy measurementMergeStrategy = new MeasurementMergeStrategy();
-  private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();
+  private Map<String, Pair<BigDecimal, String>> measurements = new HashMap<>();
   private AvailabilityMergeStrategy availabilityMergeStrategy = new AvailabilityMergeStrategy();
-  private Map<String, Map<BigDecimal, String>> availability = new HashMap<>();
+  private Map<String, Pair<BigDecimal, String>> availability = new HashMap<>();
   private CategoryMergeStrategy categoryMergeStrategy = new CategoryMergeStrategy();
   private Set<String> categories = new HashSet<>();
 
@@ -68,19 +70,19 @@ public class ResultingProductDto {
     this.attributes = attributes;
   }
 
-  public Map<String, Map<BigDecimal, String>> getMeasurements() {
+  public Map<String, Pair<BigDecimal, String>> getMeasurements() {
     return measurements;
   }
 
-  public void setMeasurements(Map<String, Map<BigDecimal, String>> measurements) {
+  public void setMeasurements(Map<String, Pair<BigDecimal, String>> measurements) {
     this.measurements = measurements;
   }
 
-  public Map<String, Map<BigDecimal, String>> getAvailability() {
+  public Map<String, Pair<BigDecimal, String>> getAvailability() {
     return availability;
   }
 
-  public void setAvailability(Map<String, Map<BigDecimal, String>> availability) {
+  public void setAvailability(Map<String, Pair<BigDecimal, String>> availability) {
     this.availability = availability;
   }
 

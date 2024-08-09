@@ -1,5 +1,6 @@
 package com.craftify.products.document;
 
+import com.craftify.recipes.models.Pair;
 import com.craftify.shared.document.IdentifiedDocument;
 import com.craftify.shared.document.UserDataDocument;
 import jakarta.validation.constraints.NotNull;
@@ -17,8 +18,8 @@ public class ProductDocument extends IdentifiedDocument<String> implements UserD
   @NotNull private String userId;
   private Map<String, String> tags = new HashMap<>();
   private Map<String, String> attributes = new HashMap<>();
-  private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();
-  private Map<String, Map<BigDecimal, String>> availability = new HashMap<>();
+  private Map<String, Pair<BigDecimal, String>> measurements = new HashMap<>();
+  private Map<String, Pair<BigDecimal, String>> availability = new HashMap<>();
   private Set<String> categories = new HashSet<>();
 
   @Override
@@ -55,19 +56,19 @@ public class ProductDocument extends IdentifiedDocument<String> implements UserD
     this.attributes = attributes;
   }
 
-  public Map<String, Map<BigDecimal, String>> getMeasurements() {
+  public Map<String, Pair<BigDecimal, String>> getMeasurements() {
     return measurements;
   }
 
-  public void setMeasurements(Map<String, Map<BigDecimal, String>> measurements) {
+  public void setMeasurements(Map<String, Pair<BigDecimal, String>> measurements) {
     this.measurements = measurements;
   }
 
-  public Map<String, Map<BigDecimal, String>> getAvailability() {
+  public Map<String, Pair<BigDecimal, String>> getAvailability() {
     return availability;
   }
 
-  public void setAvailability(Map<String, Map<BigDecimal, String>> availability) {
+  public void setAvailability(Map<String, Pair<BigDecimal, String>> availability) {
     this.availability = availability;
   }
 

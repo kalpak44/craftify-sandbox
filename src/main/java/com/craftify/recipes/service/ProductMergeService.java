@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 public class ProductMergeService {
   public ResultingProductDto mergeProducts(
       ResultingProductDto original, ResultingProductDto toMerge) {
-    // Apply name merge strategy
+/*    // Apply name merge strategy
     original.setName(original.getNameMergeStrategy().merge(original.getName(), toMerge.getName()));
 
     // Apply category merge strategy
@@ -35,7 +35,7 @@ public class ProductMergeService {
     original.setAvailability(
         original
             .getAvailabilityMergeStrategy()
-            .merge(original.getAvailability(), toMerge.getAvailability()));
+            .merge(original.getAvailability(), toMerge.getAvailability()));*/
 
     return original;
   }
