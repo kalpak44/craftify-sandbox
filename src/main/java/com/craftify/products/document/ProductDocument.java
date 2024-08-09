@@ -14,8 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class ProductDocument extends IdentifiedDocument<String> implements UserDataDocument {
 
   private String name;
-  @NotNull
-  private String userId;
+  @NotNull private String userId;
   private Map<String, String> tags = new HashMap<>();
   private Map<String, String> attributes = new HashMap<>();
   private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();

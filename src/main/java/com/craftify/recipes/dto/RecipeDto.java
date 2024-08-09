@@ -6,8 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class RecipeDto extends IdentifiedDto<String> {
-  @NotNull
-  private String recipeName;
+  @NotNull private String recipeName;
   private List<RecipeItemDto> recipe;
   private ResultingProductDto resultingProduct;
 

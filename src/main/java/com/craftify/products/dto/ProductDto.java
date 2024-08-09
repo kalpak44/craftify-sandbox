@@ -10,12 +10,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class ProductDto extends IdentifiedDto<String> {
-  @NotNull
-  private String name;
+  @NotNull private String name;
   private Map<String, String> attributes = new HashMap<>();
   private Map<String, Map<BigDecimal, String>> measurements = new HashMap<>();
   private Map<String, String> tags = new HashMap<>();
-    private Map<String, Map<BigDecimal, String>> availability = new HashMap<>();
+  private Map<String, Map<BigDecimal, String>> availability = new HashMap<>();
   private Set<String> categories = new HashSet<>();
 
   public String getName() {

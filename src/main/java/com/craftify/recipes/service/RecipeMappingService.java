@@ -134,13 +134,14 @@ public class RecipeMappingService {
     return entity;
   }
 
-  private void validateRecipeStepName(RecipeStep recipeStep){
-    if(StringUtils.isBlank(recipeStep.getIngredientName())){
+  private void validateRecipeStepName(RecipeStep recipeStep) {
+    if (StringUtils.isBlank(recipeStep.getIngredientName())) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Ingredient name is required");
     }
   }
-  private void validateRecipeStepName(RecipeItemDto recipeStep){
-    if(StringUtils.isBlank(recipeStep.getIngredientName())){
+
+  private void validateRecipeStepName(RecipeItemDto recipeStep) {
+    if (StringUtils.isBlank(recipeStep.getIngredientName())) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "Ingredient name is required");
     }
   }
@@ -226,8 +227,9 @@ public class RecipeMappingService {
       throw new ApiException(HttpStatus.BAD_REQUEST, "RecipeDocument must contain a name");
     }
   }
-  private void validateRecipeNameDto(RecipeDto recipeDto){
-    if(recipeDto.getRecipeName() == null || recipeDto.getRecipeName().isBlank()){
+
+  private void validateRecipeNameDto(RecipeDto recipeDto) {
+    if (recipeDto.getRecipeName() == null || recipeDto.getRecipeName().isBlank()) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "RecipeDto must contain a name");
     }
   }
