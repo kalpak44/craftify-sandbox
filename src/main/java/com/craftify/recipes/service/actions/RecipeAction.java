@@ -17,4 +17,6 @@ public interface RecipeAction {
       Map<String, Object> actionParameters,
       BigDecimal currentYield)
       throws RecipeActionError;
+
+  void apply(List<ProductDocument> matchingProducts, Map<String, Object> parameters, BigDecimal amount) throws RecipeActionError;
 }

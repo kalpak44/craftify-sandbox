@@ -1,6 +1,7 @@
 package com.craftify.recipes.service.actions;
 
 import com.craftify.products.document.ProductDocument;
+import com.craftify.products.repository.ProductRepository;
 import com.craftify.recipes.exception.RecipeActionError;
 import com.craftify.shared.exception.ApiException;
 import java.math.BigDecimal;
@@ -13,6 +14,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ReduceAvailabilityAction implements RecipeAction {
+
+  private final ProductRepository productRepository;
+
+  public ReduceAvailabilityAction(ProductRepository productRepository) {
+    this.productRepository = productRepository;
+  }
+
   @Override
   public String getType() {
     return "subtraction";
@@ -109,6 +117,93 @@ public class ReduceAvailabilityAction implements RecipeAction {
 
     var newPotentialYield = totalAvailable.divide(requiredAmount, 0, RoundingMode.FLOOR);
     return currentYield.min(newPotentialYield);
+  }
+
+  @Override
+  public void apply(
+          List<ProductDocument> matchingProducts, Map<String, Object> parameters, BigDecimal amount)
+          throws RecipeActionError {
+    var requiredAmountPerPortion = new BigDecimal(String.valueOf(parameters.get("amount")));
+    var requiredUnit = (String) parameters.get("unit");
+    var availabilityType = (String) parameters.get("type");
+    var totalRequired = requiredAmountPerPortion.multiply(amount); // Total amount needed for all portions
+    var errors = new ArrayList<String>();
+
+    for (var matchingProduct : matchingProducts) {
+      var availabilities = matchingProduct.getAvailability();
+      var availability = availabilities.get(availabilityType);
+
+      if (availability == null) {
+        errors.add(
+                "No availability for type: "
+                        + availabilityType
+                        + " in product: "
+                        + matchingProduct.getName());
+        continue;
+      }
+
+      var totalExtracted = BigDecimal.ZERO;
+
+      var entries = new ArrayList<>(availability.entrySet());
+      entries.sort(Map.Entry.comparingByKey());
+
+      for (var entry : entries) {
+        var availableAmount = entry.getKey();
+        var productUnit = entry.getValue();
+
+        BigDecimal extractableAmount;
+
+        if (requiredUnit.equals(productUnit)) {
+          extractableAmount = availableAmount.min(totalRequired.subtract(totalExtracted));
+        } else {
+          try {
+            var convertedAmount = convertUnits(availableAmount, productUnit, requiredUnit);
+            extractableAmount = convertedAmount.min(totalRequired.subtract(totalExtracted));
+          } catch (IllegalArgumentException e) {
+            errors.add(
+                    "Cannot convert "
+                            + productUnit
+                            + " to "
+                            + requiredUnit
+                            + " in product: "
+                            + matchingProduct.getName());
+            continue;
+          }
+        }
+
+        if (extractableAmount.compareTo(BigDecimal.ZERO) > 0) {
+          totalExtracted = totalExtracted.add(extractableAmount);
+
+          var newAvailableAmount = availableAmount.subtract(extractableAmount);
+          if (newAvailableAmount.compareTo(BigDecimal.ZERO) > 0) {
+            availability.put(newAvailableAmount, productUnit);
+          } else {
+            availability.remove(availableAmount);
+          }
+
+          if (totalExtracted.compareTo(totalRequired) >= 0) {
+            break;
+          }
+        }
+      }
+
+      if (totalExtracted.compareTo(totalRequired) < 0) {
+        errors.add(
+                "Insufficient availability for type: "
+                        + availabilityType
+                        + " in product: "
+                        + matchingProduct.getName());
+      }
+
+      availabilities.put(availabilityType, availability);
+    }
+
+    if (!errors.isEmpty()) {
+      throw new RecipeActionError(errors);
+    }
+
+    // Save the changes made to the products
+    productRepository.saveAll(matchingProducts);
   }
 
   private BigDecimal convertUnits(BigDecimal amount, String fromUnit, String toUnit) {

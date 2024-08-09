@@ -1,12 +1,15 @@
 package com.craftify.recipes.service;
 
 import com.craftify.recipes.document.RecipeDocument;
+import com.craftify.recipes.dto.ApplyResponseDto;
 import com.craftify.recipes.dto.RecipeDto;
+import com.craftify.recipes.dto.ResultingProductDto;
 import com.craftify.recipes.dto.YieldResponseDto;
 import com.craftify.recipes.repository.RecipeRepository;
 import com.craftify.shared.dto.SearchFilter;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudServiceAbstract;
+import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,14 +17,16 @@ public class RecipeService
     extends CrudServiceAbstract<RecipeDocument, RecipeDto, String, SearchFilter> {
   private final RecipeMappingService mappingService;
   private final RecipeYieldService recipeYieldService;
+  private final RecipeApplyService recipeApplyService;
 
   public RecipeService(
-      RecipeRepository repository,
-      RecipeMappingService mappingService,
-      RecipeYieldService recipeYieldService) {
+          RecipeRepository repository,
+          RecipeMappingService mappingService,
+          RecipeYieldService recipeYieldService, RecipeApplyService recipeApplyService) {
     super(repository);
     this.mappingService = mappingService;
     this.recipeYieldService = recipeYieldService;
+    this.recipeApplyService = recipeApplyService;
   }
 
   @Override
@@ -37,5 +42,18 @@ public class RecipeService
   public YieldResponseDto getYieldByRecipeId(String recipeId, String currentUserId)
       throws ApiException {
     return recipeYieldService.calculateYieldByRecipeId(recipeId, currentUserId);
+  }
+
+  public ApplyResponseDto applyRecipeById(String recipeId, BigDecimal amount, String currentUserId)
+          throws ApiException {
+    var maxYield = recipeYieldService.calculateYieldByRecipeId(recipeId, currentUserId);
+    var maxYieldValue = maxYield.getYield();
+    if(amount.compareTo(maxYieldValue) > 0) {
+      var responseDto = new ApplyResponseDto();
+      responseDto.setRecipeId(recipeId);
+      responseDto.setIssues(maxYield.getIssues());
+      return responseDto;
+    }
+    return recipeApplyService.applyRecipeById(recipeId, amount, currentUserId);
   }
 }
