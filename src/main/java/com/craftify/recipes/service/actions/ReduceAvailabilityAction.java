@@ -120,29 +120,74 @@ public class ReduceAvailabilityAction implements RecipeAction {
 
   @Override
   public void apply(
-      List<ProductDocument> matchingProducts, Map<String, Object> parameters, BigDecimal amount)
-      throws RecipeActionError {
+          List<ProductDocument> matchingProducts, Map<String, Object> parameters, BigDecimal amount)
+          throws RecipeActionError {
+
     var requiredAmountPerPortion = new BigDecimal(String.valueOf(parameters.get("amount")));
     var requiredUnit = (String) parameters.get("unit");
     var availabilityType = (String) parameters.get("type");
-    var totalRequired =
-        requiredAmountPerPortion.multiply(amount); // Total amount needed for all portions
+
+    // Calculate the total required amount for the given number of portions
+    var totalRequired = requiredAmountPerPortion.multiply(amount);
     var errors = new ArrayList<String>();
 
+    var totalExtractable = BigDecimal.ZERO;
+    var totalExtracted = BigDecimal.ZERO;
+
+    // First pass: Calculate the total extractable amount
     for (var matchingProduct : matchingProducts) {
       var availabilities = matchingProduct.getAvailability();
       var availability = availabilities.get(availabilityType);
 
       if (availability == null) {
         errors.add(
-            "No availability for type: "
-                + availabilityType
-                + " in product: "
-                + matchingProduct.getName());
+                "No availability for type: "
+                        + availabilityType
+                        + " in product: "
+                        + matchingProduct.getName());
         continue;
       }
 
-      var totalExtracted = BigDecimal.ZERO;
+      var availableAmount = availability.getValue();
+      var productUnit = availability.getUnit();
+
+      if (requiredUnit.equals(productUnit)) {
+        totalExtractable = totalExtractable.add(availableAmount);
+      } else {
+        try {
+          var convertedAmount = convertUnits(availableAmount, productUnit, requiredUnit);
+          totalExtractable = totalExtractable.add(convertedAmount);
+        } catch (IllegalArgumentException e) {
+          errors.add(
+                  "Cannot convert "
+                          + productUnit
+                          + " to "
+                          + requiredUnit
+                          + " in product: "
+                          + matchingProduct.getName());
+        }
+      }
+    }
+
+    // Check if the total extractable amount is sufficient
+    if (totalExtractable.compareTo(totalRequired) < 0) {
+      errors.add("Insufficient total availability across all products for type: "
+              + availabilityType + " in required unit: " + requiredUnit);
+      throw new RecipeActionError(errors);
+    }
+
+    // Second pass: Perform the actual extraction
+    for (var matchingProduct : matchingProducts) {
+      if (totalExtracted.compareTo(totalRequired) >= 0) {
+        break;
+      }
+      var availabilities = matchingProduct.getAvailability();
+      var availability = availabilities.get(availabilityType);
+
+      // Handle null availability case, should have been handled earlier but kept for safety
+      if (availability == null) {
+        continue;
+      }
 
       var availableAmount = availability.getValue();
       var productUnit = availability.getUnit();
@@ -157,12 +202,12 @@ public class ReduceAvailabilityAction implements RecipeAction {
           extractableAmount = convertedAmount.min(totalRequired.subtract(totalExtracted));
         } catch (IllegalArgumentException e) {
           errors.add(
-              "Cannot convert "
-                  + productUnit
-                  + " to "
-                  + requiredUnit
-                  + " in product: "
-                  + matchingProduct.getName());
+                  "Cannot convert "
+                          + productUnit
+                          + " to "
+                          + requiredUnit
+                          + " in product: "
+                          + matchingProduct.getName());
           continue;
         }
       }
@@ -171,26 +216,14 @@ public class ReduceAvailabilityAction implements RecipeAction {
         totalExtracted = totalExtracted.add(extractableAmount);
 
         var newAvailableAmount = availableAmount.subtract(extractableAmount);
-        if (newAvailableAmount.compareTo(BigDecimal.ZERO) > 0) {
-          availability = new Pair<>(newAvailableAmount, productUnit);
-        } else {
-          availability = new Pair<>(availableAmount, productUnit);
-        }
+        availability.setValue(newAvailableAmount);
 
         if (totalExtracted.compareTo(totalRequired) >= 0) {
           break;
         }
       }
 
-      if (totalExtracted.compareTo(totalRequired) < 0) {
-        errors.add(
-            "Insufficient availability for type: "
-                + availabilityType
-                + " in product: "
-                + matchingProduct.getName());
-      }
-
-      availabilities.put(availabilityType, availability);
+      availabilities.put(availabilityType, availability); // Save updated availability back to the product
     }
 
     if (!errors.isEmpty()) {
@@ -200,6 +233,7 @@ public class ReduceAvailabilityAction implements RecipeAction {
     // Save the changes made to the products
     productRepository.saveAll(matchingProducts);
   }
+
 
   private BigDecimal convertUnits(BigDecimal amount, String fromUnit, String toUnit) {
     /*    if (fromUnit.equals("g") && toUnit.equals("kg")) {

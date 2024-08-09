@@ -10,6 +10,8 @@ import com.craftify.shared.dto.SearchFilter;
 import com.craftify.shared.exception.ApiException;
 import com.craftify.shared.service.CrudServiceAbstract;
 import java.math.BigDecimal;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -51,7 +53,10 @@ public class RecipeService
     if(amount.compareTo(maxYieldValue) > 0) {
       var responseDto = new ApplyResponseDto();
       responseDto.setRecipeId(recipeId);
-      responseDto.setIssues(maxYield.getIssues());
+      var issues = maxYield.getIssues();
+      // Add a custom issue text indicating the issue with the amount
+      issues.add("Requested amount " + amount + " exceeds the maximum possible yield of " + maxYieldValue + " for this recipe.");
+      responseDto.setIssues(issues);
       return responseDto;
     }
     return recipeApplyService.applyRecipeById(recipeId, amount, currentUserId);
