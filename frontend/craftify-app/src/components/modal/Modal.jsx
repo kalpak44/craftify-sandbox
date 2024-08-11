@@ -12,7 +12,11 @@ export const Modal = ({ show, onClose, onConfirm, title, message }) => {
                     <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
                 </div>
                 <div className="p-4">
-                    <p className="text-gray-700">{message}</p>
+                    {typeof message === 'string' ? (
+                        <p className="text-gray-700">{message}</p>
+                    ) : (
+                        message
+                    )}
                 </div>
                 <div className="flex justify-end px-4 py-2 bg-gray-100 border-t">
                     <button

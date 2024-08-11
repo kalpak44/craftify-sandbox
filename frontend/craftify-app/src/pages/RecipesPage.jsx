@@ -1,11 +1,11 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { deleteRecipe, getRecipesPageable, getRecipeYield } from "../services/API"; // Import the new method
-import { PageLayout } from "../components/page-layout/PageLayout.jsx";
-import { PageLoader } from "../components/page-loader/PageLoader.jsx";
-import { Modal } from "../components/modal/Modal.jsx";
-import { Notification } from "../components/notification/Notification.jsx";
+import {useAuth0} from "@auth0/auth0-react";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
+import {applyRecipe, deleteRecipe, getRecipesPageable, getRecipeYield} from "../services/API";
+import {PageLayout} from "../components/page-layout/PageLayout.jsx";
+import {PageLoader} from "../components/page-loader/PageLoader.jsx";
+import {Modal} from "../components/modal/Modal.jsx";
+import {Notification} from "../components/notification/Notification.jsx";
 import noDataImage from '../assets/no-data.png';
 
 export const RecipesPage = () => {
@@ -17,7 +17,7 @@ export const RecipesPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [recipeToDelete, setRecipeToDelete] = useState(null);
     const [error, setError] = useState(null);
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
     const [modalContent, setModalContent] = useState({title: "", message: "", onConfirm: null});
 
@@ -57,9 +57,6 @@ export const RecipesPage = () => {
         };
     }, [getAccessTokenSilently, currentPage]);
 
-    const toggleExpand = (recipeId) => {
-        setExpandedRecipeId(expandedRecipeId === recipeId ? null : recipeId);
-    };
 
     const handleEdit = (id) => {
         navigate(`/recipes/${id}`);
@@ -109,13 +106,71 @@ export const RecipesPage = () => {
     const handleCook = async (recipe) => {
         try {
             const accessToken = await getAccessTokenSilently();
-            const maxYieldResponse = await getRecipeYield(accessToken, recipe.id);
-            setModalContent({
-                title: "Cooking confirmation",
-                message: JSON.stringify(maxYieldResponse, null, 2),
-                onConfirm: ()=>setShowModal(false),
-            });
-            setShowModal(true);
+            const yieldResponse = await getRecipeYield(accessToken, recipe.id);
+            const maxYield = yieldResponse.yield;
+
+            // workaround
+            let newAmount = maxYield;
+
+            if (maxYield > 0) {
+
+                setModalContent({
+                    title: "Cook Recipe",
+                    message: (
+                        <div style={{color: 'black'}}>
+                            <p>Max possible portions: {maxYield}</p>
+                            <label>
+                                Select portions:
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={maxYield}
+                                    defaultValue={maxYield}
+                                    onChange={(e) => {
+                                        newAmount = Number(e.target.value);
+                                    }}
+                                    className="mt-2 p-2 border rounded"
+                                    style={{color: 'black'}}
+                                />
+                            </label>
+                        </div>
+                    ),
+                    onConfirm: async () => {
+                        try {
+                            await applyRecipe(accessToken, recipe.id, newAmount);
+                            setShowModal(false);
+                        } catch (err) {
+                            setError(err.message);
+                        }
+                    },
+                });
+
+                setShowModal(true);
+            } else if (yieldResponse.issues && yieldResponse.issues.length > 0) {
+                setModalContent({
+                    title: "Issues Found",
+                    message: (
+                        <ul className="list-disc list-inside" style={{color: 'black'}}>
+                            {yieldResponse.issues.map((issue, index) => (
+                                <li key={index} className="text-red-600">
+                                    {issue}
+                                </li>
+                            ))}
+                        </ul>
+                    ),
+                    onConfirm: () => setShowModal(false),
+                });
+
+                setShowModal(true);
+            } else {
+                setModalContent({
+                    title: "Nothing to be cooked",
+                    message: "It appears that there aren't enough ingredients availability.",
+                    onConfirm: () => setShowModal(false),
+                });
+
+                setShowModal(true);
+            }
         } catch (err) {
             setError(err.message);
         }

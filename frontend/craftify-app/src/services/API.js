@@ -116,3 +116,15 @@ export const getRecipeYield = async (accessToken, recipeId) => {
     }
     return response.json();
 };
+
+export const applyRecipe = async (accessToken, recipeId, amount) => {
+    const response = await fetchWithAuth(accessToken, `/recipes/${recipeId}/apply`, {
+        method: "POST",
+        body: JSON.stringify({ amount }),
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to apply recipe. ${body.message}`);
+    }
+    return response.json();
+};

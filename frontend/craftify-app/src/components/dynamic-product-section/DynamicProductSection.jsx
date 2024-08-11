@@ -17,7 +17,7 @@ export const DynamicProductSection = ({ sectionName, sectionKey, fields, handleN
                                 <input
                                     type="text"
                                     placeholder="Value"
-                                    value={field.value || ""}
+                                    value={field.value?.toString() || ""}
                                     onChange={(e) => handleNestedChange(e, sectionKey, index, "value")}
                                     className="w-1/3 p-2 border border-gray-600 rounded bg-gray-700 text-white"
                                 />
