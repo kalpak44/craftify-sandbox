@@ -5,8 +5,8 @@ import IngredientActionCreator from "../components/ingredient-action-creator/Ing
 import IngredientCreator from "../components/ingredient-creator/IngredientCreator.jsx";
 import ProductResultCreator from "../components/product-result-creator/ProductResultCreator.jsx";
 import {Modal} from "../components/modal/Modal.jsx";
-import {createRecipe} from "../services/API.js";
 import {useNavigate} from "react-router-dom";
+import {createRecipe} from "../services/API.js";
 
 
 export const RecipeAddPage = () => {
@@ -149,10 +149,30 @@ export const RecipeAddPage = () => {
                 }))
             })),
             resultingProduct: {
+                mode: resultProduct.mode,
+                id: resultProduct.id,
+                nameMergeStrategy: resultProduct.nameMergeStrategy,
                 name: resultProduct.name,
+                attributeMergeStrategy: resultProduct.attributeMergeStrategy,
                 attributes: Object.fromEntries(
                     Object.entries(resultProduct.attributes).map(([key, value]) => [key, convertToNumberIfApplicable(value)])
                 ),
+                measurementMergeStrategy: resultProduct.measurementMergeStrategy,
+                measurements: Object.fromEntries(
+                    Object.entries(resultProduct.measurements).map(([key, value]) => [key, {
+                        value: convertToNumberIfApplicable(value.value),
+                        unit: value.unit
+                    }])
+                ),
+                availabilityMergeStrategy: resultProduct.availabilityMergeStrategy,
+                availability: Object.fromEntries(
+                    Object.entries(resultProduct.availability).map(([key, value]) => [key, {
+                        value: convertToNumberIfApplicable(value.value),
+                        unit: value.unit
+                    }])
+                ),
+                categories: resultProduct.categories,
+                tagMergeStrategy: resultProduct.tagMergeStrategy,
                 tags: Object.fromEntries(
                     Object.entries(resultProduct.tags).map(([key, value]) => [key, convertToNumberIfApplicable(value)])
                 )

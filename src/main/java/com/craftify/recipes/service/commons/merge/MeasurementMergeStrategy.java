@@ -3,11 +3,10 @@ package com.craftify.recipes.service.commons.merge;
 import com.craftify.recipes.models.Pair;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 
 public class MeasurementMergeStrategy
-    implements MergeStrategy<Map<String, Pair<BigDecimal, String>>> {
+    implements MergeStrategy<Map<String, Pair<BigDecimal, String>>>, SumPairs, AppendPairs {
 
   private Strategy strategy = Strategy.APPEND_MISSING;
 
@@ -36,26 +35,6 @@ public class MeasurementMergeStrategy
     };
   }
 
-  private void sumMeasurements(
-      Map<String, Pair<BigDecimal, String>> base, Map<String, Pair<BigDecimal, String>> other) {
-    for (String key : other.keySet()) {
-      Pair<BigDecimal, String> basePair = base.getOrDefault(key, new Pair<>(BigDecimal.ZERO, ""));
-      Pair<BigDecimal, String> otherPair = other.get(key);
-
-      base.put(key, new Pair<>(basePair.getValue().add(otherPair.getValue()), basePair.getUnit()));
-    }
-  }
-
-  private void appendMissing(
-      Map<String, Pair<BigDecimal, String>> base, Map<String, Pair<BigDecimal, String>> other) {
-/*    for (String key : other.keySet()) {
-      Map<BigDecimal, String> baseMap = base.getOrDefault(key, new HashMap<>());
-      Map<BigDecimal, String> otherMap = other.get(key);
-
-      otherMap.forEach(baseMap::putIfAbsent);
-      base.put(key, baseMap);
-    }*/
-  }
 
   public enum Strategy {
     KEEP_ORIGINAL,

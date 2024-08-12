@@ -3,7 +3,6 @@ package com.craftify.recipes.controller;
 import com.craftify.recipes.dto.ApplyRequestDto;
 import com.craftify.recipes.dto.ApplyResponseDto;
 import com.craftify.recipes.dto.RecipeDto;
-import com.craftify.recipes.dto.ResultingProductDto;
 import com.craftify.recipes.dto.YieldResponseDto;
 import com.craftify.recipes.service.RecipeService;
 import com.craftify.shared.controller.CrudController;
@@ -45,13 +44,14 @@ public class RecipeController extends CrudController<RecipeDto, String, SearchFi
 
   @PostMapping("/{id}/apply")
   @Operation(
-          summary = "Apply the recipe to create a specified amount of the resulting product",
-          operationId = "applyRecipeById")
+      summary = "Apply the recipe to create a specified amount of the resulting product",
+      operationId = "applyRecipeById")
   public ResponseEntity<ApplyResponseDto> applyRecipeById(
-          @PathVariable String id, @RequestBody ApplyRequestDto applyRequestDto) {
+      @PathVariable String id, @RequestBody ApplyRequestDto applyRequestDto) {
     validateRecipeId(id);
     validateApplyRequestDto(applyRequestDto);
-    return ResponseEntity.ok(recipeService.applyRecipeById(id, applyRequestDto.getAmount(), getCurrentUserId()));
+    return ResponseEntity.ok(
+        recipeService.applyRecipeById(id, applyRequestDto.getAmount(), getCurrentUserId()));
   }
 
   private void validateApplyRequestDto(ApplyRequestDto applyRequestDto) {

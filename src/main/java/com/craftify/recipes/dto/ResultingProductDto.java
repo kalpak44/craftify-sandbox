@@ -7,6 +7,7 @@ import com.craftify.recipes.service.commons.merge.CategoryMergeStrategy;
 import com.craftify.recipes.service.commons.merge.MeasurementMergeStrategy;
 import com.craftify.recipes.service.commons.merge.NameMergeStrategy;
 import com.craftify.recipes.service.commons.merge.TagMergeStrategy;
+import com.craftify.shared.dto.ResultMode;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ResultingProductDto {
-  private Mode mode = Mode.CREATE_NEW;
+  private ResultMode mode = ResultMode.CREATE_NEW;
   private String id;
   private NameMergeStrategy nameMergeStrategy = new NameMergeStrategy();
   private String name;
@@ -46,11 +47,11 @@ public class ResultingProductDto {
     this.name = name;
   }
 
-  public Mode getMode() {
+  public ResultMode getMode() {
     return mode;
   }
 
-  public void setMode(Mode mode) {
+  public void setMode(ResultMode mode) {
     this.mode = mode;
   }
 
@@ -140,11 +141,5 @@ public class ResultingProductDto {
 
   public void setCategoryMergeStrategy(CategoryMergeStrategy categoryMergeStrategy) {
     this.categoryMergeStrategy = categoryMergeStrategy;
-  }
-
-  public enum Mode {
-    CREATE_NEW,
-    REPLACE_EXISTING,
-    MERGE
   }
 }

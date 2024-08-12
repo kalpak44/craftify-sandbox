@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RecipeService
@@ -46,6 +47,7 @@ public class RecipeService
     return recipeYieldService.calculateYieldByRecipeId(recipeId, currentUserId);
   }
 
+  @Transactional
   public ApplyResponseDto applyRecipeById(String recipeId, BigDecimal amount, String currentUserId)
           throws ApiException {
     var maxYield = recipeYieldService.calculateYieldByRecipeId(recipeId, currentUserId);

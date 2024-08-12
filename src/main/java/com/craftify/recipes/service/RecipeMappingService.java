@@ -12,12 +12,15 @@ import com.craftify.recipes.dto.RecipeDto;
 import com.craftify.recipes.dto.RecipeItemDto;
 import com.craftify.recipes.dto.ResultingProductDto;
 import com.craftify.recipes.service.actions.RecipeAction;
+import com.craftify.shared.dto.ResultMode;
 import com.craftify.shared.exception.ApiException;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import javax.swing.text.html.parser.Entity;
 
 @Service
 public class RecipeMappingService {
@@ -117,10 +120,19 @@ public class RecipeMappingService {
   private ResultingProductDto toDto(ResultingProduct entity) {
     validateResultingProduct(entity);
     ResultingProductDto dto = new ResultingProductDto();
+    dto.setMode(entity.getMode());
+    dto.setId(entity.getId());
+    dto.setNameMergeStrategy(dto.getNameMergeStrategy());
     dto.setName(entity.getName());
+    dto.setTagMergeStrategy(entity.getTagMergeStrategy());
     dto.setTags(entity.getTags());
+    dto.setAttributeMergeStrategy(entity.getAttributeMergeStrategy());
     dto.setAttributes(entity.getAttributes());
+    dto.setMeasurementMergeStrategy(entity.getMeasurementMergeStrategy());
     dto.setMeasurements(entity.getMeasurements());
+    dto.setAvailabilityMergeStrategy(dto.getAvailabilityMergeStrategy());
+    dto.setAvailability(entity.getAvailability());
+    dto.setCategoryMergeStrategy(entity.getCategoryMergeStrategy());
     dto.setCategories(entity.getCategories());
     return dto;
   }
@@ -128,10 +140,19 @@ public class RecipeMappingService {
   private ResultingProduct toEntity(ResultingProductDto dto) {
     validateResultingProductDto(dto);
     var entity = new ResultingProduct();
+    entity.setMode(dto.getMode());
+    entity.setId(dto.getId());
+    entity.setNameMergeStrategy(dto.getNameMergeStrategy());
     entity.setName(dto.getName());
+    entity.setTagMergeStrategy(dto.getTagMergeStrategy());
     entity.setTags(dto.getTags());
+    entity.setAttributeMergeStrategy(dto.getAttributeMergeStrategy());
     entity.setAttributes(dto.getAttributes());
+    entity.setMeasurementMergeStrategy(dto.getMeasurementMergeStrategy());
     entity.setMeasurements(dto.getMeasurements());
+    entity.setAvailabilityMergeStrategy(dto.getAvailabilityMergeStrategy());
+    entity.setAvailability(dto.getAvailability());
+    entity.setCategoryMergeStrategy(dto.getCategoryMergeStrategy());
     entity.setCategories(dto.getCategories());
     return entity;
   }
@@ -204,13 +225,33 @@ public class RecipeMappingService {
   }
 
   private void validateResultingProduct(ResultingProduct resultingProduct) {
-    if (StringUtils.isEmpty(resultingProduct.getName())) {
+    if(resultingProduct.getMode() == null){
+      throw new ApiException(HttpStatus.BAD_REQUEST, "ResultingProduct must contains a mode");
+    }
+
+    if(resultingProduct.getMode() == ResultMode.REPLACE_EXISTING){
+      if(StringUtils.isBlank(resultingProduct.getId())){
+        throw new ApiException(HttpStatus.BAD_REQUEST, "ResultingProduct id is mandatory when mode is replacement");
+      }
+    }
+
+    if (StringUtils.isBlank(resultingProduct.getName())) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "ResultingProduct must contain a name");
     }
   }
 
   private void validateResultingProductDto(ResultingProductDto resultingProductDto) {
-    if (StringUtils.isEmpty(resultingProductDto.getName())) {
+    if(resultingProductDto.getMode() == null){
+      throw new ApiException(HttpStatus.BAD_REQUEST, "ResultingProductDto must contains a mode");
+    }
+
+    if(resultingProductDto.getMode() == ResultMode.REPLACE_EXISTING){
+      if(StringUtils.isBlank(resultingProductDto.getId())){
+        throw new ApiException(HttpStatus.BAD_REQUEST, "ResultingProductDto id is mandatory when mode is replacement");
+      }
+    }
+
+    if (StringUtils.isBlank(resultingProductDto.getName())) {
       throw new ApiException(HttpStatus.BAD_REQUEST, "ResultingProductDto must contain a name");
     }
   }
