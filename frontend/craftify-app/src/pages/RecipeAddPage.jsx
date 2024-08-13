@@ -401,6 +401,7 @@ export const RecipeAddPage = () => {
                                     <ProductResultCreator
                                         addProductResult={addProductResult}
                                         productResult={resultProduct}
+                                        accessToken={accessToken}
                                     />
                                 </>
                             )}
