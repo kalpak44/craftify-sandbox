@@ -15,7 +15,6 @@ export const RecipesPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [recipeToDelete, setRecipeToDelete] = useState(null);
     const [error, setError] = useState(null);
     const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
@@ -57,30 +56,27 @@ export const RecipesPage = () => {
         };
     }, [getAccessTokenSilently, currentPage]);
 
-
     const handleEdit = (id) => {
         navigate(`/recipes/${id}`);
     };
 
     const handleRemove = (id) => {
-        setRecipeToDelete(id);
         setModalContent({
             title: "Confirm Deletion",
             message: "Are you sure you want to delete this recipe?",
-            onConfirm: confirmDelete,
+            onConfirm: () => confirmDelete(id),
         });
         setShowModal(true);
     };
 
-    const confirmDelete = async () => {
+    const confirmDelete = async (id) => {
         setError(null);
         setLoading(true);
         try {
             const accessToken = await getAccessTokenSilently();
-            await deleteRecipe(accessToken, recipeToDelete);
+            await deleteRecipe(accessToken, id);
             await fetchRecipes(currentPage);
             setShowModal(false);
-            setRecipeToDelete(null);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -165,7 +161,7 @@ export const RecipesPage = () => {
             } else {
                 setModalContent({
                     title: "Nothing to be cooked",
-                    message: "It appears that there aren't enough ingredients availability.",
+                    message: "It appears that there aren't enough ingredients available.",
                     onConfirm: () => setShowModal(false),
                 });
 
