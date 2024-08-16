@@ -12,8 +12,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Send Curl Request
+      - name: Send Curl Request with Secret
         run: |
           curl -X POST https://kalpak44.free.beeceptor.com \
           -H "Content-Type: application/json" \
-          -d '{"message": "Code committed to main branch"}'
+          -d "{\"message\": \"Code committed to main branch\", \"secret\": \"${{ secrets.MY_SECRET }}\"}"
