@@ -27,9 +27,7 @@ cd craftify
 spring:
   data:
     mongodb:
-      uri: mongodb://${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DATABASE:craftify}
-      username: ${MONGO_USERNAME:craftify}
-      password: ${MONGO_PASSWORD:craftify}
+      uri: ${MONGO_CONNECTION_STRING}
 ```
 
 3. **Build and run the application:**
