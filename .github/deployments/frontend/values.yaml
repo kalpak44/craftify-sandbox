@@ -1,0 +1,20 @@
+deployment:
+  name: frontend-deployment
+  replicas: 2
+
+image:
+  repository: kalpak44/craftify-app
+  tag: "latest"
+
+service:
+  name: frontend-service
+
+ingress:
+  name: frontend-ingress
+  host: app.craftyfy.pro
+  secretName: app-craftyfy-pro-tls
+
+redirectIngress:
+  name: redirect-root-ingress
+  host: craftyfy.pro
+  secretName: craftyfy-pro-tls

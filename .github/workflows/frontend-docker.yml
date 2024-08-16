@@ -1,8 +1,8 @@
-name: Build and Push Frontend Docker Image
+name: Build, Push Docker Image, and Deploy Frontend with Helm
 
 on:
   push:
-    paths:
+    paths-ignore:
       - 'craftify-app/**'
     branches:
       - main
@@ -27,10 +27,30 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./craftify-app
-          file: ./craftify-app/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: |
             kalpak44/craftify-app:latest
             kalpak44/craftify-app:${{ github.sha }}
-            kalpak44/craftify-app:${{ github.run_number }}-${{ github.run_attempt }}
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Set up Kubernetes config
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+
+      - name: Deploy Frontend with Helm
+        run: |
+          helm upgrade --install frontend ./.github/deployments/frontend \
+            --set image.repository=kalpak44/craftify-app \
+            --set image.tag=${{ github.sha }} \
+            --set ingress.host=app.craftyfy.pro \
+            --set ingress.secretName=app-craftyfy-pro-tls \
+            --set redirectIngress.host=craftyfy.pro \
+            --set redirectIngress.secretName=craftyfy-pro-tls
