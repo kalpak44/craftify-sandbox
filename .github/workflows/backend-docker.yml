@@ -1,4 +1,4 @@
-name: Build and Push Backend Docker Image
+name: Build, Push Docker Image, and Deploy with Helm
 
 on:
   push:
@@ -33,4 +33,20 @@ jobs:
           tags: |
             kalpak44/craftify-backend-api:latest
             kalpak44/craftify-backend-api:${{ github.sha }}
-            kalpak44/craftify-backend-api:${{ github.run_number }}-${{ github.run_attempt }}
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Set up Kubernetes config
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install backend ./.github/deployments/backend \
+            --set image.repository=kalpak44/craftify-backend-api \
+            --set image.tag=${{ github.sha }}
