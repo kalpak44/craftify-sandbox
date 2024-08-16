@@ -1,0 +1,19 @@
+name: Main Branch Commit - Curl Request
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  curl_request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Send Curl Request
+        run: |
+          curl -X POST https://kalpak44.free.beeceptor.com \
+          -H "Content-Type: application/json" \
+          -d '{"message": "Code committed to main branch"}'
