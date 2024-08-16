@@ -17,3 +17,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 80
+          env:
+            - name: AUTH0_AUDIENCE
+              value: "{{ .Values.env.AUTH0_AUDIENCE }}"
+            - name: AUTH0_ISSUER
+              value: "{{ .Values.env.AUTH0_ISSUER }}"
+            - name: MONGO_CONNECTION_STRING
+              value: "{{ .Values.env.MONGO_CONNECTION_STRING }}"

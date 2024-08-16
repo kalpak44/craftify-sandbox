@@ -47,6 +47,9 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade --install backend ./.github/deployments/backend \
+          helm upgrade --install backend ./backend \
             --set image.repository=kalpak44/craftify-backend-api \
-            --set image.tag=${{ github.sha }}
+            --set image.tag=${{ github.sha }} \
+            --set env.AUTH0_AUDIENCE=${{ secrets.AUTH0_AUDIENCE }} \
+            --set env.AUTH0_ISSUER=${{ secrets.AUTH0_ISSUER }} \
+            --set env.MONGO_CONNECTION_STRING=${{ secrets.MONGO_CONNECTION_STRING }}
