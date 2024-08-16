@@ -30,4 +30,7 @@ jobs:
           context: ./craftify-app
           file: ./craftify-app/Dockerfile
           push: true
-          tags: kalpak44/craftify-app:latest
+          tags: |
+            kalpak44/craftify-app:latest
+            kalpak44/craftify-app:${{ github.sha }}
+            kalpak44/craftify-app:${{ github.run_number }}-${{ github.run_attempt }}
