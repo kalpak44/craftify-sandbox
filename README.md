@@ -49,8 +49,6 @@ configurations:
 
 - **MongoDB Settings:**
     - `spring.data.mongodb.uri`: MongoDB connection URI.
-    - `spring.data.mongodb.username`: MongoDB username.
-    - `spring.data.mongodb.password`: MongoDB password.
 
 - **Springdoc Settings:**
     - `springdoc.api-docs.path`: Path for API documentation.
