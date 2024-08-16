@@ -1,6 +1,6 @@
 deployment:
   name: backend-deployment
-  replicas: 2
+  replicas: 1
 
 image:
   repository: kalpak44/craftify-backend-api

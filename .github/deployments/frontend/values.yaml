@@ -1,6 +1,6 @@
 deployment:
   name: frontend-deployment
-  replicas: 2
+  replicas: 1
 
 image:
   repository: kalpak44/craftify-app
