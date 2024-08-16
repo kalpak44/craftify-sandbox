@@ -30,4 +30,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: craftify/craftify-backend-api:latest
+          tags: kalpak44/craftify-backend-api:latest
