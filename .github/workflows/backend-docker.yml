@@ -30,4 +30,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/craftify-backend-api:latest
+          tags: craftify/craftify-backend-api:latest
