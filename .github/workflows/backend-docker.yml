@@ -47,7 +47,7 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade --install backend ./k3s/deployments/backend \
+          helm upgrade --install backend ./.pipelines/deployments/backend \
             --set image.repository=kalpak44/craftify-backend-api \
             --set image.tag=${{ github.sha }} \
             --set env.AUTH0_AUDIENCE=${{ secrets.AUTH0_AUDIENCE }} \
