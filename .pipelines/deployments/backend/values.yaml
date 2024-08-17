@@ -1,5 +1,4 @@
 deployment:
-  name: backend-deployment
   replicas: 1
 
 image:
