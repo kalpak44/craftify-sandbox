@@ -8,9 +8,9 @@ export const NavBar = () => {
     return (
         <div className="nav-bar__container">
             <nav className="nav-bar">
-                <NavBarBrand />
-                <NavBarTabs />
-                <NavBarButtons />
+                <NavBarBrand/>
+                <NavBarTabs/>
+                <NavBarButtons/>
             </nav>
         </div>
     );

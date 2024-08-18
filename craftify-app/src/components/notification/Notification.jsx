@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const Notification = ({ show, message, onClose }) => {
+export const Notification = ({show, message, onClose}) => {
     if (!show) {
         return null;
     }

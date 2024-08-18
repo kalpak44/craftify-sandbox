@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { getProductsPageable } from "../../services/API.js";
+import React, {useEffect, useState} from "react";
+import {getProductsPageable} from "../../services/API.js";
 import {Modal} from "../modal/Modal.jsx";
 
-const IngredientCreator = ({ addIngredient, accessToken }) => {
+const IngredientCreator = ({addIngredient, accessToken}) => {
     const [ingredientName, setIngredientName] = useState("");
     const [id, setId] = useState("");
     const [name, setName] = useState("");
@@ -10,14 +10,14 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
     const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
 
-    const [ searchResults, setSearchResults] = useState([]);
+    const [searchResults, setSearchResults] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [modalContent, setModalContent] = useState(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [loading, setLoading] = useState(false);
 
-    const addRow = (setter) => () => setter((prev) => [...prev, { key: "", value: "" }]);
+    const addRow = (setter) => () => setter((prev) => [...prev, {key: "", value: ""}]);
     const removeRow = (setter, index) => () => setter((prev) => prev.filter((_, i) => i !== index));
     const updateRow = (setter, index, field, value) => {
         setter((prev) => {
@@ -31,7 +31,15 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
         try {
             setLoading(true);
             const categoryNames = categories.map(c => c.value).filter(c => c);
-            const response = await getProductsPageable(accessToken, { id, name, categories: categoryNames, attributes, tags, page: currentPage, size: 10 });
+            const response = await getProductsPageable(accessToken, {
+                id,
+                name,
+                categories: categoryNames,
+                attributes,
+                tags,
+                page: currentPage,
+                size: 10
+            });
             setSearchResults(response.content || []);
             setTotalPages(response.totalPages || 1);
             setShowModal(true);
@@ -51,9 +59,16 @@ const IngredientCreator = ({ addIngredient, accessToken }) => {
             });
             return;
         }
-        const ingredient = { id, ingredientName, name, attributes, tags, categories: categories.map(c => c.value).filter(c => c) };
+        const ingredient = {
+            id,
+            ingredientName,
+            name,
+            attributes,
+            tags,
+            categories: categories.map(c => c.value).filter(c => c)
+        };
         addIngredient(ingredient);
-         resetFields();
+        resetFields();
     };
 
     const resetFields = () => {

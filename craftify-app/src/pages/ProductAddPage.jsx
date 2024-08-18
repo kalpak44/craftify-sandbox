@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 import {useAuth0} from "@auth0/auth0-react";
 import {useNavigate} from "react-router-dom";
-import {PageLayout} from "../components/page-layout/PageLayout.jsx";
 import {PageLoader} from "../components/page-loader/PageLoader.jsx";
 import {Notification} from "../components/notification/Notification.jsx";
 import {Modal} from "../components/modal/Modal.jsx";
@@ -194,8 +193,14 @@ export const ProductAddPage = () => {
             const formattedProduct = {
                 ...product,
                 attributes: Object.fromEntries(product.attributes.map((attr) => [attr.key, attr.value])),
-                measurements: Object.fromEntries(product.measurements.map((meas) => [meas.key, {value: meas.value, unit: meas.unit}])),
-                availability: Object.fromEntries(product.availability.map((avail) => [avail.key, {value: avail.value, unit: avail.unit}])),
+                measurements: Object.fromEntries(product.measurements.map((meas) => [meas.key, {
+                    value: meas.value,
+                    unit: meas.unit
+                }])),
+                availability: Object.fromEntries(product.availability.map((avail) => [avail.key, {
+                    value: avail.value,
+                    unit: avail.unit
+                }])),
                 tags: Object.fromEntries(product.tags.map((tag) => [tag.key, tag.value])),
                 categories: product.categories.map((cat) => cat.value)
             };
@@ -236,7 +241,7 @@ export const ProductAddPage = () => {
     };
 
     return (
-        <PageLayout>
+        <>
             {loading ? (
                 <PageLoader/>
             ) : error || success ? (
@@ -358,6 +363,6 @@ export const ProductAddPage = () => {
                     />
                 </div>
             )}
-        </PageLayout>
+        </>
     );
 };

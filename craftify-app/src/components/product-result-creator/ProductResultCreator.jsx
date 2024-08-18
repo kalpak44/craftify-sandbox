@@ -708,7 +708,7 @@ const ProductResultCreator = ({addProductResult, onClose, productResult, accessT
                 )}
             </div>
 
-            {modalContent?.title && modalContent?.message &&  (
+            {modalContent?.title && modalContent?.message && (
                 <Modal
                     show={!!modalContent}
                     onClose={() => setModalContent(null)}

@@ -1,4 +1,13 @@
-export const DynamicProductSection = ({ sectionName, sectionKey, fields, handleNestedChange, handleAddField, handleRemoveField, isMeasurement, isCategory }) => (
+export const DynamicProductSection = ({
+                                          sectionName,
+                                          sectionKey,
+                                          fields,
+                                          handleNestedChange,
+                                          handleAddField,
+                                          handleRemoveField,
+                                          isMeasurement,
+                                          isCategory
+                                      }) => (
     <div className="space-y-2 text-white">
         <h3 className="font-semibold" style={{color: "white"}}>{sectionName}</h3>
         {fields.map((field, index) => (
@@ -61,7 +70,11 @@ export const DynamicProductSection = ({ sectionName, sectionKey, fields, handleN
         ))}
         <button
             type="button"
-            onClick={() => handleAddField(sectionKey, isMeasurement ? { key: "", value: "", unit: "" } : isCategory ? { value: "" } : { key: "", value: "" })}
+            onClick={() => handleAddField(sectionKey, isMeasurement ? {
+                key: "",
+                value: "",
+                unit: ""
+            } : isCategory ? {value: ""} : {key: "", value: ""})}
             className="py-2 px-4 rounded bg-blue-500 text-white font-bold hover:bg-blue-700"
         >
             Add {sectionName.slice(0, -1)}

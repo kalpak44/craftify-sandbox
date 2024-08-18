@@ -1,6 +1,6 @@
 import {useAuth0} from "@auth0/auth0-react";
 import React from "react";
-import {PageLayout} from "../components/page-layout/PageLayout.jsx";
+
 import {NavBar} from "../components/nav-bar/NavBar.jsx";
 
 export const CallbackPage = () => {
@@ -8,7 +8,8 @@ export const CallbackPage = () => {
 
     if (error) {
         return (
-            <PageLayout>
+            <>
+
                 <div className="content-layout">
                     <h1 id="page-title" className="content__title">
                         Error
@@ -19,7 +20,7 @@ export const CallbackPage = () => {
                         </p>
                     </div>
                 </div>
-            </PageLayout>
+            </>
         );
     }
 

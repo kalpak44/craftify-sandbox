@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const Modal = ({ show, onClose, onConfirm, title, message }) => {
+export const Modal = ({show, onClose, onConfirm, title, message}) => {
     if (!show) {
         return null;
     }

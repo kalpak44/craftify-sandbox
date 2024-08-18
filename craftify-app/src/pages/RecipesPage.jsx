@@ -2,7 +2,6 @@ import {useAuth0} from "@auth0/auth0-react";
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {applyRecipe, deleteRecipe, getRecipesPageable, getRecipeYield} from "../services/API";
-import {PageLayout} from "../components/page-layout/PageLayout.jsx";
 import {PageLoader} from "../components/page-loader/PageLoader.jsx";
 import {Modal} from "../components/modal/Modal.jsx";
 import {Notification} from "../components/notification/Notification.jsx";
@@ -213,7 +212,7 @@ export const RecipesPage = () => {
     };
 
     return (
-        <PageLayout>
+        <>
             <div className="container mx-auto p-4">
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-xl font-bold text-white">Recipes Page</h1>
@@ -358,6 +357,6 @@ export const RecipesPage = () => {
                 message={error}
                 onClose={() => setError(null)}
             />
-        </PageLayout>
+        </>
     );
 };

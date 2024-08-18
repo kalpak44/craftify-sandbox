@@ -2,13 +2,12 @@ import {useAuth0} from "@auth0/auth0-react";
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {deleteProduct, getProductsPageable} from "../services/API";
-import {PageLayout} from "../components/page-layout/PageLayout.jsx";
 import {PageLoader} from "../components/page-loader/PageLoader.jsx";
 import {Modal} from "../components/modal/Modal.jsx";
 import {Notification} from "../components/notification/Notification.jsx";
 import noDataImage from '../assets/no-data.png';
 
-export const ProtectedPage = () => {
+export const ProductsPage = () => {
     const [products, setProducts] = useState([]);
     const [expandedProductId, setExpandedProductId] = useState(null);
     const [currentPage, setCurrentPage] = useState(0);
@@ -142,7 +141,7 @@ export const ProtectedPage = () => {
     };
 
     return (
-        <PageLayout>
+        <>
             <div className="container mx-auto p-4">
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-xl font-bold text-white">Products Page</h1>
@@ -290,6 +289,6 @@ export const ProtectedPage = () => {
                 message={error}
                 onClose={() => setError(null)}
             />
-        </PageLayout>
+        </>
     );
 };

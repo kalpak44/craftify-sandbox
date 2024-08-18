@@ -1,6 +1,5 @@
 import React, {useState} from "react";
 import {useAuth0} from "@auth0/auth0-react";
-import {PageLayout} from "../components/page-layout/PageLayout.jsx";
 import IngredientActionCreator from "../components/ingredient-action-creator/IngredientActionCreator.jsx";
 import IngredientCreator from "../components/ingredient-creator/IngredientCreator.jsx";
 import ProductResultCreator from "../components/product-result-creator/ProductResultCreator.jsx";
@@ -204,7 +203,7 @@ export const RecipeAddPage = () => {
 
 
     return (
-        <PageLayout>
+        <>
             <div className="container mx-auto p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 border rounded-lg shadow-md bg-gray-800">
@@ -416,7 +415,7 @@ export const RecipeAddPage = () => {
                 title={modalContent.title}
                 message={modalContent.message}
             />
-        </PageLayout>
+        </>
     );
 };
 
