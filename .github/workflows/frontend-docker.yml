@@ -2,8 +2,9 @@ name: Build, Push Docker Image, and Deploy Frontend with Helm
 
 on:
   push:
-    paths-ignore:
+    paths:
       - 'craftify-app/**'
+      - '.pipelines/deployments/frontend/**'
     branches:
       - main
 

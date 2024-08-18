@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore:
       - 'craftify-app/**'
+      - '.pipelines/deployments/frontend/**'
     branches:
       - main
 
