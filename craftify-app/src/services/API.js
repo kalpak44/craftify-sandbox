@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://api.craftyfy.pro/";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const fetchWithAuth = async (accessToken, url, options = {}) => {
     const headers = {
