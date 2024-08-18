@@ -14,7 +14,7 @@ COPY src ./src
 RUN mvn package -DskipTests
 
 # Use a JDK image to run the app
-FROM amazoncorretto:22-jdk
+FROM openjdk:17-alpine
 
 WORKDIR /app
 
