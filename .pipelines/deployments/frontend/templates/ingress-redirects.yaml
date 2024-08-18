@@ -18,7 +18,18 @@ spec:
                 name: {{ .Values.service.name }}
                 port:
                   number: 80
+    - host: {{ .Values.ingress.redirectHost }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.service.name }}-redirect
+                port:
+                  number: 80
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
+        - {{ .Values.ingress.redirectHost }}
       secretName: {{ .Values.ingress.secretName }}

@@ -12,7 +12,5 @@ service:
 ingress:
   name: frontend-ingress
   host: app.craftyfy.pro
+  redirectHost: craftyfy.pro
   secretName: app-craftyfy-pro-tls
-
-redirectIngress:
-  host: app.craftyfy.pro

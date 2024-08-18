@@ -49,9 +49,5 @@ jobs:
       - name: Deploy Frontend with Helm
         run: |
           helm upgrade --install frontend ./.pipelines/deployments/frontend \
-            --set image.repository=kalpak44/craftify-app \
-            --set image.tag=${{ github.sha }} \
-            --set ingress.host=app.craftyfy.pro \
-            --set ingress.secretName=app-craftyfy-pro-tls \
-            --set redirectIngress.host=craftyfy.pro \
-            --set redirectIngress.secretName=craftyfy-pro-tls
+          --set image.repository=kalpak44/craftify-app \
+          --set image.tag=latest
