@@ -50,4 +50,4 @@ jobs:
         run: |
           helm upgrade --install frontend ./.pipelines/deployments/frontend \
           --set image.repository=kalpak44/craftify-app \
-          --set image.tag=latest
+          --set image.tag=${{ github.sha }}
