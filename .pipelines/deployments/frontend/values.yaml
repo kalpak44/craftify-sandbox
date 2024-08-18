@@ -15,6 +15,4 @@ ingress:
   secretName: app-craftyfy-pro-tls
 
 redirectIngress:
-  name: redirect-root-ingress
   host: app.craftyfy.pro
-  secretName: app-craftyfy-pro-tls
