@@ -57,11 +57,3 @@ configurations:
 ### API Documentation
 
 The API documentation is available at `/v3/api-docs` and the Swagger UI can be accessed at `/swagger-ui`.
-
-### License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-### Contact
-
-For any questions or inquiries, please contact the Craftify Dev Team at [dev@craftify.com](mailto:dev@craftify.com).
