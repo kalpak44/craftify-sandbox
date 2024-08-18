@@ -14,7 +14,7 @@ COPY src ./src
 RUN mvn package -DskipTests
 
 # Use a JDK image to run the app
-FROM openjdk:17-alpine
+FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
