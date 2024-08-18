@@ -17,7 +17,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
     scheme = "bearer")
 @OpenAPIDefinition(
     info = @Info(title = "Craftify API", version = "v1"),
-    servers = {@Server(url = "http://localhost:8080")})
+    servers = {@Server(url = "https://api.craftyfy.pro/"), @Server(url = "http://localhost:8080")})
 @EnableMongoRepositories
 public class CraftifyApplication {
 
