@@ -65,4 +65,3 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ### Contact
 
 For any questions or inquiries, please contact the Craftify Dev Team at [dev@craftify.com](mailto:dev@craftify.com).
-
