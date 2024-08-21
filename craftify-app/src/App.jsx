@@ -32,7 +32,7 @@ export default function App() {
             <Route path="/" element={<PageLayout><HomePage/></PageLayout>}/>
             <Route
                 path="/profile"
-                element={<AuthenticationGuard component={<PageLayout><ProfilePage/></PageLayout>}/>}
+                element={<AuthenticationGuard component={() => <PageLayout><ProfilePage/></PageLayout>}/>}
             />
             <Route
                 path="/products"
