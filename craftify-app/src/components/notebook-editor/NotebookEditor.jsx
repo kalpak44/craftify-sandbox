@@ -13,7 +13,9 @@ const NotebookEditor = ({ accessToken }) => {
 
     useEffect(() => {
         const initializePyodide = async () => {
-            const pyodideInstance = await loadPyodide();
+            const pyodideInstance = await loadPyodide({
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.2/full"
+            });
             setPyodide(pyodideInstance);
             setPyodideLoading(false);
         };
