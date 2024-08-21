@@ -88,7 +88,7 @@ import json
 product_id = '66b635bec9fdca2e426d81a0'
 
 # Define the URL with the product ID
-url = f'http://localhost:8080/products/{product_id}'
+url = f'${apiBaseUrl}/products/{product_id}'
 
 # Define headers with access token
 headers = {
