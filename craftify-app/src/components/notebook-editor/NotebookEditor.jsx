@@ -2,15 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import MonacoEditor from '@monaco-editor/react';
 import { loadPyodide } from 'pyodide';
 import ReactMarkdown from 'react-markdown';
-import './NotebookEditor.css'; // Import the CSS file
+import './NotebookEditor.css';
 
-const NotebookEditor = () => {
+const NotebookEditor = ({ accessToken }) => {
     const [title, setTitle] = useState('Sample Notebook');
     const [cells, setCells] = useState([]);
     const [pyodide, setPyodide] = useState(null);
     const [pyodideLoading, setPyodideLoading] = useState(true);
-    const draggedItem = useRef(null);
-    const draggedOverItem = useRef(null);
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
     useEffect(() => {
         const initializePyodide = async () => {
@@ -23,10 +22,122 @@ const NotebookEditor = () => {
         const hardcodedNotebook = {
             title: 'Sample Notebook',
             cells: [
-                { id: '1', type: 'code', content: 'x = 10\nx ** 2', output: '' },
-                { id: '2', type: 'code', content: 'import math\nmath.sqrt(x)', output: '' },
-                { id: '3', type: 'markdown', content: '# This is a Markdown cell\nYou can write documentation here.', editing: false },
-            ]
+                {
+                    id: '1',
+                    type: 'markdown',
+                    content: `
+# Security Warning
+
+It's important to be cautious when executing code from untrusted sources. Executing code from unsecure or unknown places can lead to security vulnerabilities, including unauthorized access to your data or system. Always ensure that the source of the code is trusted before execution.
+
+## Access Tokens
+
+An access token is a security credential that should not be shared with others. It is used to authenticate and authorize access to protected resources. In this example, the access token will be used to retrieve the user's product list from an API. Never expose your access token to the public or to untrusted parties, as it can be used to manipulate or retrieve sensitive data.
+            `,
+                    editing: false,
+                },
+                {
+                    id: '2',
+                    type: 'code',
+                    content: `
+# Define the access token
+access_token = "${accessToken}"
+`,
+                    output: '',
+                },
+                {
+                    id: '3',
+                    type: 'code',
+                    content: `
+import pyodide.http
+import json
+
+url = '${apiBaseUrl}/products';
+
+# Define headers with access token
+headers = {
+    "Authorization": "Bearer " + access_token,
+    "Content-Type": "application/json"
+}
+
+# Use pyfetch to make the request with headers
+response = await pyodide.http.pyfetch(url, method="GET", headers=headers)
+
+# Parse the response as JSON
+as_json = await response.json()
+
+# Convert the JSON to formatted text
+formatted_json = json.dumps(as_json, indent=4)
+
+# Output the formatted JSON
+formatted_json
+`,
+                    output: '',
+                },
+                {
+                    id: '4',
+                    type: 'code',
+                    content: `
+
+import pyodide.http
+import json
+
+# Define the product ID
+product_id = '66b635bec9fdca2e426d81a0'
+
+# Define the URL with the product ID
+url = f'http://localhost:8080/products/{product_id}'
+
+# Define headers with access token
+headers = {
+    "Authorization": "Bearer " + access_token,
+    "Content-Type": "application/json"
+}
+
+# Define the JSON body
+body = {
+    "name": "Basil 111",
+    "attributes": {
+        "variety": "Genovese",
+        "origin": "Italy",
+        "type": "Fresh"
+    },
+    "measurements": {
+        "weight": {
+            "value": 30,
+            "unit": "g"
+        }
+    },
+    "tags": {
+        "usage": "Cooking",
+        "diet": "Vegan"
+    },
+    "availability": {
+        "weight": {
+            "value": 30,
+            "unit": "g"
+        },
+        "package": {
+            "value": 1,
+            "unit": "count"
+        }
+    },
+    "categories": [
+        "Vegan",
+        "Herb"
+    ]
+}
+
+# Make the PATCH request with the provided JSON body
+response = await pyodide.http.pyfetch(url, method="PATCH", headers=headers, body=json.dumps(body))
+
+# Check response status code
+response.status 
+
+`,
+                    output: '',
+                },
+            ],
         };
 
         setTitle(hardcodedNotebook.title);
@@ -97,24 +208,6 @@ const NotebookEditor = () => {
         };
     }, [cells]);
 
-    const handleDragStart = (index) => {
-        draggedItem.current = index;
-    };
-
-    const handleDragEnter = (index) => {
-        draggedOverItem.current = index;
-        const reorderedCells = [...cells];
-        const draggedCell = reorderedCells.splice(draggedItem.current, 1)[0];
-        reorderedCells.splice(draggedOverItem.current, 0, draggedCell);
-        draggedItem.current = draggedOverItem.current;
-        setCells(reorderedCells);
-    };
-
-    const handleDragEnd = () => {
-        draggedItem.current = null;
-        draggedOverItem.current = null;
-    };
-
     const moveCellUp = (index) => {
         if (index === 0) return; // Already at the top
         const newCells = [...cells];
@@ -131,6 +224,15 @@ const NotebookEditor = () => {
         newCells[index + 1] = newCells[index];
         newCells[index] = temp;
         setCells(newCells);
+    };
+
+    const [expandedOutputs, setExpandedOutputs] = useState({});
+
+    const toggleOutputExpansion = (id) => {
+        setExpandedOutputs((prevExpandedOutputs) => ({
+            ...prevExpandedOutputs,
+            [id]: !prevExpandedOutputs[id],
+        }));
     };
 
     return (
@@ -154,10 +256,6 @@ const NotebookEditor = () => {
                     {cells.map((cell, index) => (
                         <div
                             key={cell.id}
-                            draggable
-                            onDragStart={() => handleDragStart(index)}
-                            onDragEnter={() => handleDragEnter(index)}
-                            onDragEnd={handleDragEnd}
                             className="mb-6 border border-gray-400 rounded-lg p-4 bg-gray-800"
                         >
                             {cell.type === 'code' ? (
@@ -204,9 +302,15 @@ const NotebookEditor = () => {
                                             ↓
                                         </button>
                                     </div>
-                                    <div className="mt-4 p-3 bg-gray-700 text-sm rounded-lg border border-gray-600">
+                                    <div className="mt-4 p-3 bg-gray-700 text-sm rounded-lg border border-gray-600 overflow-x-auto" style={{ maxHeight: expandedOutputs[cell.id] ? 'none' : '160px' }}>
                                         <pre>{cell.output}</pre>
                                     </div>
+                                    <button
+                                        onClick={() => toggleOutputExpansion(cell.id)}
+                                        className="mt-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                                    >
+                                        {expandedOutputs[cell.id] ? 'Collapse' : 'Expand'}
+                                    </button>
                                 </>
                             ) : (
                                 <>
