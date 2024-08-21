@@ -1,0 +1,288 @@
+import React, { useState, useEffect, useRef } from 'react';
+import MonacoEditor from '@monaco-editor/react';
+import { loadPyodide } from 'pyodide';
+import ReactMarkdown from 'react-markdown';
+import './NotebookEditor.css'; // Import the CSS file
+
+const NotebookEditor = () => {
+    const [title, setTitle] = useState('Sample Notebook');
+    const [cells, setCells] = useState([]);
+    const [pyodide, setPyodide] = useState(null);
+    const [pyodideLoading, setPyodideLoading] = useState(true);
+    const draggedItem = useRef(null);
+    const draggedOverItem = useRef(null);
+
+    useEffect(() => {
+        const initializePyodide = async () => {
+            const pyodideInstance = await loadPyodide();
+            setPyodide(pyodideInstance);
+            setPyodideLoading(false);
+        };
+        initializePyodide();
+
+        const hardcodedNotebook = {
+            title: 'Sample Notebook',
+            cells: [
+                { id: '1', type: 'code', content: 'x = 10\nx ** 2', output: '' },
+                { id: '2', type: 'code', content: 'import math\nmath.sqrt(x)', output: '' },
+                { id: '3', type: 'markdown', content: '# This is a Markdown cell\nYou can write documentation here.', editing: false },
+            ]
+        };
+
+        setTitle(hardcodedNotebook.title);
+        setCells(hardcodedNotebook.cells);
+    }, []);
+
+    const addCell = (type) => {
+        const newCell = { id: Date.now().toString(), type, content: type === 'code' ? '' : '### New Markdown Cell', output: '', editing: false };
+        setCells([...cells, newCell]);
+    };
+
+    const updateCell = (id, content) => {
+        setCells(cells.map(cell =>
+            cell.id === id ? { ...cell, content } : cell
+        ));
+    };
+
+    const toggleMarkdownEdit = (id) => {
+        setCells(cells.map(cell =>
+            cell.id === id ? { ...cell, editing: !cell.editing } : cell
+        ));
+    };
+
+    const removeCell = (id) => {
+        setCells(cells.filter(cell => cell.id !== id));
+    };
+
+    const runCodeUpToIndex = async (index) => {
+        let newCells = [...cells];
+        for (let i = 0; i <= index; i++) {
+            if (newCells[i].type === 'code') {
+                try {
+                    if (pyodide) {
+                        const output = await pyodide.runPythonAsync(newCells[i].content);
+                        newCells[i].output = output;
+                    }
+                } catch (error) {
+                    newCells[i].output = error.message;
+                }
+            }
+        }
+        setCells(newCells);
+    };
+
+    const saveNotebook = () => {
+        const notebookData = { title, cells };
+        console.log('Saving notebook:', notebookData);
+    };
+
+    const handleClose = () => {
+        console.log('Close button clicked');
+    };
+
+    const markdownRefs = useRef([]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            markdownRefs.current.forEach((ref, index) => {
+                if (ref && !ref.contains(event.target) && cells[index]?.editing) {
+                    toggleMarkdownEdit(cells[index].id);
+                }
+            });
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [cells]);
+
+    const handleDragStart = (index) => {
+        draggedItem.current = index;
+    };
+
+    const handleDragEnter = (index) => {
+        draggedOverItem.current = index;
+        const reorderedCells = [...cells];
+        const draggedCell = reorderedCells.splice(draggedItem.current, 1)[0];
+        reorderedCells.splice(draggedOverItem.current, 0, draggedCell);
+        draggedItem.current = draggedOverItem.current;
+        setCells(reorderedCells);
+    };
+
+    const handleDragEnd = () => {
+        draggedItem.current = null;
+        draggedOverItem.current = null;
+    };
+
+    const moveCellUp = (index) => {
+        if (index === 0) return; // Already at the top
+        const newCells = [...cells];
+        const temp = newCells[index - 1];
+        newCells[index - 1] = newCells[index];
+        newCells[index] = temp;
+        setCells(newCells);
+    };
+
+    const moveCellDown = (index) => {
+        if (index === cells.length - 1) return; // Already at the bottom
+        const newCells = [...cells];
+        const temp = newCells[index + 1];
+        newCells[index + 1] = newCells[index];
+        newCells[index] = temp;
+        setCells(newCells);
+    };
+
+    return (
+        <div className="mt-10 relative">
+            <div className="p-6 bg-gray-900 text-white rounded-lg shadow-md">
+                <button
+                    onClick={handleClose}
+                    className="absolute top-0 right-0 m-3 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors duration-200"
+                >
+                    Close
+                </button>
+                <h1 className="text-3xl font-bold mb-6 text-center text-white">{title}</h1>
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Notebook Title"
+                    className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white mb-5"
+                />
+                <div>
+                    {cells.map((cell, index) => (
+                        <div
+                            key={cell.id}
+                            draggable
+                            onDragStart={() => handleDragStart(index)}
+                            onDragEnter={() => handleDragEnter(index)}
+                            onDragEnd={handleDragEnd}
+                            className="mb-6 border border-gray-400 rounded-lg p-4 bg-gray-800"
+                        >
+                            {cell.type === 'code' ? (
+                                <>
+                                    <MonacoEditor
+                                        height="200px"
+                                        language="python"
+                                        theme="vs-dark"
+                                        value={cell.content}
+                                        onChange={(value) => updateCell(cell.id, value)}
+                                        options={{
+                                            fontSize: 14,
+                                            minimap: { enabled: false },
+                                            lineNumbers: "on",
+                                        }}
+                                        className="mb-4 h-auto border border-gray-600 rounded-lg"
+                                    />
+                                    <div className="flex items-center space-x-2 mb-2">
+                                        <button
+                                            onClick={() => runCodeUpToIndex(index)}
+                                            className={`px-4 py-2 text-white font-semibold rounded-lg transition-colors duration-200 ${
+                                                pyodideLoading ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+                                            }`}
+                                            disabled={pyodideLoading}
+                                        >
+                                            {pyodideLoading ? 'Loading Pyodide...' : 'Run'}
+                                        </button>
+                                        <button
+                                            onClick={() => removeCell(cell.id)}
+                                            className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                        <button
+                                            onClick={() => moveCellUp(index)}
+                                            className="px-2 py-1 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+                                        >
+                                            ↑
+                                        </button>
+                                        <button
+                                            onClick={() => moveCellDown(index)}
+                                            className="px-2 py-1 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+                                        >
+                                            ↓
+                                        </button>
+                                    </div>
+                                    <div className="mt-4 p-3 bg-gray-700 text-sm rounded-lg border border-gray-600">
+                                        <pre>{cell.output}</pre>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    {cell.editing ? (
+                                        <div ref={(el) => (markdownRefs.current[index] = el)}>
+                                            <MonacoEditor
+                                                height="150px"
+                                                language="markdown"
+                                                theme="vs-dark"
+                                                value={cell.content}
+                                                onChange={(value) => updateCell(cell.id, value)}
+                                                options={{
+                                                    fontSize: 14,
+                                                    minimap: { enabled: false },
+                                                    lineNumbers: false,
+                                                }}
+                                                className="mb-4 h-auto border border-gray-600 rounded-lg"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div
+                                            ref={(el) => (markdownRefs.current[index] = el)}
+                                            onDoubleClick={() => toggleMarkdownEdit(cell.id)}
+                                            className="markdown-body cursor-pointer"
+                                        >
+                                            <ReactMarkdown>{cell.content}</ReactMarkdown>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center space-x-2 mb-2 mt-2">
+                                        <button
+                                            onClick={() => removeCell(cell.id)}
+                                            className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                        <button
+                                            onClick={() => moveCellUp(index)}
+                                            className="px-2 py-1 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+                                        >
+                                            ↑
+                                        </button>
+                                        <button
+                                            onClick={() => moveCellDown(index)}
+                                            className="px-2 py-1 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+                                        >
+                                            ↓
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    ))}
+                </div>
+                <div className="flex justify-between mt-6">
+                    <button
+                        onClick={() => addCell('code')}
+                        className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors duration-200"
+                    >
+                        Add Python Cell
+                    </button>
+                    <button
+                        onClick={() => addCell('markdown')}
+                        className="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors duration-200"
+                    >
+                        Add Markdown Cell
+                    </button>
+                    <button
+                        onClick={saveNotebook}
+                        className="px-4 py-2 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-900 transition-colors duration-200"
+                    >
+                        Save Notebook
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default NotebookEditor;
