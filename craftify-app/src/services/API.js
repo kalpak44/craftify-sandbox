@@ -128,3 +128,46 @@ export const applyRecipe = async (accessToken, recipeId, amount) => {
     }
     return response.json();
 };
+
+export const getNotebooksPageable = async (accessToken, {page = 0, size = 10, name = ""} = {}) => {
+    const queryParams = [`page=${page}`, `size=${size}`];
+
+    if (name) {
+        queryParams.push(`name=${encodeURIComponent(name)}`);
+    }
+
+    const queryString = queryParams.join("&");
+    const response = await fetchWithAuth(accessToken, `/notebooks?${queryString}`);
+    return response.json();
+};
+
+export const deleteNotebook = async (accessToken, notebookId) => {
+    const response = await fetchWithAuth(accessToken, `/notebooks/${notebookId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to delete notebook. ${body.message}`);
+    }
+    return response.ok;
+};
+export const createNotebook = async (accessToken, notebookData) => {
+    const response = await fetchWithAuth(accessToken, "/notebooks", {
+        method: "POST",
+        body: JSON.stringify(notebookData),
+    });
+    return response.json();
+};
+
+export const updateNotebook = async (accessToken, notebookId, notebookData) => {
+    const response = await fetchWithAuth(accessToken, `/notebooks/${notebookId}`, {
+        method: "PATCH",
+        body: JSON.stringify(notebookData),
+    });
+    return response.json();
+};
+
+export const getNotebookById = async (accessToken, notebookId) => {
+    const response = await fetchWithAuth(accessToken, `/notebooks/${notebookId}`);
+    return response.json();
+};

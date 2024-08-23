@@ -14,6 +14,9 @@ import {RecipesPage} from "./pages/RecipesPage.jsx";
 import {RecipeAddPage} from "./pages/RecipeAddPage.jsx";
 import {RecipeEditPage} from "./pages/RecipeEditPage.jsx";
 import {HomePage} from "./pages/HomePage.jsx";
+import {NotebooksPage} from "./pages/NotebooksPage.jsx";
+import NotebooksEditPage from "./pages/NotebooksEditPage.jsx";
+import NotebooksAddPage from "./pages/NotebooksAddPage.jsx";
 
 
 export default function App() {
@@ -59,8 +62,16 @@ export default function App() {
                 element={<AuthenticationGuard component={() => (<PageLayout><RecipeAddPage/></PageLayout>)}/>}
             />
             <Route
-                path="/recipes/:id"
-                element={<AuthenticationGuard component={() => (<PageLayout><RecipeEditPage/></PageLayout>)}/>}
+                path="/notebooks"
+                element={<AuthenticationGuard component={() => (<PageLayout><NotebooksPage/></PageLayout>)}/>}
+            />
+            <Route
+                path="/notebooks/add"
+                element={<AuthenticationGuard component={() => (<PageLayout><NotebooksAddPage/></PageLayout>)}/>}
+            />
+            <Route
+                path="/notebooks/:id"
+                element={<AuthenticationGuard component={() => (<PageLayout><NotebooksEditPage/></PageLayout>)}/>}
             />
             <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
             <Route path="*" element={<PageLayout><NotFoundPage/></PageLayout>}/>
