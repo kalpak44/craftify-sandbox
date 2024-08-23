@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useAuth0} from '@auth0/auth0-react';
 import {useNavigate} from 'react-router-dom';
 import NotebookEditor from "../components/notebook-editor/NotebookEditor.jsx";
@@ -14,6 +14,7 @@ const NotebooksAddPage = () => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [accessToken, setAccessToken] = useState(null);
     const [notebook, setNotebook] = useState({
         name: "My Notebook",
         cells: [{
@@ -22,11 +23,50 @@ const NotebooksAddPage = () => {
             content: `
 # Security Warning
 
-It's important to be cautious when executing code from untrusted sources. Executing code from unsecure or unknown places can lead to security vulnerabilities, including unauthorized access to your data or system. Always ensure that the source of the code is trusted before execution.
-            `,
+It's important to be cautious when executing code from untrusted sources. Executing code from insecure or unknown places can lead to security vulnerabilities, including unauthorized access to your data or system. Always ensure that the source of the code is trusted before execution.
+
+# Predefined Functions
+
+This section documents predefined functions used in the codebase, including examples of how to use them.
+
+## \`getProductList(page=0, size=5)\`
+
+This function retrieves a pageable list of products from the API. It allows you to specify the page number and the size of the list.
+
+### Example of Usage
+
+\`\`\`python
+# Retrieve pageable list of products and store the result in as_json
+as_json = await getProductList(page=0, size=3)
+
+# Format the JSON for pretty printing
+formatted_json = json.dumps(as_json, indent=4)
+formatted_json
+`,
             editing: false,
         }]
     });
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchAccessToken = async () => {
+            try {
+                const token = await getAccessTokenSilently();
+                if (isMounted) {
+                    setAccessToken(token);
+                }
+            } catch (err) {
+                setError("Failed to retrieve access token: " + err.message);
+            }
+        };
+
+        fetchAccessToken();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [getAccessTokenSilently]);
 
     const handleSave = async () => {
         if (!notebook.name || notebook.name.trim() === '') {
@@ -37,7 +77,6 @@ It's important to be cautious when executing code from untrusted sources. Execut
         setLoading(true);
         setShowModal(false);
         try {
-            const accessToken = await getAccessTokenSilently();
             await createNotebook(accessToken, notebook);
             setSuccess("Notebook created successfully!");
             navigate('/notebooks');
@@ -71,7 +110,7 @@ It's important to be cautious when executing code from untrusted sources. Execut
                         Close
                     </button>
                     <h1 className="text-white text-lg font-bold mb-4">Add Notebook</h1>
-                    <NotebookEditor notebook={notebook} onSave={(data) => setNotebook(data)}/>
+                    <NotebookEditor notebook={notebook} accessToken={accessToken} onUpdateNotebook={setNotebook}/>
                     <div className="flex flex-wrap md:flex-nowrap gap-4 mt-4">
                         <button
                             type="button"
@@ -85,7 +124,7 @@ It's important to be cautious when executing code from untrusted sources. Execut
                     <Modal
                         show={showModal}
                         onClose={() => setShowModal(false)}
-                        onConfirm={(e) => handleSave(e)}
+                        onConfirm={handleSave}
                         title="Confirm Submission"
                         message="Are you sure you want to submit this notebook?"
                     />

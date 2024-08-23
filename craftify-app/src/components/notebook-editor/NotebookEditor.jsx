@@ -4,11 +4,26 @@ import { loadPyodide } from 'pyodide';
 import ReactMarkdown from 'react-markdown';
 import './NotebookEditor.css';
 
-const NotebookEditor = ({ notebook, onSave }) => {
+const NotebookEditor = ({ notebook, accessToken, onUpdateNotebook }) => {
     const [name, setName] = useState(notebook?.name || 'New Notebook');
     const [cells, setCells] = useState(notebook?.cells || []);
     const [pyodide, setPyodide] = useState(null);
     const [pyodideLoading, setPyodideLoading] = useState(true);
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+    const predefinedCode = `
+    import pyodide.http
+    import json
+
+    async def getProductList(page=0, size=5):
+        url = f'${apiBaseUrl}/products?page={page}&size={size}'
+        headers = {
+            "Authorization": "Bearer ${accessToken}",
+            "Content-Type": "application/json"
+        }
+        response = await pyodide.http.pyfetch(url, method="GET", headers=headers)
+        return await response.json()
+    `;
 
     useEffect(() => {
         const initializePyodide = async () => {
@@ -25,6 +40,10 @@ const NotebookEditor = ({ notebook, onSave }) => {
             setCells(notebook.cells);
         }
     }, [notebook]);
+
+    useEffect(() => {
+        onUpdateNotebook({ name, cells });
+    }, [name, cells, onUpdateNotebook]);
 
     const addCell = (type) => {
         const newCell = { id: Date.now().toString(), type, content: type === 'code' ? '' : '### New Markdown Cell', output: '', editing: false };
@@ -49,6 +68,9 @@ const NotebookEditor = ({ notebook, onSave }) => {
 
     const runCodeUpToIndex = async (index) => {
         let newCells = [...cells];
+        if (newCells.some(cell => cell.type === 'code')) {
+            await pyodide.runPythonAsync(predefinedCode);
+        }
         for (let i = 0; i <= index; i++) {
             if (newCells[i].type === 'code') {
                 try {

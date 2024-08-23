@@ -10,20 +10,26 @@ import { Modal } from "../components/modal/Modal.jsx";
 export const NotebooksEditPage = () => {
     const { id } = useParams();
     const { getAccessTokenSilently } = useAuth0();
+    const navigate = useNavigate();
     const [notebook, setNotebook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const navigate = useNavigate();
+    const [accessToken, setAccessToken] = useState(null);
 
     useEffect(() => {
-        const fetchNotebook = async () => {
+        let isMounted = true;
+
+        const fetchNotebookAndToken = async () => {
             try {
-                const accessToken = await getAccessTokenSilently();
-                const notebookData = await getNotebookById(accessToken, id);
-                setNotebook(notebookData);
+                const token = await getAccessTokenSilently();
+                const notebookData = await getNotebookById(token, id);
+                if (isMounted) {
+                    setAccessToken(token);
+                    setNotebook(notebookData);
+                }
             } catch (error) {
                 setError("Failed to fetch notebook: " + error.message);
             } finally {
@@ -31,7 +37,11 @@ export const NotebooksEditPage = () => {
             }
         };
 
-        fetchNotebook();
+        fetchNotebookAndToken();
+
+        return () => {
+            isMounted = false;
+        };
     }, [getAccessTokenSilently, id]);
 
     const handleSave = async () => {
@@ -43,7 +53,6 @@ export const NotebooksEditPage = () => {
         setLoading(true);
         setShowModal(false);
         try {
-            const accessToken = await getAccessTokenSilently();
             await updateNotebook(accessToken, id, notebook);
             setSuccess("Notebook updated successfully!");
             navigate('/notebooks');
@@ -58,7 +67,6 @@ export const NotebooksEditPage = () => {
         setLoading(true);
         setShowDeleteModal(false);
         try {
-            const accessToken = await getAccessTokenSilently();
             await deleteNotebook(accessToken, id);
             setSuccess("Notebook deleted successfully!");
             navigate('/notebooks');
@@ -92,7 +100,7 @@ export const NotebooksEditPage = () => {
                         Close
                     </button>
                     <h1 className="text-white text-lg font-bold mb-4">Edit Notebook</h1>
-                    <NotebookEditor notebook={notebook} onSave={(data) => setNotebook(data)} />
+                    <NotebookEditor notebook={notebook} accessToken={accessToken} onUpdateNotebook={setNotebook}/>
                     <div className="flex flex-wrap md:flex-nowrap gap-4 mt-4">
                         <button
                             type="button"
