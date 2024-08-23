@@ -165,7 +165,7 @@ export const NotebooksPage = () => {
                                                     className="p-2 bg-green-500 text-white rounded mr-2"
                                                     onClick={() => handleEdit(notebook.id)}
                                                 >
-                                                    Edit
+                                                    Open
                                                 </button>
                                                 <button
                                                     className="p-2 bg-red-500 text-white rounded"
