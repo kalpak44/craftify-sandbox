@@ -27,7 +27,7 @@ It's important to be cautious when executing code from untrusted sources. Execut
 
 This section documents predefined functions used in the codebase, including examples of how to use them.
 
-## \`getProductList(page=0, size=5)\`
+## \`getProductList(page=0, size=5, tags={"usage":"Cooking"}, categories=['Oils'])\`
 
 This function retrieves a pageable list of products from the API.
 
