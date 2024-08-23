@@ -14,13 +14,26 @@ const NotebookEditor = ({ notebook, accessToken, onUpdateNotebook }) => {
     const predefinedCode = `
     import pyodide.http
     import json
+    import urllib.parse
 
-    async def getProductList(page=0, size=5):
+    async def getProductList(page=0, size=5, tags=None, categories=None):
         url = f'${apiBaseUrl}/products?page={page}&size={size}'
+        
+        if tags:
+            # Encode the tags dictionary as query parameters
+            tags_query = urllib.parse.urlencode({'tags[' + k + ']': v for k, v in tags.items()})
+            url += f'&{tags_query}'
+        
+        if categories:
+            # Encode the categories list as repeated query parameters
+            categories_query = '&'.join([f'categories={urllib.parse.quote(category)}' for category in categories])
+            url += f'&{categories_query}'
+        
         headers = {
-            "Authorization": "Bearer ${accessToken}",
+            "Authorization": f"Bearer ${accessToken}",
             "Content-Type": "application/json"
         }
+        
         response = await pyodide.http.pyfetch(url, method="GET", headers=headers)
         return await response.json()
     `;

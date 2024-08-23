@@ -41,7 +41,7 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
 
   @Override
   public Page<ProductDocument> searchProducts(
-      ProductSearch productSearch, Pageable pageable, String userId) {
+          ProductSearch productSearch, Pageable pageable, String userId) {
     var query = new Query();
     addUserIdCriteria(query, userId);
     addIdCriteria(query, productSearch.getId());
@@ -60,58 +60,50 @@ public class ProductRepositorySearchImpl implements ProductRepositorySearch {
   }
 
   private void addUserIdCriteria(Query query, String userId) {
-    if (userId != null && !userId.isEmpty()) {
+    if (StringUtils.isNotBlank(userId)) {
       query.addCriteria(Criteria.where("userId").is(userId));
     }
   }
 
   private void addProductNameCriteria(Query query, String productName) {
-    if (productName != null && !productName.isEmpty()) {
+    if (StringUtils.isNotBlank(productName)) {
       query.addCriteria(Criteria.where("name").is(productName));
     }
   }
 
   private void addAttributesCriteria(Query query, Map<String, String> attributes) {
     if (attributes != null && !attributes.isEmpty()) {
-      var attributeCriteria = new ArrayList<>();
       for (var entry : attributes.entrySet()) {
-        attributeCriteria.add(Criteria.where("attributes." + entry.getKey()).is(entry.getValue()));
+        query.addCriteria(Criteria.where("attributes." + entry.getKey()).is(entry.getValue()));
       }
-      query.addCriteria(new Criteria().andOperator(attributeCriteria.toArray(new Criteria[0])));
     }
   }
 
   private void addMeasurementsCriteria(
-      Query query, Map<String, Pair<BigDecimal, String>> measurements) {
+          Query query, Map<String, Pair<BigDecimal, String>> measurements) {
     if (measurements != null && !measurements.isEmpty()) {
-      var measurementCriteria = new ArrayList<>();
       for (var entry : measurements.entrySet()) {
-        measurementCriteria.add(
-            Criteria.where("measurements." + entry.getKey()).is(entry.getValue()));
+        query.addCriteria(Criteria.where("measurements." + entry.getKey()).is(entry.getValue()));
       }
-      query.addCriteria(new Criteria().andOperator(measurementCriteria.toArray(new Criteria[0])));
     }
   }
 
   private void addCategoriesCriteria(Query query, Set<String> categories) {
     if (categories != null && !categories.isEmpty()) {
-      var categoryCriteria = new ArrayList<>();
-      for (var category : categories) {
-        categoryCriteria.add(Criteria.where("categories").is(category));
-      }
-      query.addCriteria(new Criteria().andOperator(categoryCriteria.toArray(new Criteria[0])));
+      query.addCriteria(Criteria.where("categories").in(categories));
     }
   }
 
   private void addTagsCriteria(Query query, Map<String, String> tags) {
     if (tags != null && !tags.isEmpty()) {
-      var tagCriteria = new ArrayList<>();
+      var tagCriteria = new ArrayList<Criteria>();
       for (var entry : tags.entrySet()) {
         tagCriteria.add(Criteria.where("tags." + entry.getKey()).is(entry.getValue()));
       }
       query.addCriteria(new Criteria().andOperator(tagCriteria.toArray(new Criteria[0])));
     }
   }
+
 
   private Page<ProductDocument> executePagedQuery(Query query, Pageable pageable) {
     long total = mongoTemplate.count(query, ProductDocument.class);

@@ -29,13 +29,18 @@ This section documents predefined functions used in the codebase, including exam
 
 ## \`getProductList(page=0, size=5)\`
 
-This function retrieves a pageable list of products from the API. It allows you to specify the page number and the size of the list.
+This function retrieves a pageable list of products from the API.
 
 ### Example of Usage
 
 \`\`\`python
+# Define tags and categories to filter by
+tags = {"category":"Oil","usage":"Cooking"}
+
+categories = ['Oils']
+
 # Retrieve pageable list of products and store the result in as_json
-as_json = await getProductList(page=0, size=3)
+as_json = await getProductList(page=0, size=3, tags=tags, categories=categories)
 
 # Format the JSON for pretty printing
 formatted_json = json.dumps(as_json, indent=4)
