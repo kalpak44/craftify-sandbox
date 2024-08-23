@@ -16,7 +16,7 @@ const NotebookEditor = ({ notebook, accessToken, onUpdateNotebook }) => {
     import json
     import urllib.parse
 
-    async def getProductList(page=0, size=5, tags=None, categories=None):
+    async def get_product_list(page=0, size=5, tags=None, categories=None):
         url = f'${apiBaseUrl}/products?page={page}&size={size}'
         
         if tags:
