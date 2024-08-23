@@ -3,7 +3,6 @@ import {useAuth0} from '@auth0/auth0-react';
 import {useNavigate} from 'react-router-dom';
 import NotebookEditor from "../components/notebook-editor/NotebookEditor.jsx";
 import {PageLoader} from "../components/page-loader/PageLoader.jsx";
-import {Notification} from "../components/notification/Notification.jsx";
 import {Modal} from "../components/modal/Modal.jsx";
 import {createNotebook} from '../services/API';
 
@@ -11,9 +10,8 @@ const NotebooksAddPage = () => {
     const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false); // Modal for name error
+    const [showConfirmModal, setShowConfirmModal] = useState(false); // Modal for confirmation
     const [accessToken, setAccessToken] = useState(null);
     const [notebook, setNotebook] = useState({
         name: "My Notebook",
@@ -57,7 +55,7 @@ formatted_json
                     setAccessToken(token);
                 }
             } catch (err) {
-                setError("Failed to retrieve access token: " + err.message);
+                setShowErrorModal(true);
             }
         };
 
@@ -70,18 +68,20 @@ formatted_json
 
     const handleSave = async () => {
         if (!notebook.name || notebook.name.trim() === '') {
-            setError('Notebook name is required.');
-            return;
+            setShowErrorModal(true);
+        } else {
+            setShowConfirmModal(true);
         }
+    };
 
+    const confirmSave = async () => {
         setLoading(true);
-        setShowModal(false);
+        setShowConfirmModal(false);
         try {
             await createNotebook(accessToken, notebook);
-            setSuccess("Notebook created successfully!");
             navigate('/notebooks');
         } catch (error) {
-            setError('Failed to create notebook: ' + error.message);
+            setShowErrorModal(true);
         } finally {
             setLoading(false);
         }
@@ -95,11 +95,6 @@ formatted_json
         <>
             {loading ? (
                 <PageLoader/>
-            ) : error || success ? (
-                <Notification show={true} message={error || success} onClose={() => {
-                    setError(null);
-                    setSuccess(null);
-                }}/>
             ) : (
                 <div className="relative w-full p-6 bg-gray-800 text-white rounded-lg shadow-md mt-8">
                     <button
@@ -114,7 +109,7 @@ formatted_json
                     <div className="flex flex-wrap md:flex-nowrap gap-4 mt-4">
                         <button
                             type="button"
-                            onClick={() => setShowModal(true)}
+                            onClick={handleSave}
                             className="flex-1 py-2 px-4 rounded text-white font-bold shadow-md transition duration-200"
                             style={{background: 'var(--pink-yellow-gradient)', fontFamily: 'var(--font-primary)'}}
                         >
@@ -122,9 +117,16 @@ formatted_json
                         </button>
                     </div>
                     <Modal
-                        show={showModal}
-                        onClose={() => setShowModal(false)}
-                        onConfirm={handleSave}
+                        show={showErrorModal}
+                        onClose={() => setShowErrorModal(false)}
+                        onConfirm={()=>setShowErrorModal(false)}
+                        title="Error"
+                        message="Notebook name is required."
+                    />
+                    <Modal
+                        show={showConfirmModal}
+                        onClose={() => setShowConfirmModal(false)}
+                        onConfirm={confirmSave}
                         title="Confirm Submission"
                         message="Are you sure you want to submit this notebook?"
                     />
