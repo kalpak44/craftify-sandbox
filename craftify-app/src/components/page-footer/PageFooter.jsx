@@ -1,5 +1,5 @@
 import React from "react";
-import {PageFooterHyperlink} from "../page-footer-hyperlink/PageFooterHyperlink.jsx";
+import { PageFooterHyperlink } from "../page-footer-hyperlink/PageFooterHyperlink.jsx";
 import "./PageFooter.css";
 
 export const PageFooter = () => {
@@ -13,7 +13,7 @@ export const PageFooter = () => {
             label: "How It Works",
         },
         {
-            path: "https://app.craftify.com//blog/developers/",
+            path: "https://app.craftify.com/blog/developers/",
             label: "Developer Blog",
         },
         {
@@ -28,10 +28,10 @@ export const PageFooter = () => {
                 <div className="page-footer-grid__info">
                     <div className="page-footer-info__message">
                         <p className="page-footer-message__headline">
-                            <span>Lorem Ipsum is simply dummy text of the printing&nbsp;</span>
+                            <span>Craftify - Craft Data Your Way&nbsp;</span>
                         </p>
                         <p className="page-footer-message__description">
-                            and typesetting industry.
+                            Simplify data creation and analysis with powerful, user-friendly notebooks.
                         </p>
                     </div>
                     <div className="page-footer-info__resource-list">
