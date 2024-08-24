@@ -27,20 +27,21 @@ It's important to be cautious when executing code from untrusted sources. Execut
 
 This section documents predefined functions used in the codebase, including examples of how to use them.
 
-## \`get_product_list(page=0, size=5, tags={"usage":"Cooking"}, categories=['Oils'])\`
+## \`get_product_list(page=0, size=5, name = "Olive Oil", tags={"usage":"Cooking"}, categories=['Oils'])\`
 
 This function retrieves a pageable list of products from the API.
 
 ### Example of Usage
 
 \`\`\`python
-# Define tags and categories to filter by
+# Define name, tags and categories to filter by
+name = "Olive Oil"
 tags = {"category":"Oil","usage":"Cooking"}
 
 categories = ['Oils']
 
 # Retrieve pageable list of products and store the result in as_json
-as_json = await get_product_list(page=0, size=3, tags=tags, categories=categories)
+as_json = await get_product_list(page=0, size=3, name=name, tags=tags, categories=categories)
 
 # Format the JSON for pretty printing
 formatted_json = json.dumps(as_json, indent=4)

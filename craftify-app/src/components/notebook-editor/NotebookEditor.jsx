@@ -16,9 +16,13 @@ const NotebookEditor = ({ notebook, accessToken, onUpdateNotebook }) => {
     import json
     import urllib.parse
 
-    async def get_product_list(page=0, size=5, tags=None, categories=None):
+    async def get_product_list(page=0, size=5, name=None, tags=None, categories=None):
         url = f'${apiBaseUrl}/products?page={page}&size={size}'
         
+        if name:
+            # Encode the name parameter as a query parameter
+            url += f'&name={urllib.parse.quote(name)}'
+            
         if tags:
             # Encode the tags dictionary as query parameters
             tags_query = urllib.parse.urlencode({'tags[' + k + ']': v for k, v in tags.items()})
@@ -36,6 +40,7 @@ const NotebookEditor = ({ notebook, accessToken, onUpdateNotebook }) => {
         
         response = await pyodide.http.pyfetch(url, method="GET", headers=headers)
         return await response.json()
+
         
     async def create_product(product_data):
         url = f'${apiBaseUrl}/products'
