@@ -36,6 +36,44 @@ const NotebookEditor = ({ notebook, accessToken, onUpdateNotebook }) => {
         
         response = await pyodide.http.pyfetch(url, method="GET", headers=headers)
         return await response.json()
+        
+    async def create_product(product_data):
+        url = f'${apiBaseUrl}/products'
+        
+        headers = {
+            "Authorization": f"Bearer ${accessToken}",
+            "Content-Type": "application/json"
+        }
+        
+        response = await pyodide.http.pyfetch(url, method="POST", headers=headers, body=json.dumps(product_data))
+        return await response.json()
+
+    async def update_product(product_id, update_data):
+        url = f'${apiBaseUrl}/products/{product_id}'
+        
+        headers = {
+            "Authorization": f"Bearer ${accessToken}",
+            "Content-Type": "application/json"
+        }
+        
+        response = await pyodide.http.pyfetch(url, method="PATCH", headers=headers, body=json.dumps(update_data))
+        return await response.json()
+
+    async def delete_product(product_id):
+        url = f'${apiBaseUrl}/products/{product_id}'
+        
+        headers = {
+            "Authorization": f"Bearer ${accessToken}",
+            "Content-Type": "application/json"
+        }
+        
+        response = await pyodide.http.pyfetch(url, method="DELETE", headers=headers)
+        
+        if response.status == 200:
+            return {"status": "success", "message": f"Product {product_id} deleted successfully"}
+        else:
+            return {"status": "error", "message": f"Failed to delete product {product_id}", "details": await response.json()}
+
     `;
 
     useEffect(() => {

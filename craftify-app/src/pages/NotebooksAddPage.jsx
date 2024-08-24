@@ -45,6 +45,75 @@ as_json = await get_product_list(page=0, size=3, tags=tags, categories=categorie
 # Format the JSON for pretty printing
 formatted_json = json.dumps(as_json, indent=4)
 formatted_json
+\`\`\`
+
+## \`create_product(product_data)\`
+
+This function creates a new product by sending a POST request to the API.
+
+### Example of Usage
+
+\`\`\`python
+# Define the product data
+product_data = {
+    "name": "New Cooking Oil",
+    "attributes": {"type": "Vegetable", "usage": "Cooking"},
+    "tags": {"category": "Oil"},
+    "measurements": {"volume": {"value": 1, "unit": "liter"}},
+    "availability": {"inStock": {"value": 50, "unit": "bottles"}},
+    "categories": ["Oils"]
+}
+
+# Create a new product and store the result in as_json
+as_json = await create_product(product_data)
+
+# Format the JSON for pretty printing
+formatted_json = json.dumps(as_json, indent=4)
+formatted_json
+\`\`\`
+
+## \`update_product(product_id, update_data)\`
+
+This function updates an existing product by sending a PATCH request to the API.
+
+### Example of Usage
+
+\`\`\`python
+# Define the product ID and the update data
+product_id = "12345"
+update_data = {
+    "name": "Updated Cooking Oil",
+    "attributes": {"type": "Vegetable", "usage": "Cooking"},
+    "availability": {"inStock": {"value": 30, "unit": "bottles"}}
+}
+
+# Update the product and store the result in as_json
+as_json = await update_product(product_id, update_data)
+
+# Format the JSON for pretty printing
+formatted_json = json.dumps(as_json, indent=4)
+formatted_json
+\`\`\`
+
+## \`delete_product(product_id)\`
+
+This function deletes a product by sending a DELETE request to the API.
+
+### Example of Usage
+
+\`\`\`python
+# Define the product ID to delete
+product_id = "12345"
+
+# Delete the product and store the result in as_json
+as_json = await delete_product(product_id)
+
+# Check the result of the deletion
+formatted_json = json.dumps(as_json, indent=4)
+formatted_json
+\`\`\`
+
+
 `,
             editing: false,
         }]
