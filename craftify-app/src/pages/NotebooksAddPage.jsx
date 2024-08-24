@@ -27,7 +27,7 @@ It's important to be cautious when executing code from untrusted sources. Execut
 
 This section documents predefined functions used in the codebase, including examples of how to use them.
 
-## \`get_product_list(page=0, size=5, name = "Olive Oil", tags={"usage":"Cooking"}, categories=['Oils'])\`
+### get_product_list(page=0, size=5, name = "Olive Oil", tags={"usage":"Cooking"}, categories=['Oils'])
 
 This function retrieves a pageable list of products from the API.
 
@@ -48,7 +48,27 @@ formatted_json = json.dumps(as_json, indent=4)
 formatted_json
 \`\`\`
 
-## \`create_product(product_data)\`
+### get_product_by_id(product_id="12345")
+
+This function retrieves a specific product by its ID from the API.
+
+### Example of Usage
+
+\`\`\`python
+# Define the product ID
+product_id = "12345"
+
+# Retrieve the product by its ID and store the result in as_json
+as_json = await get_product_by_id(product_id)
+
+
+# Format the JSON for pretty printing
+formatted_json = json.dumps(as_json, indent=4)
+formatted_json
+\`\`\`
+
+
+### create_product(product_data={})
 
 This function creates a new product by sending a POST request to the API.
 
@@ -73,7 +93,7 @@ formatted_json = json.dumps(as_json, indent=4)
 formatted_json
 \`\`\`
 
-## \`update_product(product_id, update_data)\`
+### update_product(product_id="12345", update_data={})
 
 This function updates an existing product by sending a PATCH request to the API.
 
@@ -96,7 +116,7 @@ formatted_json = json.dumps(as_json, indent=4)
 formatted_json
 \`\`\`
 
-## \`delete_product(product_id)\`
+### delete_product(product_id="12345")
 
 This function deletes a product by sending a DELETE request to the API.
 

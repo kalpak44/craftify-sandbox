@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import MonacoEditor from '@monaco-editor/react';
-import { loadPyodide } from 'pyodide';
+import {loadPyodide} from 'pyodide';
 import ReactMarkdown from 'react-markdown';
 import './NotebookEditor.css';
 
@@ -41,6 +41,16 @@ const NotebookEditor = ({ notebook, accessToken, onUpdateNotebook }) => {
         response = await pyodide.http.pyfetch(url, method="GET", headers=headers)
         return await response.json()
 
+    async def get_product_by_id(product_id):
+        url = f'${apiBaseUrl}/products/{product_id}'
+        
+        headers = {
+            "Authorization": f"Bearer ${accessToken}",
+            "Content-Type": "application/json"
+        }
+        
+        response = await pyodide.http.pyfetch(url, method="GET", headers=headers)
+        return await response.json()
         
     async def create_product(product_data):
         url = f'${apiBaseUrl}/products'
@@ -124,23 +134,42 @@ const NotebookEditor = ({ notebook, accessToken, onUpdateNotebook }) => {
 
     const runCodeUpToIndex = async (index) => {
         let newCells = [...cells];
+        let executionFailed = false;
+
+        // Load predefined code into pyodide
         if (newCells.some(cell => cell.type === 'code')) {
             await pyodide.runPythonAsync(predefinedCode);
         }
+
         for (let i = 0; i <= index; i++) {
             if (newCells[i].type === 'code') {
+                if (executionFailed) {
+                    // Reset output if the previous cell failed
+                    newCells[i].output = '';
+                    continue;
+                }
                 try {
                     if (pyodide) {
-                        const output = await pyodide.runPythonAsync(newCells[i].content);
-                        newCells[i].output = output;
+                        newCells[i].output = await pyodide.runPythonAsync(newCells[i].content);
                     }
                 } catch (error) {
                     newCells[i].output = error.message;
+                    executionFailed = true; // Set the flag to true if execution fails
                 }
             }
         }
+
+        // If there are cells after the current one, reset their outputs as they won't be executed
+        for (let i = index + 1; i < newCells.length; i++) {
+            if (newCells[i].type === 'code') {
+                newCells[i].output = '';
+            }
+        }
+
         setCells(newCells);
     };
+
+
 
     const markdownRefs = useRef([]);
 
