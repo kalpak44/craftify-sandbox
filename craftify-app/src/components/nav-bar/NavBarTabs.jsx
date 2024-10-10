@@ -12,7 +12,7 @@ export const NavBarTabs = () => {
             {isAuthenticated && (
                 <>
                     <NavBarTab path="/items" label="My Items"/>
-                    <NavBarTab path="/products" label="Products"/>
+                    <NavBarTab path="/products" label="Products (Deprecated)"/>
                     <NavBarTab path="/notebooks" label="Notebooks"/>
                     {/*<NavBarTab path="/recipes" label="Crafts/Recipes"/>*/}
                 </>
