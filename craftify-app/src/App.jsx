@@ -12,11 +12,13 @@ import {ProductEditPage} from "./pages/ProductEditPage.jsx";
 import {ProductAddPage} from "./pages/ProductAddPage.jsx";
 import {RecipesPage} from "./pages/RecipesPage.jsx";
 import {RecipeAddPage} from "./pages/RecipeAddPage.jsx";
-import {RecipeEditPage} from "./pages/RecipeEditPage.jsx";
 import {HomePage} from "./pages/HomePage.jsx";
 import {NotebooksPage} from "./pages/NotebooksPage.jsx";
 import NotebooksEditPage from "./pages/NotebooksEditPage.jsx";
 import NotebooksAddPage from "./pages/NotebooksAddPage.jsx";
+import {ItemsPage} from "./pages/ItemsPage.jsx";
+import {DataListPage} from "./pages/DataListPage.jsx";
+import {SchemaBuilderPage} from "./pages/SchemaBuilderPage.jsx";
 
 
 export default function App() {
@@ -37,6 +39,9 @@ export default function App() {
                 path="/profile"
                 element={<AuthenticationGuard component={() => <PageLayout><ProfilePage/></PageLayout>}/>}
             />
+            <Route path="/items" element={<PageLayout><ItemsPage/></PageLayout>}/>
+            <Route path="/items/:itemId/schema" element={<PageLayout><SchemaBuilderPage/></PageLayout>}/>
+            <Route path="/items/:itemId/data" element={<PageLayout><DataListPage/></PageLayout>}/>
             <Route
                 path="/products"
                 element={<AuthenticationGuard component={() => (
