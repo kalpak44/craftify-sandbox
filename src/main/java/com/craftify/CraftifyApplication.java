@@ -9,12 +9,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
+import java.util.TimeZone;
+
+import static java.time.ZoneOffset.UTC;
+
 @SpringBootApplication
-@SecurityScheme(
-    name = "bearerAuthorization",
-    type = SecuritySchemeType.HTTP,
-    bearerFormat = "JWT",
-    scheme = "bearer")
 @OpenAPIDefinition(
     info = @Info(title = "Craftify API", version = "v1"),
     servers = {@Server(url = "https://api.craftyfy.pro/"), @Server(url = "http://localhost:8080")})
@@ -22,6 +21,10 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 public class CraftifyApplication {
 
   public static void main(String[] args) {
+    // Set the default time zone to UTC.
+    TimeZone.setDefault(TimeZone.getTimeZone(UTC));
+
+    // Start the Spring Boot application.
     SpringApplication.run(CraftifyApplication.class, args);
   }
 }
