@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {useAuth0} from "@auth0/auth0-react";
+import {Link} from "react-router-dom";
 
 export const NotebooksPage = () => {
     const {getAccessTokenSilently, user} = useAuth0();
@@ -112,12 +113,12 @@ export const NotebooksPage = () => {
                                         </p>
                                     </div>
                                     <div className="flex gap-2 mt-4 md:mt-0 md:ml-6">
-                                        <button
-                                            onClick={() => alert("Show details not implemented")}
-                                            className="px-3 py-1 bg-green-950 rounded hover:bg-green-900 text-sm"
+                                        <Link
+                                            to={`/notebooks/${notebook.id}`}
+                                            className="px-3 py-1 bg-green-950 rounded hover:bg-green-900 text-sm text-white inline-block"
                                         >
                                             Details
-                                        </button>
+                                        </Link>
                                         <button
                                             onClick={() => alert("Edit not implemented")}
                                             className="px-3 py-1 bg-gray-900 rounded hover:bg-gray-600 text-sm"

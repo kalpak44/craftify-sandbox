@@ -9,6 +9,7 @@ import {CallbackPage} from "./pages/CallbackPage.jsx";
 import {ProfilePage} from "./pages/ProfilePage.jsx";
 import {HomePage} from "./pages/HomePage.jsx";
 import {NotebooksPage} from "./pages/NotebooksPage.jsx";
+import {NotebookDetailPage} from "./pages/NotebookDetailPage.jsx";
 
 
 export default function App() {
@@ -32,6 +33,10 @@ export default function App() {
             <Route
                 path="/notebooks"
                 element={<AuthenticationGuard component={() => <PageLayout><NotebooksPage/></PageLayout>}/>}
+            />
+            <Route
+                path="/notebooks/:id"
+                element={<AuthenticationGuard component={() => <PageLayout><NotebookDetailPage/></PageLayout>}/>}
             />
             <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
             <Route path="*" element={<PageLayout><NotFoundPage/></PageLayout>}/>
