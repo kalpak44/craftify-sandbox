@@ -54,7 +54,7 @@ public class NotebookController {
     public ResponseEntity<Notebook> updateNotebook(@PathVariable String id, @RequestBody Notebook incoming) {
         String userId = authUtil.getCurrentUserId();
         try {
-            Notebook updatedNotebook = notebookService.updateNotebook(id, incoming, userId);
+      Notebook updatedNotebook = notebookService.updateNotebook(id, incoming, userId);
             return ResponseEntity.ok(updatedNotebook);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
