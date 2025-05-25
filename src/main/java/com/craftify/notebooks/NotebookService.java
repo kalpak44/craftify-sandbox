@@ -58,38 +58,39 @@ public class NotebookService {
 
     String notebookContent = getNotebookContent(notebookId, userId);
     String encodedNotebook =
-        Base64.getEncoder().encodeToString(notebookContent.getBytes(StandardCharsets.UTF_8));
+            Base64.getEncoder().encodeToString(notebookContent.getBytes(StandardCharsets.UTF_8));
     String jobName = "notebook-job-" + UUID.randomUUID();
 
     String commandScript =
-        String.format(
-            "echo %s | base64 -d > input.ipynb && "
-                + "jupyter nbconvert --to notebook --execute input.ipynb --output output.ipynb && "
-                + "cat output.ipynb && sleep 5",
-            encodedNotebook);
+            String.format(
+                    "echo %s | base64 -d > input.ipynb && "
+                            + "jupyter nbconvert --to notebook --execute input.ipynb --output output.ipynb && "
+                            + "cat output.ipynb && sleep 5",
+                    encodedNotebook);
 
     List<String> command = Arrays.asList("bash", "-c", commandScript);
 
     Job job =
-        new JobBuilder()
-            .withApiVersion("batch/v1")
-            .withNewMetadata()
-            .withName(jobName)
-            .withNamespace(KUBERNETES_NAMESPACE)
-            .endMetadata()
-            .withNewSpec()
-            .withNewTemplate()
-            .withNewSpec()
-            .addNewContainer()
-            .withName("notebook-execution-container")
-            .withImage(CONTAINER_IMAGE)
-            .withCommand(command)
-            .endContainer()
-            .withRestartPolicy("Never")
-            .endSpec()
-            .endTemplate()
-            .endSpec()
-            .build();
+            new JobBuilder()
+                    .withApiVersion("batch/v1")
+                    .withNewMetadata()
+                    .withName(jobName)
+                    .withNamespace(KUBERNETES_NAMESPACE)
+                    .endMetadata()
+                    .withNewSpec()
+                    .withBackoffLimit(0)
+                    .withNewTemplate()
+                    .withNewSpec()
+                    .addNewContainer()
+                    .withName("notebook-execution-container")
+                    .withImage(CONTAINER_IMAGE)
+                    .withCommand(command)
+                    .endContainer()
+                    .withRestartPolicy("Never")
+                    .endSpec()
+                    .endTemplate()
+                    .endSpec()
+                    .build();
 
     try {
       logger.info("Creating Job {} in Kubernetes...", jobName);
@@ -97,19 +98,19 @@ public class NotebookService {
 
       logger.info("Waiting for Job {} to complete...", jobName);
       kubernetesClient
-          .batch()
-          .v1()
-          .jobs()
-          .inNamespace(KUBERNETES_NAMESPACE)
-          .withName(jobName)
-          .waitUntilCondition(
-              j ->
-                  j != null
-                      && j.getStatus() != null
-                      && ((j.getStatus().getSucceeded() != null && j.getStatus().getSucceeded() > 0)
-                          || (j.getStatus().getFailed() != null && j.getStatus().getFailed() > 0)),
-              JOB_COMPLETION_TIMEOUT_MINUTES,
-              TimeUnit.MINUTES);
+              .batch()
+              .v1()
+              .jobs()
+              .inNamespace(KUBERNETES_NAMESPACE)
+              .withName(jobName)
+              .waitUntilCondition(
+                      j ->
+                              j != null
+                                      && j.getStatus() != null
+                                      && ((j.getStatus().getSucceeded() != null && j.getStatus().getSucceeded() > 0)
+                                      || (j.getStatus().getFailed() != null && j.getStatus().getFailed() > 0)),
+                      JOB_COMPLETION_TIMEOUT_MINUTES,
+                      TimeUnit.MINUTES);
 
       String jobLogs = fetchJobLogs(jobName);
 
@@ -122,6 +123,13 @@ public class NotebookService {
     } catch (Exception e) {
       logger.error("Notebook execution failed: {}", e.getMessage(), e);
       throw new RuntimeException("Notebook execution failed: " + e.getMessage(), e);
+    } finally {
+      try {
+        logger.info("Cleaning up Job {} from Kubernetes...", jobName);
+        kubernetesClient.batch().v1().jobs().inNamespace(KUBERNETES_NAMESPACE).withName(jobName).delete();
+      } catch (Exception cleanupException) {
+        logger.warn("Failed to delete Job {}: {}", jobName, cleanupException.getMessage(), cleanupException);
+      }
     }
   }
 

@@ -45,7 +45,7 @@ export const CreateNotebookPage = () => {
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Create New Notebook</h1>
+            <h1 className="text-2xl font-bold mb-4">Create New Notebook '.ipynb'</h1>
             <input
                 type="text"
                 placeholder="Notebook Title"
