@@ -1,78 +1,94 @@
 package com.craftify.notebooks;
 
-import com.craftify.security.AuthUtil;
+import com.craftify.auth.AuthUtil;
+import com.craftify.common.exception.ResourceNotFoundException;
+import com.craftify.common.exception.UnauthorizedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/notebooks")
 public class NotebookController {
 
-    private final NotebookRepository repository;
+    private final NotebookService notebookService;
     private final AuthUtil authUtil;
 
-    public NotebookController(NotebookRepository repository, AuthUtil authUtil) {
-        this.repository = repository;
+    public NotebookController(NotebookService notebookService, AuthUtil authUtil) {
+        this.notebookService = notebookService;
         this.authUtil = authUtil;
     }
 
     @PostMapping
-    public Notebook createNotebook(@RequestBody Notebook notebook) {
+    public ResponseEntity<Notebook> createNotebook(@RequestBody Notebook notebook) {
         String userId = authUtil.getCurrentUserId();
-        notebook.setId(null);
-        notebook.setUserId(userId);
-        return repository.save(notebook);
+        // The service will handle setting the userId and other creation logic
+        Notebook createdNotebook = notebookService.createNotebook(notebook, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdNotebook);
     }
 
     @GetMapping
     public Page<Notebook> getNotebooksForUser(@PageableDefault Pageable pageable) {
         String userId = authUtil.getCurrentUserId();
-        return repository.findByUserId(userId, pageable);
+        return notebookService.getNotebooksForUser(userId, pageable);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Notebook> getNotebook(@PathVariable String id) {
-        Optional<Notebook> notebookOpt = repository.findById(id);
         String userId = authUtil.getCurrentUserId();
-
-        if (notebookOpt.isPresent() && userId.equals(notebookOpt.get().getUserId())) {
-            return ResponseEntity.ok(notebookOpt.get());
+        try {
+            Notebook notebook = notebookService.getNotebook(id, userId);
+            return ResponseEntity.ok(notebook);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
-        return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Notebook> updateNotebook(@PathVariable String id, @RequestBody Notebook incoming) {
-        Optional<Notebook> existingOpt = repository.findById(id);
         String userId = authUtil.getCurrentUserId();
-
-        if (existingOpt.isPresent() && userId.equals(existingOpt.get().getUserId())) {
-            Notebook existing = existingOpt.get();
-            existing.setTitle(incoming.getTitle());
-            existing.setContent(incoming.getContent());
-            existing.setUpdatedAt(Instant.now());
-            return ResponseEntity.ok(repository.save(existing));
+        try {
+            Notebook updatedNotebook = notebookService.updateNotebook(id, incoming, userId);
+            return ResponseEntity.ok(updatedNotebook);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
-
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotebook(@PathVariable String id) {
-        Optional<Notebook> existingOpt = repository.findById(id);
         String userId = authUtil.getCurrentUserId();
-
-        if (existingOpt.isPresent() && userId.equals(existingOpt.get().getUserId())) {
-            repository.deleteById(id);
+        try {
+            notebookService.deleteNotebook(id, userId);
             return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
 
-        return ResponseEntity.notFound().build();
+    @PostMapping("/{id}/run")
+    public ResponseEntity<String> executeNotebookRun(@PathVariable String id) {
+        String userId = authUtil.getCurrentUserId();
+        try {
+            String result = notebookService.executeNotebook(id, userId);
+            return ResponseEntity.ok(result);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (RuntimeException e) {
+            // This will catch errors from the K8s execution part or other service-level runtime errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error executing notebook: " + e.getMessage());
+        }
     }
 }
