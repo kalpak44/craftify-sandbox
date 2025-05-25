@@ -1,17 +1,16 @@
-import React, {useEffect, useState} from "react";
-import {useAuth0} from "@auth0/auth0-react";
-import {Link} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { Link, useNavigate } from "react-router-dom";
 
 export const NotebooksPage = () => {
-    const {getAccessTokenSilently, user} = useAuth0();
+    const { getAccessTokenSilently } = useAuth0();
+    const navigate = useNavigate();
 
     const [notebooks, setNotebooks] = useState([]);
     const [page, setPage] = useState(0);
     const [size] = useState(5);
     const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newNotebook, setNewNotebook] = useState({title: "", content: ""});
 
     const API_BASE = "http://localhost:8080/api";
 
@@ -19,7 +18,6 @@ export const NotebooksPage = () => {
         setLoading(true);
         try {
             const token = await getAccessTokenSilently();
-
             const response = await fetch(
                 `${API_BASE}/notebooks?page=${page}&size=${size}`,
                 {
@@ -28,7 +26,6 @@ export const NotebooksPage = () => {
                     },
                 }
             );
-
             const data = await response.json();
             setNotebooks(data.content || []);
             setTotalPages(data.totalPages);
@@ -36,30 +33,6 @@ export const NotebooksPage = () => {
             console.error("Fetch error", err);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const createNotebook = async () => {
-        try {
-            const token = await getAccessTokenSilently();
-
-            await fetch(`${API_BASE}/notebooks`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...newNotebook,
-                    userId: user.sub,
-                }),
-            });
-
-            setShowCreateModal(false);
-            setNewNotebook({title: "", content: ""});
-            fetchNotebooks();
-        } catch (err) {
-            console.error("Create error", err);
         }
     };
 
@@ -87,7 +60,7 @@ export const NotebooksPage = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Notebooks</h1>
                 <button
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={() => navigate("/notebooks/create")}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                 >
                     + New Notebook
@@ -145,7 +118,7 @@ export const NotebooksPage = () => {
                         >
                             Prev
                         </button>
-                        {Array.from({length: totalPages}, (_, i) => (
+                        {Array.from({ length: totalPages }, (_, i) => (
                             <button
                                 key={i}
                                 onClick={() => setPage(i)}
@@ -165,45 +138,6 @@ export const NotebooksPage = () => {
                         </button>
                     </div>
                 </>
-            )}
-
-            {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-                    <div className="bg-gray-800 text-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4">Create New Notebook</h2>
-                        <input
-                            className="w-full bg-gray-700 border border-gray-600 rounded p-2 mb-3 placeholder-gray-400 text-white"
-                            placeholder="Title"
-                            value={newNotebook.title}
-                            onChange={(e) =>
-                                setNewNotebook({ ...newNotebook, title: e.target.value })
-                            }
-                        />
-                        <textarea
-                            className="w-full bg-gray-700 border border-gray-600 rounded p-2 mb-3 placeholder-gray-400 text-white"
-                            placeholder="Content"
-                            rows={4}
-                            value={newNotebook.content}
-                            onChange={(e) =>
-                                setNewNotebook({ ...newNotebook, content: e.target.value })
-                            }
-                        />
-                        <div className="flex justify-end space-x-2">
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={createNotebook}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500"
-                            >
-                                Create
-                            </button>
-                        </div>
-                    </div>
-                </div>
             )}
         </div>
     );
