@@ -1,17 +1,18 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useParams } from "react-router-dom";
-import { IpynbRenderer } from "react-ipynb-renderer";
+import React, {useEffect, useMemo, useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
+import {useParams} from "react-router-dom";
+import {IpynbRenderer} from "react-ipynb-renderer";
 import "react-ipynb-renderer/dist/styles/monokai.css";
 
 export const NotebookDetailPage = () => {
-    const { id } = useParams();
-    const { getAccessTokenSilently } = useAuth0();
+    const {id} = useParams();
+    const {getAccessTokenSilently} = useAuth0();
 
     const [notebook, setNotebook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [executing, setExecuting] = useState(false);
+    const [rawErrorOutput, setRawErrorOutput] = useState("");
 
     const API_BASE = "http://localhost:8080/api";
 
@@ -42,8 +43,11 @@ export const NotebookDetailPage = () => {
     }, [id, getAccessTokenSilently]);
 
     const handleExecute = async () => {
+        setExecuting(true);
+        setError(null);
+        setRawErrorOutput("");
+
         try {
-            setExecuting(true);
             const token = await getAccessTokenSilently();
             const response = await fetch(`${API_BASE}/notebooks/${id}/run`, {
                 method: "POST",
@@ -53,13 +57,12 @@ export const NotebookDetailPage = () => {
             });
 
             if (!response.ok) {
-                throw new Error("Execution failed");
+                const errorText = await response.text();
+                setRawErrorOutput(errorText || "Execution failed with unknown error.");
+                return;
             }
 
             const newContent = await response.json();
-
-            // Console log for debug
-            console.log("Executed Notebook Response:", newContent);
 
             let parsedContent;
             try {
@@ -111,8 +114,14 @@ export const NotebookDetailPage = () => {
 
             {executing ? (
                 <div className="text-center text-lg text-blue-500">Executing notebook...</div>
+            ) : rawErrorOutput ? (
+                <div
+                    className="bg-gray-900 text-red-400 p-4 rounded font-mono whitespace-pre-wrap border border-red-600">
+                    <h2 className="text-lg font-bold mb-2">Execution Error Output:</h2>
+                    {rawErrorOutput}
+                </div>
             ) : (
-                notebookJson && <IpynbRenderer ipynb={notebookJson} />
+                notebookJson && <IpynbRenderer ipynb={notebookJson}/>
             )}
 
             <div className="text-sm text-gray-500">
