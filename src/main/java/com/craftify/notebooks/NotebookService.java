@@ -115,16 +115,7 @@ public class NotebookService {
 
       if (jobSucceeded(jobName)) {
         JsonNode notebookNode = tryExtractNotebookJson(jobLogs);
-        return objectMapper.writeValueAsString(
-            Map.of(
-                "status",
-                "success",
-                "notebook",
-                notebookNode,
-                "logs",
-                notebookNode != null
-                    ? jobLogs.substring(0, jobLogs.indexOf('{')).trim()
-                    : jobLogs));
+        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(notebookNode);
       } else {
         throw new RuntimeException("Notebook execution failed. Logs:\n" + jobLogs);
       }
