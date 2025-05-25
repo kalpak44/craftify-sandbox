@@ -168,36 +168,36 @@ export const NotebooksPage = () => {
             )}
 
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-gray-800 text-white rounded-xl shadow-2xl p-6 w-full max-w-md">
                         <h2 className="text-xl font-bold mb-4">Create New Notebook</h2>
                         <input
-                            className="w-full border rounded p-2 mb-3"
+                            className="w-full bg-gray-700 border border-gray-600 rounded p-2 mb-3 placeholder-gray-400 text-white"
                             placeholder="Title"
                             value={newNotebook.title}
                             onChange={(e) =>
-                                setNewNotebook({...newNotebook, title: e.target.value})
+                                setNewNotebook({ ...newNotebook, title: e.target.value })
                             }
                         />
                         <textarea
-                            className="w-full border rounded p-2 mb-3"
+                            className="w-full bg-gray-700 border border-gray-600 rounded p-2 mb-3 placeholder-gray-400 text-white"
                             placeholder="Content"
                             rows={4}
                             value={newNotebook.content}
                             onChange={(e) =>
-                                setNewNotebook({...newNotebook, content: e.target.value})
+                                setNewNotebook({ ...newNotebook, content: e.target.value })
                             }
                         />
                         <div className="flex justify-end space-x-2">
                             <button
                                 onClick={() => setShowCreateModal(false)}
-                                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={createNotebook}
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500"
                             >
                                 Create
                             </button>
