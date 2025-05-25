@@ -4,8 +4,6 @@ import com.craftify.common.exception.ResourceNotFoundException;
 import com.craftify.common.exception.UnauthorizedException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -25,14 +23,12 @@ import org.springframework.stereotype.Service;
 public class NotebookService {
 
   private static final Logger logger = LoggerFactory.getLogger(NotebookService.class);
-
-  private final NotebookRepository notebookRepository;
-  private final KubernetesClient kubernetesClient;
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
   private static final String KUBERNETES_NAMESPACE = "default";
   private static final String CONTAINER_IMAGE = "jupyter/base-notebook:latest";
   private static final long JOB_COMPLETION_TIMEOUT_MINUTES = 5;
+  private final NotebookRepository notebookRepository;
+  private final KubernetesClient kubernetesClient;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Autowired
   public NotebookService(NotebookRepository notebookRepository, KubernetesClient kubernetesClient) {
@@ -41,7 +37,7 @@ public class NotebookService {
   }
 
   public String getNotebookContent(String notebookId, String userId) {
-    Notebook notebook =
+    var notebook =
         notebookRepository
             .findById(notebookId)
             .orElseThrow(
@@ -56,41 +52,41 @@ public class NotebookService {
   public String executeNotebook(String notebookId, String userId) {
     logger.info("Starting execution for notebook ID: {} by user ID: {}", notebookId, userId);
 
-    String notebookContent = getNotebookContent(notebookId, userId);
-    String encodedNotebook =
-            Base64.getEncoder().encodeToString(notebookContent.getBytes(StandardCharsets.UTF_8));
-    String jobName = "notebook-job-" + UUID.randomUUID();
+    var notebookContent = getNotebookContent(notebookId, userId);
+    var encodedNotebook =
+        Base64.getEncoder().encodeToString(notebookContent.getBytes(StandardCharsets.UTF_8));
+    var jobName = "notebook-job-" + UUID.randomUUID();
 
-    String commandScript =
-            String.format(
-                    "echo %s | base64 -d > input.ipynb && "
-                            + "jupyter nbconvert --to notebook --execute input.ipynb --output output.ipynb && "
-                            + "cat output.ipynb && sleep 5",
-                    encodedNotebook);
+    var commandScript =
+        String.format(
+            "echo %s | base64 -d > input.ipynb && "
+                + "jupyter nbconvert --to notebook --execute input.ipynb --output output.ipynb && "
+                + "cat output.ipynb && sleep 5",
+            encodedNotebook);
 
-    List<String> command = Arrays.asList("bash", "-c", commandScript);
+    var command = Arrays.asList("bash", "-c", commandScript);
 
-    Job job =
-            new JobBuilder()
-                    .withApiVersion("batch/v1")
-                    .withNewMetadata()
-                    .withName(jobName)
-                    .withNamespace(KUBERNETES_NAMESPACE)
-                    .endMetadata()
-                    .withNewSpec()
-                    .withBackoffLimit(0)
-                    .withNewTemplate()
-                    .withNewSpec()
-                    .addNewContainer()
-                    .withName("notebook-execution-container")
-                    .withImage(CONTAINER_IMAGE)
-                    .withCommand(command)
-                    .endContainer()
-                    .withRestartPolicy("Never")
-                    .endSpec()
-                    .endTemplate()
-                    .endSpec()
-                    .build();
+    var job =
+        new JobBuilder()
+            .withApiVersion("batch/v1")
+            .withNewMetadata()
+            .withName(jobName)
+            .withNamespace(KUBERNETES_NAMESPACE)
+            .endMetadata()
+            .withNewSpec()
+            .withBackoffLimit(0)
+            .withNewTemplate()
+            .withNewSpec()
+            .addNewContainer()
+            .withName("notebook-execution-container")
+            .withImage(CONTAINER_IMAGE)
+            .withCommand(command)
+            .endContainer()
+            .withRestartPolicy("Never")
+            .endSpec()
+            .endTemplate()
+            .endSpec()
+            .build();
 
     try {
       logger.info("Creating Job {} in Kubernetes...", jobName);
@@ -98,24 +94,24 @@ public class NotebookService {
 
       logger.info("Waiting for Job {} to complete...", jobName);
       kubernetesClient
-              .batch()
-              .v1()
-              .jobs()
-              .inNamespace(KUBERNETES_NAMESPACE)
-              .withName(jobName)
-              .waitUntilCondition(
-                      j ->
-                              j != null
-                                      && j.getStatus() != null
-                                      && ((j.getStatus().getSucceeded() != null && j.getStatus().getSucceeded() > 0)
-                                      || (j.getStatus().getFailed() != null && j.getStatus().getFailed() > 0)),
-                      JOB_COMPLETION_TIMEOUT_MINUTES,
-                      TimeUnit.MINUTES);
+          .batch()
+          .v1()
+          .jobs()
+          .inNamespace(KUBERNETES_NAMESPACE)
+          .withName(jobName)
+          .waitUntilCondition(
+              j ->
+                  j != null
+                      && j.getStatus() != null
+                      && ((j.getStatus().getSucceeded() != null && j.getStatus().getSucceeded() > 0)
+                          || (j.getStatus().getFailed() != null && j.getStatus().getFailed() > 0)),
+              JOB_COMPLETION_TIMEOUT_MINUTES,
+              TimeUnit.MINUTES);
 
-      String jobLogs = fetchJobLogs(jobName);
+      var jobLogs = fetchJobLogs(jobName);
 
       if (jobSucceeded(jobName)) {
-        JsonNode notebookNode = tryExtractNotebookJson(jobLogs);
+        var notebookNode = tryExtractNotebookJson(jobLogs);
         return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(notebookNode);
       } else {
         throw new RuntimeException("Notebook execution failed. Logs:\n" + jobLogs);
@@ -126,16 +122,26 @@ public class NotebookService {
     } finally {
       try {
         logger.info("Cleaning up Job {} from Kubernetes...", jobName);
-        kubernetesClient.batch().v1().jobs().inNamespace(KUBERNETES_NAMESPACE).withName(jobName).delete();
+        kubernetesClient
+            .batch()
+            .v1()
+            .jobs()
+            .inNamespace(KUBERNETES_NAMESPACE)
+            .withName(jobName)
+            .delete();
       } catch (Exception cleanupException) {
-        logger.warn("Failed to delete Job {}: {}", jobName, cleanupException.getMessage(), cleanupException);
+        logger.warn(
+            "Failed to delete Job {}: {}",
+            jobName,
+            cleanupException.getMessage(),
+            cleanupException);
       }
     }
   }
 
   private String fetchJobLogs(String jobName) {
     try {
-      List<Pod> pods =
+      var pods =
           kubernetesClient
               .pods()
               .inNamespace(KUBERNETES_NAMESPACE)
@@ -143,7 +149,7 @@ public class NotebookService {
               .list()
               .getItems();
       if (!pods.isEmpty()) {
-        String podName = pods.get(0).getMetadata().getName();
+        var podName = pods.get(0).getMetadata().getName();
         return kubernetesClient.pods().inNamespace(KUBERNETES_NAMESPACE).withName(podName).getLog();
       }
       return "No pods found for job: " + jobName;
@@ -153,7 +159,7 @@ public class NotebookService {
   }
 
   private boolean jobSucceeded(String jobName) {
-    Job job =
+    var job =
         kubernetesClient
             .batch()
             .v1()
@@ -169,10 +175,10 @@ public class NotebookService {
 
   private JsonNode tryExtractNotebookJson(String logs) {
     try {
-      int jsonStart = logs.indexOf('{');
-      int jsonEnd = logs.lastIndexOf('}');
+      var jsonStart = logs.indexOf('{');
+      var jsonEnd = logs.lastIndexOf('}');
       if (jsonStart >= 0 && jsonEnd > jsonStart) {
-        String json = logs.substring(jsonStart, jsonEnd + 1);
+        var json = logs.substring(jsonStart, jsonEnd + 1);
         return objectMapper.readTree(json);
       }
     } catch (Exception e) {
@@ -191,7 +197,7 @@ public class NotebookService {
   }
 
   public Notebook getNotebook(String id, String userId) {
-    Notebook notebook =
+    var notebook =
         notebookRepository
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Notebook not found with id: " + id));
@@ -202,14 +208,14 @@ public class NotebookService {
   }
 
   public Notebook updateNotebook(String id, Notebook incoming, String userId) {
-    Notebook existingNotebook = getNotebook(id, userId);
+    var existingNotebook = getNotebook(id, userId);
     existingNotebook.setUpdatedAt(Instant.now());
     existingNotebook.setContent(incoming.getContent());
     return notebookRepository.save(existingNotebook);
   }
 
   public void deleteNotebook(String id, String userId) {
-    Notebook notebook = getNotebook(id, userId);
+    var notebook = getNotebook(id, userId);
     notebookRepository.delete(notebook);
   }
 }

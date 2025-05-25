@@ -1,6 +1,5 @@
 package com.craftify.notebooks;
 
-
 import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,8 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "notebooks")
 public class Notebook {
 
-  @Id @JsonIgnore
-  private ObjectId _id;
+  @Id @JsonIgnore private ObjectId _id;
 
   @Transient
   @JsonProperty("id")
