@@ -1,17 +1,29 @@
 package com.craftify.chat;
 
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-
-import java.util.Map;
+import reactor.core.publisher.Flux;
 
 @Controller
 public class ChatController {
 
-    @MessageMapping("/chat")
-    @SendTo("/topic/messages")
-    public String handleMessage(Map<String, String> payload) {
-        return payload.get("text");
-    }
+  private final ChatClient chatClient;
+  private final SimpMessagingTemplate messagingTemplate;
+
+  public ChatController(ChatClient chatClient, SimpMessagingTemplate messagingTemplate) {
+    this.chatClient = chatClient;
+    this.messagingTemplate = messagingTemplate;
+  }
+
+  @MessageMapping("/chat")
+  public void streamChatResponse(String userInput) {
+    Flux<String> responseFlux = chatClient.prompt().user(userInput).stream().content();
+
+    responseFlux
+        .doOnNext(fragment -> messagingTemplate.convertAndSend("/topic/messages", fragment))
+        .doOnComplete(() -> messagingTemplate.convertAndSend("/topic/messages", "[END]"))
+        .subscribe();
+  }
 }

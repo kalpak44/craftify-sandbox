@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Client } from "@stomp/stompjs";
-import { useAuth0 } from "@auth0/auth0-react";
+import React, {useEffect, useRef, useState} from "react";
+import {Client} from "@stomp/stompjs";
+import {useAuth0} from "@auth0/auth0-react";
 
 let stompClient = null;
 
 export const ChatPage = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
-    const messagesEndRef = useRef(null);
-    const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+    const {getAccessTokenSilently, isAuthenticated} = useAuth0();
 
-    // Connect and disconnect WebSocket
+    const bufferRef = useRef(""); // Holds text of streaming bot message
+    const streamingRef = useRef(false); // True if bot is currently responding
+    const streamingIndexRef = useRef(null); // Index of the current bot message
+
     useEffect(() => {
         if (isAuthenticated) {
             connectWebSocket();
@@ -18,77 +20,89 @@ export const ChatPage = () => {
 
         return () => {
             if (stompClient?.connected) {
-                console.log("[WebSocket] Disconnecting...");
                 stompClient.deactivate();
             }
         };
     }, [isAuthenticated]);
 
     const connectWebSocket = async () => {
-        if (stompClient?.connected) {
-            console.log("[WebSocket] Already connected.");
-            return;
-        }
+        if (stompClient?.connected) return;
 
         try {
             const token = await getAccessTokenSilently();
-            console.log("[Auth0] Token retrieved:", token.slice(0, 20) + "...");
 
             stompClient = new Client({
-                webSocketFactory: () => new WebSocket("ws://localhost:8080/ws-native"),  // skip SockJS
-
+                webSocketFactory: () => new WebSocket("ws://localhost:8080/ws-native"),
                 connectHeaders: {
                     Authorization: `Bearer ${token}`,
                 },
                 debug: (str) => console.log("[STOMP DEBUG]:", str),
                 reconnectDelay: 5000,
                 onConnect: () => {
-                    console.log("[WebSocket] Connected to STOMP");
-
                     stompClient.subscribe("/topic/messages", (message) => {
-                        const payload = message.body;
-                        console.log("[STOMP] Message received:", payload);
-                        setMessages((prev) => [...prev, { sender: "bot", text: payload }]);
+                        const fragment = message.body;
+
+                        if (fragment === "[END]") {
+                            bufferRef.current = "";
+                            streamingRef.current = false;
+                            streamingIndexRef.current = null;
+                            return;
+                        }
+
+                        if (!streamingRef.current) {
+                            // Start new streamed message
+                            streamingRef.current = true;
+                            bufferRef.current = fragment;
+
+                            setMessages((prev) => {
+                                const newIndex = prev.length;
+                                streamingIndexRef.current = newIndex;
+                                return [...prev, {sender: "bot", text: fragment}];
+                            });
+                        } else {
+                            // Update last bot message in-place
+                            bufferRef.current += fragment;
+                            setMessages((prev) => {
+                                const updated = [...prev];
+                                const index = streamingIndexRef.current;
+                                if (index !== null && updated[index]) {
+                                    updated[index] = {
+                                        ...updated[index],
+                                        text: bufferRef.current,
+                                    };
+                                }
+                                return updated;
+                            });
+                        }
                     });
-                },
-                onStompError: (frame) => {
-                    console.error("[STOMP ERROR]", frame.headers["message"]);
-                    console.error("[STOMP ERROR Details]", frame.body);
-                },
-                onWebSocketError: (event) => {
-                    console.error("[WebSocket ERROR]", event);
-                },
-                onWebSocketClose: (event) => {
-                    console.warn("[WebSocket CLOSED]", event);
                 },
             });
 
-            console.log("[WebSocket] Activating STOMP client...");
             stompClient.activate();
         } catch (err) {
-            console.error("[WebSocket] Connection failed:", err);
+            console.error("WebSocket error:", err);
         }
     };
 
-    // Sending a message
     const handleSend = () => {
-        if (!input.trim() || !stompClient?.connected) {
-            console.warn("[Chat] Cannot send message. Disconnected or empty input.");
-            return;
-        }
+        if (!input.trim() || !stompClient?.connected) return;
 
-        const userMessage = { sender: "user", text: input };
+        const userMessage = {sender: "user", text: input};
         setMessages((prev) => [...prev, userMessage]);
+
+        // Reset buffer for next message
+        bufferRef.current = "";
+        streamingRef.current = false;
+        streamingIndexRef.current = null;
 
         stompClient.publish({
             destination: "/app/chat",
-            body: JSON.stringify({ text: input }),
+            body: input,
         });
 
         setInput("");
     };
 
-    // Enter to send
     const handleKeyDown = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -96,14 +110,10 @@ export const ChatPage = () => {
         }
     };
 
-    // Auto scroll to bottom
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
-
     return (
         <div className="mt-5">
-            <div className="flex flex-col h-[80vh] mx-auto border border-gray-800 rounded-xl shadow-md bg-gray-900 text-white">
+            <div
+                className="flex flex-col h-[80vh] mx-auto border border-gray-800 rounded-xl shadow-md bg-gray-900 text-white">
                 {/* Message Area */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {messages.map((msg, idx) => (
@@ -118,7 +128,6 @@ export const ChatPage = () => {
                             {msg.text}
                         </div>
                     ))}
-                    <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input Area */}
