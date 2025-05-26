@@ -12,6 +12,7 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.2.4",
     "@monaco-editor/react": "^4.6.0",
+    "@stomp/stompjs": "^7.1.1",
     "i": "^0.3.7",
     "install": "^0.13.0",
     "markdown-to-jsx": "^7.5.0",

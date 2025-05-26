@@ -11,6 +11,7 @@ import {HomePage} from "./pages/HomePage.jsx";
 import {NotebooksPage} from "./pages/NotebooksPage.jsx";
 import {NotebookDetailPage} from "./pages/NotebookDetailPage.jsx";
 import {CreateNotebookPage} from "./pages/CreateNotebookPage.jsx";
+import {ChatPage} from "./pages/ChatPage.jsx";
 
 
 export default function App() {
@@ -43,6 +44,11 @@ export default function App() {
                 path="/notebooks/create"
                 element={<AuthenticationGuard component={() => <PageLayout><CreateNotebookPage/></PageLayout>}/>}
             />
+            <Route
+                path="/chat"
+                element={<AuthenticationGuard component={() => <PageLayout><ChatPage /></PageLayout>} />}
+            />
+
             <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
             <Route path="*" element={<PageLayout><NotFoundPage/></PageLayout>}/>
         </Routes>
