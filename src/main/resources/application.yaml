@@ -30,6 +30,10 @@ server:
 
 # Spring configuration
 spring:
+  ai:
+    # API key for accessing OpenAI services
+    openai:
+      api-key: ${OPENAI_API_KEY}
   data:
     mongodb:
       # MongoDB URI with placeholders for environment variables
