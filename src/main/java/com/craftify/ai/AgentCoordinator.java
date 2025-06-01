@@ -1,4 +1,4 @@
-package com.craftify.ai.agents;
+package com.craftify.ai;
 
 import com.craftify.ai.agents.api.Agent;
 import com.craftify.ai.model.AgentStep;
