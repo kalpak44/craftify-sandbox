@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthUtil {
-  public String getCurrentUserId() {
-    var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    return jwt.getSubject();
-  }
+    public String getCurrentUserId() {
+        var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return jwt.getSubject();
+    }
 }
