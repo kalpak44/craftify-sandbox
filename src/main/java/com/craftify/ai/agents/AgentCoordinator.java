@@ -56,6 +56,11 @@ public class AgentCoordinator {
             return;
         }
 
+        if (checkIfTaskComplete(userPrompt, previousResults)) {
+            output.accept("✅ Task is complete.");
+            output.accept("[END]");
+        }
+
         StringBuilder fullContext = new StringBuilder();
         if (!previousResults.isEmpty()) {
             fullContext.append("Output from previous steps:\n");
@@ -141,7 +146,7 @@ public class AgentCoordinator {
                     .append(lastStepOutput)
                     .append("\n\n");
         } else {
-            promptBuilder.append("No steps have been executed yet.\n\n");
+            return false;
         }
 
         String completionCheckPrompt = """
