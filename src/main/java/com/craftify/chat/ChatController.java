@@ -6,7 +6,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 /**
- * Handles incoming chat messages and routes responses from the AI agent.
+ * WebSocket controller that listens for incoming user messages
+ * and streams AI-generated responses back to the client.
  */
 @Controller
 public class ChatController {
@@ -14,13 +15,22 @@ public class ChatController {
     private final AgentCoordinator agentCoordinator;
     private final SimpMessagingTemplate messagingTemplate;
 
+    /**
+     * Constructs the chat controller with dependencies for AI coordination and message broadcasting.
+     *
+     * @param agentCoordinator   coordinates AI message handling
+     * @param messagingTemplate  sends messages to subscribed clients
+     */
     public ChatController(AgentCoordinator agentCoordinator, SimpMessagingTemplate messagingTemplate) {
         this.agentCoordinator = agentCoordinator;
         this.messagingTemplate = messagingTemplate;
     }
 
     /**
-     * Receives user input from the /chat endpoint and sends back agent responses to /topic/messages.
+     * Handles incoming messages from the user and sends AI-generated replies
+     * to the "/topic/messages" WebSocket destination.
+     *
+     * @param userInput the user's message content
      */
     @MessageMapping("/chat")
     public void handleChatCommand(String userInput) {
