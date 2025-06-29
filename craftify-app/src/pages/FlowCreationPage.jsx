@@ -1,6 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth0 } from '@auth0/auth0-react';
+import {useState, useCallback, useRef, useEffect} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
+import {useAuth0} from '@auth0/auth0-react';
 import PropTypes from 'prop-types';
 import ReactFlow, {
     addEdge,
@@ -10,9 +10,9 @@ import ReactFlow, {
     Handle,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { createFlow, getFlowById, updateFlow } from '../services/API';
+import {createFlow, getFlowById, updateFlow} from '../services/API';
 
-const PlaceholderNode = ({ data }) => (
+const PlaceholderNode = ({data}) => (
     <div
         className="border-2 border-dashed border-gray-400 rounded-lg p-4 bg-gray-800 text-center cursor-pointer hover:bg-gray-700 transition"
         onClick={data.onClick}
@@ -22,23 +22,31 @@ const PlaceholderNode = ({ data }) => (
     </div>
 );
 
-const ManualTriggerNode = ({ data, isConnectable }) => (
+const ManualTriggerNode = ({data, isConnectable}) => (
     <div className="border border-blue-500 rounded-lg p-4 bg-blue-900 relative">
         <div className="absolute top-1 right-1 flex gap-2">
-            <button className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500" onClick={data.onExecute}>▶</button>
-            <button className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500" onClick={data.onRemove}>✕</button>
+            <button className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500"
+                    onClick={data.onExecute}>▶
+            </button>
+            <button className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500"
+                    onClick={data.onRemove}>✕
+            </button>
         </div>
         <div className="text-white font-medium mt-4">Manual Trigger</div>
         <div className="text-blue-300 text-xs mt-1">Triggered manually by user</div>
-        <Handle type="source" position="bottom" id="a" isConnectable={isConnectable} />
+        <Handle type="source" position="bottom" id="a" isConnectable={isConnectable}/>
     </div>
 );
 
-const CronTriggerNode = ({ data, isConnectable }) => (
+const CronTriggerNode = ({data, isConnectable}) => (
     <div className="border border-purple-500 rounded-lg p-4 bg-purple-900 relative">
         <div className="absolute top-1 right-1 flex gap-2">
-            <button className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500" onClick={data.onExecute}>▶</button>
-            <button className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500" onClick={data.onRemove}>✕</button>
+            <button className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500"
+                    onClick={data.onExecute}>▶
+            </button>
+            <button className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500"
+                    onClick={data.onRemove}>✕
+            </button>
         </div>
         <div className="text-white font-medium mt-4">CRON Trigger</div>
         <div className="text-purple-300 text-xs">CRON: {data.cron || 'Not set'}</div>
@@ -49,13 +57,13 @@ const CronTriggerNode = ({ data, isConnectable }) => (
             onChange={(e) => data.onCronChange?.(e.target.value)}
             className="mt-2 w-full text-sm px-2 py-1 rounded bg-purple-700 text-white border border-purple-400"
         />
-        <Handle type="source" position="bottom" id="a" isConnectable={isConnectable} />
+        <Handle type="source" position="bottom" id="a" isConnectable={isConnectable}/>
     </div>
 );
 
-PlaceholderNode.propTypes = { data: PropTypes.object.isRequired, isConnectable: PropTypes.bool };
-ManualTriggerNode.propTypes = { data: PropTypes.object.isRequired, isConnectable: PropTypes.bool };
-CronTriggerNode.propTypes = { data: PropTypes.object.isRequired, isConnectable: PropTypes.bool };
+PlaceholderNode.propTypes = {data: PropTypes.object.isRequired, isConnectable: PropTypes.bool};
+ManualTriggerNode.propTypes = {data: PropTypes.object.isRequired, isConnectable: PropTypes.bool};
+CronTriggerNode.propTypes = {data: PropTypes.object.isRequired, isConnectable: PropTypes.bool};
 
 const nodeTypes = {
     placeholder: PlaceholderNode,
@@ -64,10 +72,11 @@ const nodeTypes = {
 };
 
 export const FlowCreationPage = () => {
-    const { getAccessTokenSilently } = useAuth0();
-    const { id } = useParams();
+    const {getAccessTokenSilently} = useAuth0();
+    const {id} = useParams();
     const navigate = useNavigate();
     const reactFlowWrapper = useRef(null);
+    const dragMenuRef = useRef(null);
 
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -80,6 +89,7 @@ export const FlowCreationPage = () => {
 
     const [placeholderId, setPlaceholderId] = useState(null);
     const [rightPanelOpen, setRightPanelOpen] = useState(false);
+    const [rightDragPanelOpen, setRightDragPanelOpen] = useState(false);
     const [leftPanelOpen, setLeftPanelOpen] = useState(true);
 
     const handlePlaceholderClick = useCallback((id) => {
@@ -94,7 +104,7 @@ export const FlowCreationPage = () => {
                     ? {
                         ...node,
                         type: 'placeholder',
-                        data: { onClick: () => handlePlaceholderClick(id) },
+                        data: {onClick: () => handlePlaceholderClick(id)},
                     }
                     : node
             )
@@ -110,7 +120,7 @@ export const FlowCreationPage = () => {
 
         const data =
             type === 'manual'
-                ? { onExecute, onRemove }
+                ? {onExecute, onRemove}
                 : {
                     cron: '',
                     onExecute,
@@ -118,7 +128,7 @@ export const FlowCreationPage = () => {
                     onCronChange: (cron) => {
                         setNodes((nds) =>
                             nds.map((n) =>
-                                n.id === nodeId ? { ...n, data: { ...n.data, cron } } : n
+                                n.id === nodeId ? {...n, data: {...n.data, cron}} : n
                             )
                         );
                     },
@@ -128,7 +138,7 @@ export const FlowCreationPage = () => {
 
         setNodes((nds) =>
             nds.map((node) =>
-                node.id === nodeId ? { ...node, type: nodeType, data } : node
+                node.id === nodeId ? {...node, type: nodeType, data} : node
             )
         );
 
@@ -137,9 +147,9 @@ export const FlowCreationPage = () => {
     }, [placeholderId, resetToPlaceholder, setNodes]);
 
     const hydrateNode = (node) => {
-        const base = { ...node };
+        const base = {...node};
         if (node.type === 'placeholder') {
-            base.data = { onClick: () => handlePlaceholderClick(node.id) };
+            base.data = {onClick: () => handlePlaceholderClick(node.id)};
         }
         if (node.type === 'manualTrigger') {
             base.data = {
@@ -156,7 +166,7 @@ export const FlowCreationPage = () => {
                 onCronChange: (cron) => {
                     setNodes((nds) =>
                         nds.map((n) =>
-                            n.id === node.id ? { ...n, data: { ...n.data, cron } } : n
+                            n.id === node.id ? {...n, data: {...n.data, cron}} : n
                         )
                     );
                 },
@@ -171,8 +181,8 @@ export const FlowCreationPage = () => {
                 {
                     id: '1',
                     type: 'placeholder',
-                    data: { onClick: () => handlePlaceholderClick('1') },
-                    position: { x: 250, y: 25 },
+                    data: {onClick: () => handlePlaceholderClick('1')},
+                    position: {x: 250, y: 25},
                 },
             ]);
         } else {
@@ -210,7 +220,7 @@ export const FlowCreationPage = () => {
             x: event.clientX - bounds.left,
             y: event.clientY - bounds.top,
         });
-        const newNode = { id: `${Date.now()}`, type, position, data: { label: `${type} node` } };
+        const newNode = {id: `${Date.now()}`, type, position, data: {label: `${type} node`}};
         setNodes((nds) => nds.concat(newNode));
     }, [reactFlowInstance]);
 
@@ -221,7 +231,7 @@ export const FlowCreationPage = () => {
             const flowData = {
                 name: flowName,
                 description: flowDescription,
-                configuration: JSON.stringify({ nodes, edges }),
+                configuration: JSON.stringify({nodes, edges}),
                 active: flowActive,
             };
             id ? await updateFlow(token, id, flowData) : await createFlow(token, flowData);
@@ -236,29 +246,36 @@ export const FlowCreationPage = () => {
 
     return (
         <div className="h-screen flex overflow-hidden">
-            {/* Left Sidebar */}
-            <div className={`transition-all bg-gray-900 text-white p-4 ${leftPanelOpen ? 'w-80' : 'w-12'} flex flex-col`}>
-                <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="text-gray-400 hover:text-white self-end mb-4">
+            <div
+                className={`transition-all bg-gray-900 text-white p-4 ${leftPanelOpen ? 'w-80' : 'w-12'} flex flex-col`}>
+                <button onClick={() => setLeftPanelOpen(!leftPanelOpen)}
+                        className="text-gray-400 hover:text-white self-end mb-4">
                     {leftPanelOpen ? '←' : '→'}
                 </button>
                 {leftPanelOpen && (
                     <>
                         <h2 className="text-xl font-bold mb-4">{id ? 'Edit Flow' : 'Create Flow'}</h2>
                         <label className="text-sm font-medium mb-1">Name</label>
-                        <input value={flowName} onChange={(e) => setFlowName(e.target.value)} className="w-full p-2 mb-3 bg-gray-800 border border-gray-700 rounded" />
+                        <input value={flowName} onChange={(e) => setFlowName(e.target.value)}
+                               className="w-full p-2 mb-3 bg-gray-800 border border-gray-700 rounded"/>
                         <label className="text-sm font-medium mb-1">Description</label>
-                        <textarea value={flowDescription} onChange={(e) => setFlowDescription(e.target.value)} rows="2" className="w-full p-2 mb-3 bg-gray-800 border border-gray-700 rounded" />
+                        <textarea value={flowDescription} onChange={(e) => setFlowDescription(e.target.value)} rows="2"
+                                  className="w-full p-2 mb-3 bg-gray-800 border border-gray-700 rounded"/>
                         <label className="flex items-center mb-4">
-                            <input type="checkbox" checked={flowActive} onChange={(e) => setFlowActive(e.target.checked)} className="mr-2" />
+                            <input type="checkbox" checked={flowActive}
+                                   onChange={(e) => setFlowActive(e.target.checked)} className="mr-2"/>
                             Active
                         </label>
-                        <button onClick={onCancel} className="w-full border border-gray-600 px-3 py-2 rounded hover:bg-gray-700 mb-2">Cancel</button>
-                        <button onClick={onSave} className="w-full bg-blue-600 px-3 py-2 rounded text-white hover:bg-blue-500">Save</button>
+                        <button onClick={onCancel}
+                                className="w-full border border-gray-600 px-3 py-2 rounded hover:bg-gray-700 mb-2">Cancel
+                        </button>
+                        <button onClick={onSave}
+                                className="w-full bg-blue-600 px-3 py-2 rounded text-white hover:bg-blue-500">Save
+                        </button>
                     </>
                 )}
             </div>
 
-            {/* Flow Editor */}
             <div className="flex-1 bg-gray-800 relative" ref={reactFlowWrapper}>
                 {!loading && (
                     <ReactFlow
@@ -267,24 +284,49 @@ export const FlowCreationPage = () => {
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
+                        onConnectEnd={() => setRightDragPanelOpen(true)}
                         onDrop={onDrop}
-                        onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
-                        nodeTypes={nodeTypes}
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                        }}
                         onInit={setReactFlowInstance}
+                        nodeTypes={nodeTypes}
                         fitView
                     >
-                        <Background variant="dots" gap={12} size={1} />
+                        <Background variant="dots" gap={12} size={1}/>
                     </ReactFlow>
                 )}
             </div>
 
-            {/* Right Trigger Selector */}
             {rightPanelOpen && (
                 <div className="w-64 bg-gray-900 text-white p-4 border-l border-gray-700 flex flex-col">
                     <h2 className="text-lg font-semibold mb-4">Choose Trigger</h2>
-                    <button onClick={() => applyTriggerNode('manual')} className="mb-2 px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 text-white">Manual Trigger</button>
-                    <button onClick={() => applyTriggerNode('cron')} className="mb-2 px-4 py-2 bg-purple-600 rounded hover:bg-purple-500 text-white">CRON Trigger</button>
-                    <button onClick={() => setRightPanelOpen(false)} className="mt-auto px-4 py-2 text-sm text-gray-400 hover:text-white">Close</button>
+                    <button onClick={() => applyTriggerNode('manual')}
+                            className="mb-2 px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 text-white">Manual Trigger
+                    </button>
+                    <button onClick={() => applyTriggerNode('cron')}
+                            className="mb-2 px-4 py-2 bg-purple-600 rounded hover:bg-purple-500 text-white">CRON Trigger
+                    </button>
+                    <button onClick={() => setRightPanelOpen(false)}
+                            className="mt-auto px-4 py-2 text-sm text-gray-400 hover:text-white">Close
+                    </button>
+                </div>
+            )}
+
+            {rightDragPanelOpen && (
+                <div
+                    ref={dragMenuRef}
+                    className="w-64 bg-gray-900 text-white p-4 border-l border-gray-700 flex flex-col"
+                >
+                    <h2 className="text-lg font-semibold mb-4">Edge Options</h2>
+                    <div className="flex-grow"/>
+                    <button
+                        onClick={() => setRightDragPanelOpen(false)}
+                        className="mt-auto px-4 py-2 text-sm text-gray-400 hover:text-white"
+                    >
+                        Close
+                    </button>
                 </div>
             )}
         </div>
