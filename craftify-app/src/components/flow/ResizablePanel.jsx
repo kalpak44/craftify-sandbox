@@ -47,7 +47,7 @@ const ResizablePanel = ({ children, isOpen, onClose, minWidth = 200, maxWidth = 
 
     return (
         <div 
-            className="fixed top-0 right-0 h-full bg-gray-900 text-white border-l border-gray-700 flex flex-col z-50"
+            className="absolute top-0 right-0 h-full bg-gray-900 text-white border-l border-gray-700 flex flex-col z-50"
             style={{ width: `${width}px` }}
         >
             {/* Resize handle */}

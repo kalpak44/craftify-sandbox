@@ -274,18 +274,18 @@ export const FlowCreationPage = () => {
                         <Background variant="dots" gap={12} size={1}/>
                     </ReactFlow>
                 )}
+
+                <EdgeOptionsPanel
+                    rightDragPanelOpen={rightDragPanelOpen}
+                    setRightDragPanelOpen={setRightDragPanelOpen}
+                    onNodeTemplateSelect={handleNodeTemplateSelect}
+                />
             </div>
 
             <TriggerSelectionPanel
                 rightPanelOpen={rightPanelOpen}
                 applyTriggerNode={applyTriggerNode}
                 setRightPanelOpen={setRightPanelOpen}
-            />
-
-            <EdgeOptionsPanel
-                rightDragPanelOpen={rightDragPanelOpen}
-                setRightDragPanelOpen={setRightDragPanelOpen}
-                onNodeTemplateSelect={handleNodeTemplateSelect}
             />
         </div>
     );
