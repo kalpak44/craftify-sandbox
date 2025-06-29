@@ -2,6 +2,7 @@ package com.craftify.flows;
 
 import com.craftify.auth.AuthUtil;
 import com.craftify.common.exception.ResourceNotFoundException;
+import com.craftify.common.exception.ServerException;
 import com.craftify.common.exception.UnauthorizedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,15 +11,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/flows")
 public class FlowController {
 
     private final FlowService flowService;
+    private final FlowExecutionService flowExecutionService;
     private final AuthUtil authUtil;
 
-    public FlowController(FlowService flowService, AuthUtil authUtil) {
+    public FlowController(FlowService flowService, FlowExecutionService flowExecutionService, AuthUtil authUtil) {
         this.flowService = flowService;
+        this.flowExecutionService = flowExecutionService;
         this.authUtil = authUtil;
     }
 
@@ -72,6 +77,22 @@ public class FlowController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (UnauthorizedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @PostMapping("/{id}/execute")
+    public ResponseEntity<Flow> executeFlow(@PathVariable String id) {
+        var userId = authUtil.getCurrentUserId();
+        try {
+            var flow = flowService.getFlow(id, userId);
+            var updatedFlow = flowExecutionService.executeFlow(flow);
+            return ResponseEntity.ok(updatedFlow);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (ServerException e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
