@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import NodeTemplateSelector from './NodeTemplateSelector';
+import ResizablePanel from './ResizablePanel';
 
 const EdgeOptionsPanel = ({ rightDragPanelOpen, setRightDragPanelOpen, onNodeTemplateSelect }) => {
     if (!rightDragPanelOpen) return null;
@@ -12,13 +13,19 @@ const EdgeOptionsPanel = ({ rightDragPanelOpen, setRightDragPanelOpen, onNodeTem
     };
 
     return (
-        <div className="w-64 bg-gray-900 text-white p-4 border-l border-gray-700 flex flex-col">
+        <ResizablePanel
+            isOpen={rightDragPanelOpen}
+            onClose={() => setRightDragPanelOpen(false)}
+            minWidth={200}
+            maxWidth={600}
+            defaultWidth={256}
+        >
             <NodeTemplateSelector
                 nodeType="action"
                 onTemplateSelect={handleTemplateSelect}
                 onClose={() => setRightDragPanelOpen(false)}
             />
-        </div>
+        </ResizablePanel>
     );
 };
 

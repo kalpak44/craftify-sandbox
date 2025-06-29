@@ -6,4 +6,5 @@ export {default as TriggerSelectionPanel} from './TriggerSelectionPanel';
 export {default as EdgeOptionsPanel} from './EdgeOptionsPanel';
 export {default as NodeTemplateSelector} from './NodeTemplateSelector';
 export {default as GenericNode} from './GenericNode';
+export {default as ResizablePanel} from './ResizablePanel';
 export {useFlowCreation} from './useFlowCreation'; 
