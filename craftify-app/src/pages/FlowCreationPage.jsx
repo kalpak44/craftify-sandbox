@@ -136,6 +136,14 @@ export const FlowCreationPage = () => {
                 },
             };
         }
+        if (node.type === 'action') {
+            base.data = {
+                ...node.data,
+                onRemove: () => {
+                    setNodes((nds) => nds.filter((n) => n.id !== node.id));
+                },
+            };
+        }
         return base;
     };
 
