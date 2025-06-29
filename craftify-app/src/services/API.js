@@ -235,11 +235,19 @@ export const createNodeTemplate = async (accessToken, nodeTemplateData) => {
         method: "POST",
         body: JSON.stringify(nodeTemplateData),
     });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to create node template. ${body.message || 'Unknown error'}`);
+    }
     return response.json();
 };
 
 export const getNodeTemplateById = async (accessToken, nodeTemplateId) => {
     const response = await fetchWithAuth(accessToken, `/node-templates/${nodeTemplateId}`);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to get node template. ${body.message || 'Unknown error'}`);
+    }
     return response.json();
 };
 
@@ -248,6 +256,10 @@ export const updateNodeTemplate = async (accessToken, nodeTemplateId, nodeTempla
         method: "PUT",
         body: JSON.stringify(nodeTemplateData),
     });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to update node template. ${body.message || 'Unknown error'}`);
+    }
     return response.json();
 };
 

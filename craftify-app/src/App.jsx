@@ -13,6 +13,7 @@ import {CreateNotebookPage} from "./pages/CreateNotebookPage.jsx";
 import {ChatPage} from "./pages/ChatPage.jsx";
 import {FlowsPage} from "./pages/FlowsPage.jsx";
 import {FlowCreationPage} from "./pages/FlowCreationPage.jsx";
+import {NodeTemplatePage} from "./pages/NodeTemplatePage.jsx";
 import {PageFullLayout} from "./components/page-layout/PageFullLayout.jsx";
 
 
@@ -61,6 +62,14 @@ export default function App() {
             <Route
                 path="/flows/edit/:id"
                 element={<AuthenticationGuard component={() => <PageFullLayout><FlowCreationPage /></PageFullLayout>} />}
+            />
+            <Route
+                path="/node-templates/create"
+                element={<AuthenticationGuard component={() => <PageFullLayout><NodeTemplatePage /></PageFullLayout>} />}
+            />
+            <Route
+                path="/node-templates/edit/:id"
+                element={<AuthenticationGuard component={() => <PageFullLayout><NodeTemplatePage /></PageFullLayout>} />}
             />
 
             <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>

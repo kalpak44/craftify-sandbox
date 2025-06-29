@@ -1,31 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { getNodeTemplatesPageable, createNodeTemplate, updateNodeTemplate, deleteNodeTemplate } from '../../services/API';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getNodeTemplatesPageable, deleteNodeTemplate } from '../../services/API';
 import PropTypes from 'prop-types';
 
 const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
     const { getAccessTokenSilently } = useAuth0();
+    const navigate = useNavigate();
+    const { id: flowId } = useParams();
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [newTemplateName, setNewTemplateName] = useState('');
-    const [editingTemplateId, setEditingTemplateId] = useState(null);
-    const [editingName, setEditingName] = useState('');
-    const [creating, setCreating] = useState(false);
-    const [updating, setUpdating] = useState(false);
     const [deleting, setDeleting] = useState(false);
-    const nameInputRef = useRef(null);
 
     useEffect(() => {
         loadTemplates();
     }, []);
-
-    useEffect(() => {
-        if (editingTemplateId && nameInputRef.current) {
-            nameInputRef.current.focus();
-            nameInputRef.current.select();
-        }
-    }, [editingTemplateId]);
 
     const loadTemplates = async () => {
         try {
@@ -42,89 +32,19 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
         }
     };
 
-    const handleCreateTemplate = async () => {
-        if (!newTemplateName.trim()) {
-            setError('Template name is required');
-            return;
-        }
+    const handleCreateTemplate = () => {
+        const returnUrl = flowId ? `/flows/edit/${flowId}` : '/flows/create';
+        navigate(`/node-templates/create?returnUrl=${encodeURIComponent(returnUrl)}`);
+    };
 
-        if (templates.some(t => t.name.toLowerCase() === newTemplateName.trim().toLowerCase())) {
-            setError('A template with this name already exists');
-            return;
-        }
-
-        try {
-            setCreating(true);
-            setError(null);
-            const token = await getAccessTokenSilently();
-            const templateData = {
-                name: newTemplateName.trim(),
-                description: `Template for ${nodeType} node`,
-                configuration: JSON.stringify({ 
-                    type: nodeType,
-                    label: newTemplateName.trim(),
-                    createdAt: new Date().toISOString()
-                })
-            };
-            
-            const newTemplate = await createNodeTemplate(token, templateData);
-            onTemplateSelect(newTemplate);
-            onClose();
-        } catch (error) {
-            console.error('Failed to create template:', error);
-            setError('Failed to create template. Please try again.');
-        } finally {
-            setCreating(false);
-        }
+    const handleEditTemplate = (templateId) => {
+        const returnUrl = flowId ? `/flows/edit/${flowId}` : '/flows/create';
+        navigate(`/node-templates/edit/${templateId}?returnUrl=${encodeURIComponent(returnUrl)}`);
     };
 
     const handleSelectTemplate = (template) => {
         onTemplateSelect(template);
         onClose();
-    };
-
-    const handleStartEdit = (template) => {
-        setEditingTemplateId(template.id);
-        setEditingName(template.name);
-        setError(null);
-    };
-
-    const handleSaveEdit = async () => {
-        if (!editingName.trim()) {
-            setError('Template name is required');
-            return;
-        }
-
-        if (templates.some(t => t.id !== editingTemplateId && t.name.toLowerCase() === editingName.trim().toLowerCase())) {
-            setError('A template with this name already exists');
-            return;
-        }
-
-        try {
-            setUpdating(true);
-            setError(null);
-            const token = await getAccessTokenSilently();
-            const template = templates.find(t => t.id === editingTemplateId);
-            const updatedTemplate = await updateNodeTemplate(token, editingTemplateId, {
-                ...template,
-                name: editingName.trim()
-            });
-            
-            setTemplates(templates.map(t => t.id === editingTemplateId ? updatedTemplate : t));
-            setEditingTemplateId(null);
-            setEditingName('');
-        } catch (error) {
-            console.error('Failed to update template:', error);
-            setError('Failed to update template. Please try again.');
-        } finally {
-            setUpdating(false);
-        }
-    };
-
-    const handleCancelEdit = () => {
-        setEditingTemplateId(null);
-        setEditingName('');
-        setError(null);
     };
 
     const handleDeleteTemplate = async (templateId) => {
@@ -143,16 +63,6 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
             setError('Failed to delete template. Please try again.');
         } finally {
             setDeleting(false);
-        }
-    };
-
-    const handleKeyPress = (e, action) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            action();
-        } else if (e.key === 'Escape') {
-            e.preventDefault();
-            handleCancelEdit();
         }
     };
 
@@ -177,26 +87,11 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
             {/* Create New Template */}
             <div className="space-y-3">
                 <h4 className="text-sm font-medium text-gray-300">Create New Template</h4>
-                <div>
-                    <input
-                        type="text"
-                        value={newTemplateName}
-                        onChange={(e) => {
-                            setNewTemplateName(e.target.value);
-                            setError(null);
-                        }}
-                        placeholder="Enter template name"
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        onKeyPress={(e) => handleKeyPress(e, handleCreateTemplate)}
-                        disabled={creating}
-                    />
-                </div>
                 <button
                     onClick={handleCreateTemplate}
-                    disabled={creating || !newTemplateName.trim()}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                    {creating ? 'Creating...' : 'Create Template'}
+                    Create Template
                 </button>
             </div>
 
@@ -214,70 +109,30 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
                                 key={template.id}
                                 className="flex items-center justify-between p-2 bg-gray-700 rounded-md hover:bg-gray-600"
                             >
-                                {editingTemplateId === template.id ? (
-                                    <input
-                                        ref={nameInputRef}
-                                        type="text"
-                                        value={editingName}
-                                        onChange={(e) => {
-                                            setEditingName(e.target.value);
-                                            setError(null);
-                                        }}
-                                        className="flex-1 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white"
-                                        onKeyPress={(e) => handleKeyPress(e, handleSaveEdit)}
-                                        onBlur={handleSaveEdit}
-                                        disabled={updating}
-                                    />
-                                ) : (
-                                    <span
-                                        className="flex-1 text-white cursor-pointer"
-                                        onDoubleClick={() => handleStartEdit(template)}
-                                    >
-                                        {template.name}
-                                    </span>
-                                )}
+                                <span className="flex-1 text-white">
+                                    {template.name}
+                                </span>
                                 
                                 <div className="flex space-x-1">
-                                    {editingTemplateId === template.id ? (
-                                        <>
-                                            <button
-                                                onClick={handleSaveEdit}
-                                                disabled={updating}
-                                                className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                                            >
-                                                {updating ? 'Saving...' : 'Save'}
-                                            </button>
-                                            <button
-                                                onClick={handleCancelEdit}
-                                                disabled={updating}
-                                                className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button
-                                                onClick={() => handleStartEdit(template)}
-                                                className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleSelectTemplate(template)}
-                                                className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                                            >
-                                                Use
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteTemplate(template.id)}
-                                                disabled={deleting}
-                                                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-                                            >
-                                                {deleting ? '...' : 'Del'}
-                                            </button>
-                                        </>
-                                    )}
+                                    <button
+                                        onClick={() => handleEditTemplate(template.id)}
+                                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleSelectTemplate(template)}
+                                        className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                                    >
+                                        Use
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteTemplate(template.id)}
+                                        disabled={deleting}
+                                        className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                                    >
+                                        {deleting ? '...' : 'Del'}
+                                    </button>
                                 </div>
                             </div>
                         ))}
