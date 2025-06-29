@@ -98,6 +98,7 @@ export const FlowCreationPage = () => {
     }, []);
 
     const resetToPlaceholder = useCallback((id) => {
+        setRightDragPanelOpen(false);
         setNodes((nds) =>
             nds.map((node) =>
                 node.id === id
