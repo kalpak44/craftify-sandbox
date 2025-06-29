@@ -12,18 +12,26 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    
+    // Pagination state
+    const [page, setPage] = useState(0);
+    const [size] = useState(10); // Smaller page size for better UX
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
 
     useEffect(() => {
         loadTemplates();
-    }, []);
+    }, [page]); // Reload when page changes
 
     const loadTemplates = async () => {
         try {
             setLoading(true);
             setError(null);
             const token = await getAccessTokenSilently();
-            const data = await getNodeTemplatesPageable(token, { size: 100 });
+            const data = await getNodeTemplatesPageable(token, { page, size });
             setTemplates(data.content || []);
+            setTotalPages(data.totalPages || 0);
+            setTotalElements(data.totalElements || 0);
         } catch (error) {
             console.error('Failed to load templates:', error);
             setError('Failed to load templates. Please try again.');
@@ -57,13 +65,19 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
             setError(null);
             const token = await getAccessTokenSilently();
             await deleteNodeTemplate(token, templateId);
-            setTemplates(templates.filter(t => t.id !== templateId));
+            
+            // Refresh the current page after deletion
+            await loadTemplates();
         } catch (error) {
             console.error('Failed to delete template:', error);
             setError('Failed to delete template. Please try again.');
         } finally {
             setDeleting(false);
         }
+    };
+
+    const handlePageChange = (newPage) => {
+        setPage(newPage);
     };
 
     if (loading) {
@@ -75,7 +89,7 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
     }
 
     return (
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 flex flex-col h-full">
             <h3 className="text-lg font-semibold text-white">Node Template</h3>
             
             {error && (
@@ -95,55 +109,91 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
                 </button>
             </div>
 
-            {/* Existing Templates */}
-            <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-300">Use Existing Template</h4>
+            {/* Existing Templates - Flex grow to take available space */}
+            <div className="space-y-3 flex-1 flex flex-col min-h-0">
+                <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-medium text-gray-300">Use Existing Template</h4>
+                    {totalElements > 0 && (
+                        <span className="text-xs text-gray-400">
+                            {totalElements} template{totalElements !== 1 ? 's' : ''}
+                        </span>
+                    )}
+                </div>
+                
                 {templates.length === 0 ? (
-                    <div className="text-gray-400 text-center py-4">
+                    <div className="text-gray-400 text-center py-4 flex-1 flex items-center justify-center">
                         No templates found
                     </div>
                 ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {templates.map((template) => (
-                            <div
-                                key={template.id}
-                                className="flex items-center justify-between p-2 bg-gray-700 rounded-md hover:bg-gray-600"
-                            >
-                                <span className="flex-1 text-white">
-                                    {template.name}
+                    <>
+                        {/* Template list with fixed height and scroll */}
+                        <div className="space-y-2 flex-1 overflow-y-auto min-h-0">
+                            {templates.map((template) => (
+                                <div
+                                    key={template.id}
+                                    className="flex items-center justify-between p-2 bg-gray-700 rounded-md hover:bg-gray-600"
+                                >
+                                    <span className="flex-1 text-white">
+                                        {template.name}
+                                    </span>
+                                    
+                                    <div className="flex space-x-1">
+                                        <button
+                                            onClick={() => handleEditTemplate(template.id)}
+                                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleSelectTemplate(template)}
+                                            className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                                        >
+                                            Use
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteTemplate(template.id)}
+                                            disabled={deleting}
+                                            className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                                        >
+                                            {deleting ? '...' : 'Del'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Pagination Controls - Fixed at bottom of template section */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-600 mt-2">
+                                <button
+                                    onClick={() => handlePageChange(page - 1)}
+                                    disabled={page === 0}
+                                    className="px-2 py-1 text-xs border border-gray-600 rounded text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Prev
+                                </button>
+                                
+                                <span className="text-xs text-gray-400">
+                                    Page {page + 1} of {totalPages}
                                 </span>
                                 
-                                <div className="flex space-x-1">
-                                    <button
-                                        onClick={() => handleEditTemplate(template.id)}
-                                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleSelectTemplate(template)}
-                                        className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                                    >
-                                        Use
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteTemplate(template.id)}
-                                        disabled={deleting}
-                                        className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-                                    >
-                                        {deleting ? '...' : 'Del'}
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() => handlePageChange(page + 1)}
+                                    disabled={page >= totalPages - 1}
+                                    className="px-2 py-1 text-xs border border-gray-600 rounded text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Next
+                                </button>
                             </div>
-                        ))}
-                    </div>
+                        )}
+                    </>
                 )}
             </div>
 
-            {/* Close Button */}
+            {/* Close Button - Fixed at bottom */}
             <button
                 onClick={onClose}
-                className="w-full px-4 py-2 text-gray-400 hover:text-white border border-gray-600 rounded-md hover:bg-gray-700"
+                className="w-full px-4 py-2 text-gray-400 hover:text-white border border-gray-600 rounded-md hover:bg-gray-700 mt-auto"
             >
                 Close
             </button>
