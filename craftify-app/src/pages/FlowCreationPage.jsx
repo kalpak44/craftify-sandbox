@@ -188,15 +188,21 @@ export const FlowCreationPage = () => {
             y: center.y + 100,
         });
 
+        // Create node ID first
+        const nodeId = `${Date.now()}`;
+
         // Create a new node based on the template
         const newNode = {
-            id: `${Date.now()}`,
+            id: nodeId,
             type: 'action',
             position,
             data: {
                 label: template.name,
                 templateId: template.id,
                 templateName: template.name,
+                onRemove: () => {
+                    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+                },
                 ...JSON.parse(template.configuration || '{}')
             }
         };
