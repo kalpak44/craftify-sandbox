@@ -12,6 +12,7 @@ import {NotebookDetailPage} from "./pages/NotebookDetailPage.jsx";
 import {CreateNotebookPage} from "./pages/CreateNotebookPage.jsx";
 import {ChatPage} from "./pages/ChatPage.jsx";
 import {FlowsPage} from "./pages/FlowsPage.jsx";
+import {FlowCreationPage} from "./pages/FlowCreationPage.jsx";
 
 
 export default function App() {
@@ -51,6 +52,14 @@ export default function App() {
             <Route
                 path="/flows"
                 element={<AuthenticationGuard component={() => <PageLayout><FlowsPage /></PageLayout>} />}
+            />
+            <Route
+                path="/flows/create"
+                element={<AuthenticationGuard component={() => <PageLayout><FlowCreationPage /></PageLayout>} />}
+            />
+            <Route
+                path="/flows/edit/:id"
+                element={<AuthenticationGuard component={() => <PageLayout><FlowCreationPage /></PageLayout>} />}
             />
 
             <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>

@@ -22,7 +22,8 @@
     "react-dom": "^18.3.1",
     "react-ipynb-renderer": "^2.2.4",
     "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.25.1"
+    "react-router-dom": "^6.25.1",
+    "reactflow": "^11.11.4"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

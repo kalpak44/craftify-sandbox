@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigate } from "react-router-dom";
 import { getFlowsPageable, deleteFlow, createFlow, updateFlow } from "../services/API";
 
 export const FlowsPage = () => {
     const { getAccessTokenSilently } = useAuth0();
+    const navigate = useNavigate();
 
     const [flows, setFlows] = useState([]);
     const [page, setPage] = useState(0);
@@ -59,17 +61,10 @@ export const FlowsPage = () => {
         }
     };
 
-    const openEditModal = (flow) => {
-        setCurrentFlow(flow);
-        setIsEditing(true);
-        setShowModal(true);
+    const handleEditFlow = (flow) => {
+        navigate(`/flows/edit/${flow.id}`);
     };
 
-    const openCreateModal = () => {
-        setCurrentFlow({ name: "", description: "", configuration: "", active: false });
-        setIsEditing(false);
-        setShowModal(true);
-    };
 
     useEffect(() => {
         fetchFlows();
@@ -80,7 +75,7 @@ export const FlowsPage = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Flows</h1>
                 <button
-                    onClick={openCreateModal}
+                    onClick={() => navigate('/flows/create')}
                     className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600 transition"
                 >
                     + New Flow
@@ -123,7 +118,7 @@ export const FlowsPage = () => {
                                             <td className="py-3 px-4">
                                                 <div className="flex gap-2">
                                                     <button
-                                                        onClick={() => openEditModal(flow)}
+                                                        onClick={() => handleEditFlow(flow)}
                                                         className="px-3 py-1 bg-gray-900 rounded hover:bg-gray-600 text-sm text-white"
                                                     >
                                                         Edit
