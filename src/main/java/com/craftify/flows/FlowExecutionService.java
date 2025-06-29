@@ -20,13 +20,23 @@ public class FlowExecutionService {
 
     private static final Logger logger = LoggerFactory.getLogger(FlowExecutionService.class);
     private final ObjectMapper objectMapper;
+    private final FlowExecutionHistoryService flowExecutionHistoryService;
 
-    public FlowExecutionService(ObjectMapper objectMapper) {
+    public FlowExecutionService(ObjectMapper objectMapper, FlowExecutionHistoryService flowExecutionHistoryService) {
         this.objectMapper = objectMapper;
+        this.flowExecutionHistoryService = flowExecutionHistoryService;
     }
 
     public Flow executeFlow(Flow flow) {
         logger.info("Starting execution of flow: {}", flow.getName());
+
+        // Create execution history record
+        FlowExecutionHistory history = flowExecutionHistoryService.createExecutionHistory(
+                flow.getId(),
+                flow.getUserId(),
+                flow.getName(),
+                flow.getConfiguration()
+        );
 
         try {
             String configuration = flow.getConfiguration();
@@ -63,13 +73,19 @@ public class FlowExecutionService {
 
             // Return updated config as JSON string
             String updatedConfigJson = objectMapper.writeValueAsString(config);
-            flow.setConfiguration(updatedConfigJson);
+
+            // Update execution history with success status
+            flowExecutionHistoryService.updateExecutionStatus(history.getId(), "SUCCESS", null, updatedConfigJson);
+
             return flow;
 
         } catch (Exception e) {
             logger.error("Error executing flow: {}", e.getMessage(), e);
+            
+            // Update execution history with failure status
+            flowExecutionHistoryService.updateExecutionStatus(history.getId(), "FAILED", e.getMessage());
+            
             throw new ServerException("Error executing flow: %s".formatted(e.getMessage()));
-
         }
     }
 
@@ -92,6 +108,4 @@ public class FlowExecutionService {
             traverseAndUpdate(childId, nodeMap, graph, visited);
         }
     }
-
-
 } 
