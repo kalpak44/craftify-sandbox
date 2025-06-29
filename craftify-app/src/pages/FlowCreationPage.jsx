@@ -14,9 +14,6 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { createFlow, getFlowById, updateFlow } from '../services/API';
 
-// ────────────────────────────────────────────
-// Custom Nodes
-
 const PlaceholderNode = ({ data, isConnectable }) => (
     <div
         className="border-2 border-dashed border-gray-400 rounded-lg p-4 bg-gray-800 text-center cursor-pointer hover:bg-gray-700 transition"
@@ -31,22 +28,10 @@ const PlaceholderNode = ({ data, isConnectable }) => (
 const ManualTriggerNode = ({ data, isConnectable }) => (
     <div className="border border-blue-500 rounded-lg p-4 bg-blue-900 relative">
         <div className="absolute top-1 right-1 flex gap-2">
-            <button
-                className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500"
-                onClick={data.onExecute}
-            >
-                ▶
-            </button>
-            <button
-                className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500"
-                onClick={data.onRemove}
-            >
-                ✕
-            </button>
+            <button className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500" onClick={data.onExecute}>▶</button>
+            <button className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500" onClick={data.onRemove}>✕</button>
         </div>
-        <div className="flex justify-between items-center mb-2 mt-4">
-            <div className="text-white font-medium">Manual Trigger</div>
-        </div>
+        <div className="text-white font-medium mt-4">Manual Trigger</div>
         <div className="text-blue-300 text-xs mt-1">Triggered manually by user</div>
         <Handle type="source" position="bottom" id="a" isConnectable={isConnectable} />
     </div>
@@ -55,22 +40,10 @@ const ManualTriggerNode = ({ data, isConnectable }) => (
 const CronTriggerNode = ({ data, isConnectable }) => (
     <div className="border border-purple-500 rounded-lg p-4 bg-purple-900 relative">
         <div className="absolute top-1 right-1 flex gap-2">
-            <button
-                className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500"
-                onClick={data.onExecute}
-            >
-                ▶
-            </button>
-            <button
-                className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500"
-                onClick={data.onRemove}
-            >
-                ✕
-            </button>
+            <button className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500" onClick={data.onExecute}>▶</button>
+            <button className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500" onClick={data.onRemove}>✕</button>
         </div>
-        <div className="flex justify-between items-center mb-2">
-            <div className="text-white font-medium">CRON Trigger</div>
-        </div>
+        <div className="text-white font-medium mt-4">CRON Trigger</div>
         <div className="text-purple-300 text-xs">CRON: {data.cron || 'Not set'}</div>
         <input
             type="text"
@@ -83,36 +56,9 @@ const CronTriggerNode = ({ data, isConnectable }) => (
     </div>
 );
 
-// ────────────────────────────────────────────
-// PropTypes
-
-PlaceholderNode.propTypes = {
-    data: PropTypes.shape({
-        onClick: PropTypes.func.isRequired,
-    }).isRequired,
-    isConnectable: PropTypes.bool,
-};
-
-ManualTriggerNode.propTypes = {
-    data: PropTypes.shape({
-        onExecute: PropTypes.func.isRequired,
-        onRemove: PropTypes.func.isRequired,
-    }).isRequired,
-    isConnectable: PropTypes.bool,
-};
-
-CronTriggerNode.propTypes = {
-    data: PropTypes.shape({
-        cron: PropTypes.string,
-        onExecute: PropTypes.func.isRequired,
-        onCronChange: PropTypes.func,
-        onRemove: PropTypes.func.isRequired,
-    }).isRequired,
-    isConnectable: PropTypes.bool,
-};
-
-// ────────────────────────────────────────────
-// Flow Page
+PlaceholderNode.propTypes = { data: PropTypes.object.isRequired, isConnectable: PropTypes.bool };
+ManualTriggerNode.propTypes = { data: PropTypes.object.isRequired, isConnectable: PropTypes.bool };
+CronTriggerNode.propTypes = { data: PropTypes.object.isRequired, isConnectable: PropTypes.bool };
 
 const nodeTypes = {
     placeholder: PlaceholderNode,
@@ -122,23 +68,26 @@ const nodeTypes = {
 
 export const FlowCreationPage = () => {
     const { getAccessTokenSilently } = useAuth0();
-    const navigate = useNavigate();
     const { id } = useParams();
+    const navigate = useNavigate();
     const reactFlowWrapper = useRef(null);
 
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
+    const [loading, setLoading] = useState(!!id);
     const [flowName, setFlowName] = useState('');
     const [flowDescription, setFlowDescription] = useState('');
     const [flowActive, setFlowActive] = useState(false);
-    const [reactFlowInstance, setReactFlowInstance] = useState(null);
-    const [loading, setLoading] = useState(!!id);
-    const [showNodeTypeSelector, setShowNodeTypeSelector] = useState(false);
+
     const [placeholderId, setPlaceholderId] = useState(null);
+    const [rightPanelOpen, setRightPanelOpen] = useState(false);
+    const [leftPanelOpen, setLeftPanelOpen] = useState(true);
 
     const handlePlaceholderClick = useCallback((id) => {
         setPlaceholderId(id);
-        setShowNodeTypeSelector(true);
+        setRightPanelOpen(true);
     }, []);
 
     const resetToPlaceholder = useCallback((id) => {
@@ -148,58 +97,76 @@ export const FlowCreationPage = () => {
                     ? {
                         ...node,
                         type: 'placeholder',
-                        data: {
-                            onClick: () => handlePlaceholderClick(id),
-                        },
+                        data: { onClick: () => handlePlaceholderClick(id) },
                     }
                     : node
             )
         );
     }, [setNodes, handlePlaceholderClick]);
 
-    const handleNodeTypeSelection = useCallback(
-        (type) => {
-            if (!placeholderId) return;
+    const applyTriggerNode = useCallback((type) => {
+        if (!placeholderId) return;
+        const nodeId = placeholderId;
 
-            const createNodeData = (type) => {
-                if (type === 'manual') {
-                    return {
-                        onExecute: () => alert('Manual trigger executed!'),
-                        onRemove: () => resetToPlaceholder(placeholderId),
-                    };
-                }
-                return {
+        const onExecute = () => alert(`${type.toUpperCase()} triggered`);
+        const onRemove = () => resetToPlaceholder(nodeId);
+
+        const data =
+            type === 'manual'
+                ? { onExecute, onRemove }
+                : {
                     cron: '',
-                    onExecute: () => alert('CRON trigger executed!'),
-                    onCronChange: (value) =>
-                        setNodes((nodes) =>
-                            nodes.map((n) =>
-                                n.id === placeholderId
-                                    ? { ...n, data: { ...n.data, cron: value } }
-                                    : n
+                    onExecute,
+                    onRemove,
+                    onCronChange: (cron) => {
+                        setNodes((nds) =>
+                            nds.map((n) =>
+                                n.id === nodeId ? { ...n, data: { ...n.data, cron } } : n
                             )
-                        ),
-                    onRemove: () => resetToPlaceholder(placeholderId),
+                        );
+                    },
                 };
+
+        const nodeType = type === 'manual' ? 'manualTrigger' : 'cronTrigger';
+
+        setNodes((nds) =>
+            nds.map((node) =>
+                node.id === nodeId ? { ...node, type: nodeType, data } : node
+            )
+        );
+
+        setRightPanelOpen(false);
+        setPlaceholderId(null);
+    }, [placeholderId, resetToPlaceholder, setNodes]);
+
+    const hydrateNode = (node) => {
+        const base = { ...node };
+        if (node.type === 'placeholder') {
+            base.data = { onClick: () => handlePlaceholderClick(node.id) };
+        }
+        if (node.type === 'manualTrigger') {
+            base.data = {
+                ...node.data,
+                onExecute: () => alert('MANUAL triggered'),
+                onRemove: () => resetToPlaceholder(node.id),
             };
-
-            setNodes((nds) =>
-                nds.map((node) =>
-                    node.id === placeholderId
-                        ? {
-                            ...node,
-                            type: type === 'manual' ? 'manualTrigger' : 'cronTrigger',
-                            data: createNodeData(type),
-                        }
-                        : node
-                )
-            );
-
-            setShowNodeTypeSelector(false);
-            setPlaceholderId(null);
-        },
-        [placeholderId, setNodes, resetToPlaceholder]
-    );
+        }
+        if (node.type === 'cronTrigger') {
+            base.data = {
+                ...node.data,
+                onExecute: () => alert('CRON triggered'),
+                onRemove: () => resetToPlaceholder(node.id),
+                onCronChange: (cron) => {
+                    setNodes((nds) =>
+                        nds.map((n) =>
+                            n.id === node.id ? { ...n, data: { ...n.data, cron } } : n
+                        )
+                    );
+                },
+            };
+        }
+        return base;
+    };
 
     useEffect(() => {
         if (!id) {
@@ -211,204 +178,117 @@ export const FlowCreationPage = () => {
                     position: { x: 250, y: 25 },
                 },
             ]);
-        }
-    }, [id, handlePlaceholderClick, setNodes]);
-
-    useEffect(() => {
-        const fetchFlowData = async () => {
-            if (id) {
+        } else {
+            const fetchFlow = async () => {
                 try {
                     const token = await getAccessTokenSilently();
                     const flowData = await getFlowById(token, id);
                     setFlowName(flowData.name);
                     setFlowDescription(flowData.description);
                     setFlowActive(flowData.active);
-
                     if (flowData.configuration) {
                         const config = JSON.parse(flowData.configuration);
-                        if (config.nodes && config.edges) {
-                            setNodes(config.nodes);
-                            setEdges(config.edges);
-                        }
+                        const enrichedNodes = config.nodes.map(hydrateNode);
+                        setNodes(enrichedNodes);
+                        setEdges(config.edges);
                     }
-                } catch (error) {
-                    console.error('Error fetching flow:', error);
-                    alert('Failed to load flow data. Redirecting to flows list.');
+                } catch (err) {
+                    console.error('Load error', err);
                     navigate('/flows');
                 } finally {
                     setLoading(false);
                 }
-            }
-        };
-
-        fetchFlowData();
-    }, [id, getAccessTokenSilently, navigate, setNodes, setEdges]);
-
-    const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
-
-    const onDragOver = useCallback((event) => {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'move';
-    }, []);
-
-    const onDrop = useCallback(
-        (event) => {
-            event.preventDefault();
-            const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
-            const type = event.dataTransfer.getData('application/reactflow');
-            if (!type) return;
-
-            const position = reactFlowInstance.project({
-                x: event.clientX - reactFlowBounds.left,
-                y: event.clientY - reactFlowBounds.top,
-            });
-
-            const newNode = {
-                id: `${Date.now()}`,
-                type,
-                position,
-                data: { label: `${type} node` },
             };
+            fetchFlow();
+        }
+    }, [id, getAccessTokenSilently, navigate, handlePlaceholderClick]);
 
-            setNodes((nds) => nds.concat(newNode));
-        },
-        [reactFlowInstance, setNodes]
-    );
+    const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
+    const onDrop = useCallback((event) => {
+        event.preventDefault();
+        const bounds = reactFlowWrapper.current.getBoundingClientRect();
+        const type = event.dataTransfer.getData('application/reactflow');
+        if (!type) return;
+        const position = reactFlowInstance.project({
+            x: event.clientX - bounds.left,
+            y: event.clientY - bounds.top,
+        });
+        const newNode = { id: `${Date.now()}`, type, position, data: { label: `${type} node` } };
+        setNodes((nds) => nds.concat(newNode));
+    }, [reactFlowInstance]);
 
     const onSave = async () => {
-        if (!flowName.trim()) {
-            alert('Please enter a flow name');
-            return;
-        }
-
+        if (!flowName.trim()) return alert('Flow name is required');
         try {
             const token = await getAccessTokenSilently();
-            const config = { nodes, edges };
-
             const flowData = {
                 name: flowName,
                 description: flowDescription,
-                configuration: JSON.stringify(config),
+                configuration: JSON.stringify({ nodes, edges }),
                 active: flowActive,
             };
-
-            if (id) {
-                await updateFlow(token, id, flowData);
-            } else {
-                await createFlow(token, flowData);
-            }
-
+            id ? await updateFlow(token, id, flowData) : await createFlow(token, flowData);
             navigate('/flows');
-        } catch (error) {
-            console.error('Error saving flow:', error);
-            alert('Failed to save flow. Please try again.');
+        } catch (e) {
+            console.error('Save failed', e);
+            alert('Could not save.');
         }
     };
 
     const onCancel = () => navigate('/flows');
 
     return (
-        <div className="mt-5">
-            {showNodeTypeSelector && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-gray-800 p-6 rounded shadow-lg text-center space-y-4">
-                        <h2 className="text-white text-lg font-bold">Choose Node Type</h2>
-                        <div className="flex justify-center gap-4">
-                            <button
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500"
-                                onClick={() => handleNodeTypeSelection('manual')}
-                            >
-                                Manual Trigger
-                            </button>
-                            <button
-                                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-500"
-                                onClick={() => handleNodeTypeSelection('cron')}
-                            >
-                                CRON Trigger
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <p className="text-gray-400">Loading flow data...</p>
-                </div>
-            ) : (
-                <>
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold">{id ? 'Edit Flow' : 'Create New Flow'}</h1>
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1 text-gray-300">Name</label>
-                        <input
-                            type="text"
-                            value={flowName}
-                            onChange={(e) => setFlowName(e.target.value)}
-                            className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
-                            placeholder="Enter flow name"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1 text-gray-300">Description</label>
-                        <textarea
-                            value={flowDescription}
-                            onChange={(e) => setFlowDescription(e.target.value)}
-                            className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
-                            rows="2"
-                            placeholder="Enter flow description"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="flex items-center">
-                            <input
-                                type="checkbox"
-                                checked={flowActive}
-                                onChange={(e) => setFlowActive(e.target.checked)}
-                                className="mr-2"
-                            />
-                            <span className="text-sm font-medium text-gray-300">Active</span>
+        <div className="h-screen flex overflow-hidden">
+            {/* Left Sidebar */}
+            <div className={`transition-all bg-gray-900 text-white p-4 ${leftPanelOpen ? 'w-80' : 'w-12'} flex flex-col`}>
+                <button onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="text-gray-400 hover:text-white self-end mb-4">
+                    {leftPanelOpen ? '←' : '→'}
+                </button>
+                {leftPanelOpen && (
+                    <>
+                        <h2 className="text-xl font-bold mb-4">{id ? 'Edit Flow' : 'Create Flow'}</h2>
+                        <label className="text-sm font-medium mb-1">Name</label>
+                        <input value={flowName} onChange={(e) => setFlowName(e.target.value)} className="w-full p-2 mb-3 bg-gray-800 border border-gray-700 rounded" />
+                        <label className="text-sm font-medium mb-1">Description</label>
+                        <textarea value={flowDescription} onChange={(e) => setFlowDescription(e.target.value)} rows="2" className="w-full p-2 mb-3 bg-gray-800 border border-gray-700 rounded" />
+                        <label className="flex items-center mb-4">
+                            <input type="checkbox" checked={flowActive} onChange={(e) => setFlowActive(e.target.checked)} className="mr-2" />
+                            Active
                         </label>
-                    </div>
+                        <button onClick={onCancel} className="w-full border border-gray-600 px-3 py-2 rounded hover:bg-gray-700 mb-2">Cancel</button>
+                        <button onClick={onSave} className="w-full bg-blue-600 px-3 py-2 rounded text-white hover:bg-blue-500">Save</button>
+                    </>
+                )}
+            </div>
 
-                    <div className="border border-gray-700 rounded-lg mb-4" style={{ height: '500px' }} ref={reactFlowWrapper}>
-                        <ReactFlow
-                            nodes={nodes}
-                            edges={edges}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
-                            onConnect={onConnect}
-                            onInit={setReactFlowInstance}
-                            onDrop={onDrop}
-                            onDragOver={onDragOver}
-                            nodeTypes={nodeTypes}
-                            fitView
-                        >
-                            <Controls />
-                            <MiniMap />
-                            <Background variant="dots" gap={12} size={1} />
-                        </ReactFlow>
-                    </div>
+            {/* Flow Editor */}
+            <div className="flex-1 bg-gray-800 relative" ref={reactFlowWrapper}>
+                {!loading && (
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        onDrop={onDrop}
+                        onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                        nodeTypes={nodeTypes}
+                        onInit={setReactFlowInstance}
+                        fitView
+                    >
+                        <Background variant="dots" gap={12} size={1} />
+                    </ReactFlow>
+                )}
+            </div>
 
-                    <div className="flex justify-end gap-2 mt-6">
-                        <button
-                            onClick={onCancel}
-                            className="px-4 py-2 border border-gray-600 rounded text-gray-300 hover:bg-gray-700"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={onSave}
-                            className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600"
-                        >
-                            {id ? 'Update Flow' : 'Save Flow'}
-                        </button>
-                    </div>
-                </>
+            {/* Right Trigger Selector */}
+            {rightPanelOpen && (
+                <div className="w-64 bg-gray-900 text-white p-4 border-l border-gray-700 flex flex-col">
+                    <h2 className="text-lg font-semibold mb-4">Choose Trigger</h2>
+                    <button onClick={() => applyTriggerNode('manual')} className="mb-2 px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 text-white">Manual Trigger</button>
+                    <button onClick={() => applyTriggerNode('cron')} className="mb-2 px-4 py-2 bg-purple-600 rounded hover:bg-purple-500 text-white">CRON Trigger</button>
+                    <button onClick={() => setRightPanelOpen(false)} className="mt-auto px-4 py-2 text-sm text-gray-400 hover:text-white">Close</button>
+                </div>
             )}
         </div>
     );
