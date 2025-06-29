@@ -2,7 +2,22 @@ import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import PropTypes from 'prop-types';
 
-const GenericNode = ({ data, selected }) => {
+const GenericNode = ({ data}) => {
+    // Parse configuration to get docker image and timeout
+    let dockerImage = '';
+    let command = '';
+    let timeout = '';
+    try {
+        if (data.configuration) {
+            const config = JSON.parse(data.configuration);
+            dockerImage = config.dockerImage || '';
+            command = config.command || '';
+            timeout = config.timeout || '';
+        }
+    } catch (e) {
+        console.warn('Failed to parse node configuration:', e);
+    }
+
     return (
         <div className="border border-green-500 rounded-lg p-4 bg-green-900 relative">
             <div className="absolute top-1 right-1 flex gap-2">
@@ -17,6 +32,21 @@ const GenericNode = ({ data, selected }) => {
             <div className="text-green-300 text-xs mt-1">
                 {data.templateName ? `Template: ${data.templateName}` : 'Action node'}
             </div>
+            {dockerImage && (
+                <div className="text-green-200 text-xs mt-1">
+                    🐳 {dockerImage}
+                </div>
+            )}
+            {command && (
+                <div className="text-green-200 text-xs">
+                    💻 {command}
+                </div>
+            )}
+            {timeout && (
+                <div className="text-green-200 text-xs">
+                    ⏱️ {timeout}s timeout
+                </div>
+            )}
             <Handle type="target" position={Position.Top} className="w-3 h-3" />
             <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
         </div>
@@ -28,6 +58,7 @@ GenericNode.propTypes = {
         label: PropTypes.string,
         templateId: PropTypes.string,
         templateName: PropTypes.string,
+        configuration: PropTypes.string,
         onRemove: PropTypes.func
     }).isRequired,
     selected: PropTypes.bool

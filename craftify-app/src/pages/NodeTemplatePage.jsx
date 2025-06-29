@@ -10,6 +10,9 @@ export const NodeTemplatePage = () => {
     const [searchParams] = useSearchParams();
     
     const [name, setName] = useState('');
+    const [dockerImage, setDockerImage] = useState('');
+    const [command, setCommand] = useState('');
+    const [timeout, setTimeout] = useState(300); // Default 5 minutes in seconds
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -32,6 +35,18 @@ export const NodeTemplatePage = () => {
             const token = await getAccessTokenSilently();
             const template = await getNodeTemplateById(token, id);
             setName(template.name);
+            
+            // Parse configuration to get container definition
+            if (template.configuration) {
+                try {
+                    const config = JSON.parse(template.configuration);
+                    setDockerImage(config.dockerImage || '');
+                    setCommand(config.command || '');
+                    setTimeout(config.timeout || 300);
+                } catch (e) {
+                    console.warn('Failed to parse template configuration:', e);
+                }
+            }
         } catch (err) {
             console.error('Failed to load template:', err);
             setError('Failed to load template. Please try again.');
@@ -46,6 +61,16 @@ export const NodeTemplatePage = () => {
             return;
         }
 
+        if (!dockerImage.trim()) {
+            setError('Docker image is required');
+            return;
+        }
+
+        if (timeout <= 0) {
+            setError('Timeout must be greater than 0');
+            return;
+        }
+
         try {
             setSaving(true);
             setError('');
@@ -53,10 +78,13 @@ export const NodeTemplatePage = () => {
             
             const templateData = {
                 name: name.trim(),
-                description: `Template for action node`,
+                description: `Container template: ${name.trim()}`,
                 configuration: JSON.stringify({ 
                     type: 'action',
                     label: name.trim(),
+                    dockerImage: dockerImage.trim(),
+                    command: command.trim(),
+                    timeout: parseInt(timeout),
                     createdAt: new Date().toISOString()
                 })
             };
@@ -104,7 +132,7 @@ export const NodeTemplatePage = () => {
                 <div className="space-y-4">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                            Template Name
+                            Template Name *
                         </label>
                         <input
                             id="name"
@@ -119,11 +147,72 @@ export const NodeTemplatePage = () => {
                             disabled={saving}
                         />
                     </div>
+
+                    <div>
+                        <label htmlFor="dockerImage" className="block text-sm font-medium text-gray-300 mb-2">
+                            Docker Image *
+                        </label>
+                        <input
+                            id="dockerImage"
+                            type="text"
+                            value={dockerImage}
+                            onChange={(e) => {
+                                setDockerImage(e.target.value);
+                                setError('');
+                            }}
+                            placeholder="e.g., nginx:latest, myapp:v1.0"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={saving}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="command" className="block text-sm font-medium text-gray-300 mb-2">
+                            Command
+                        </label>
+                        <textarea
+                            id="command"
+                            value={command}
+                            onChange={(e) => {
+                                setCommand(e.target.value);
+                                setError('');
+                            }}
+                            placeholder="e.g., curl example.com, python script.py, npm start"
+                            rows="3"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            disabled={saving}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">
+                            Command to run inside the container (optional)
+                        </p>
+                    </div>
+
+                    <div>
+                        <label htmlFor="timeout" className="block text-sm font-medium text-gray-300 mb-2">
+                            Timeout (seconds)
+                        </label>
+                        <input
+                            id="timeout"
+                            type="number"
+                            min="1"
+                            value={timeout}
+                            onChange={(e) => {
+                                setTimeout(parseInt(e.target.value) || 300);
+                                setError('');
+                            }}
+                            placeholder="300"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={saving}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">
+                            Default: 300 seconds (5 minutes)
+                        </p>
+                    </div>
                     
                     <div className="flex space-x-3 pt-4">
                         <button
                             onClick={handleSave}
-                            disabled={saving || !name.trim()}
+                            disabled={saving || !name.trim() || !dockerImage.trim()}
                             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {saving ? 'Saving...' : 'Save'}

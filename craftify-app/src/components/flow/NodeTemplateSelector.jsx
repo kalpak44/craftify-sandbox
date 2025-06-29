@@ -128,38 +128,74 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
                     <>
                         {/* Template list with fixed height and scroll */}
                         <div className="space-y-2 flex-1 overflow-y-auto min-h-0">
-                            {templates.map((template) => (
-                                <div
-                                    key={template.id}
-                                    className="flex items-center justify-between p-2 bg-gray-700 rounded-md hover:bg-gray-600"
-                                >
-                                    <span className="flex-1 text-white">
-                                        {template.name}
-                                    </span>
-                                    
-                                    <div className="flex space-x-1">
-                                        <button
-                                            onClick={() => handleEditTemplate(template.id)}
-                                            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleSelectTemplate(template)}
-                                            className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                                        >
-                                            Use
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteTemplate(template.id)}
-                                            disabled={deleting}
-                                            className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-                                        >
-                                            {deleting ? '...' : 'Del'}
-                                        </button>
+                            {templates.map((template) => {
+                                // Parse configuration to get docker image
+                                let dockerImage = '';
+                                let command = '';
+                                let timeout = '';
+                                try {
+                                    if (template.configuration) {
+                                        const config = JSON.parse(template.configuration);
+                                        dockerImage = config.dockerImage || '';
+                                        command = config.command || '';
+                                        timeout = config.timeout || '';
+                                    }
+                                } catch (e) {
+                                    console.warn('Failed to parse template configuration:', e);
+                                }
+
+                                return (
+                                    <div
+                                        key={template.id}
+                                        className="flex flex-col p-2 bg-gray-700 rounded-md hover:bg-gray-600"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-white font-medium truncate">
+                                                    {template.name}
+                                                </div>
+                                                {dockerImage && (
+                                                    <div className="text-xs text-gray-300 truncate">
+                                                        🐳 {dockerImage}
+                                                    </div>
+                                                )}
+                                                {command && (
+                                                    <div className="text-xs text-gray-300 truncate">
+                                                        💻 {command}
+                                                    </div>
+                                                )}
+                                                {timeout && (
+                                                    <div className="text-xs text-gray-400">
+                                                        ⏱️ {timeout}s timeout
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            <div className="flex space-x-1 ml-2">
+                                                <button
+                                                    onClick={() => handleEditTemplate(template.id)}
+                                                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleSelectTemplate(template)}
+                                                    className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                                                >
+                                                    Use
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteTemplate(template.id)}
+                                                    disabled={deleting}
+                                                    className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                                                >
+                                                    {deleting ? '...' : 'Del'}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* Pagination Controls - Fixed at bottom of template section */}
