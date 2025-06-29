@@ -58,6 +58,35 @@ public class FlowExecutionHistoryService {
         flowExecutionHistoryRepository.save(history);
     }
 
+    public void updateExecutionStatus(String historyId, String status, String errorMessage, 
+                                    String flowConfiguration, Long totalExecutionTimeMs, 
+                                    Integer nodesExecuted, String executionLogs) {
+        FlowExecutionHistory history = flowExecutionHistoryRepository.findById(historyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Execution history not found"));
+
+        history.setExecutionStatus(status);
+        if (flowConfiguration != null) {
+            history.setFlowConfiguration(flowConfiguration);
+        }
+        if (errorMessage != null) {
+            history.setErrorMessage(errorMessage);
+        }
+        if (totalExecutionTimeMs != null) {
+            history.setTotalExecutionTimeMs(totalExecutionTimeMs);
+        }
+        if (nodesExecuted != null) {
+            history.setNodesExecuted(nodesExecuted);
+        }
+        if (executionLogs != null) {
+            history.setExecutionLogs(executionLogs);
+        }
+        if ("SUCCESS".equals(status) || "FAILED".equals(status)) {
+            history.setExecutionCompletedAt(Instant.now());
+        }
+
+        flowExecutionHistoryRepository.save(history);
+    }
+
     public Page<FlowExecutionHistory> getExecutionHistoryForUser(String userId, Pageable pageable) {
         return flowExecutionHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
     }

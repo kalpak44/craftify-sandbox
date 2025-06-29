@@ -34,6 +34,9 @@ public class FlowExecutionHistory {
     private String errorMessage;
     private Instant executionStartedAt;
     private Instant executionCompletedAt;
+    private Long totalExecutionTimeMs; // Total execution time in milliseconds
+    private Integer nodesExecuted; // Number of action nodes executed
+    private String executionLogs; // Detailed execution logs
 
     @CreatedDate
     private Instant createdAt;
@@ -129,6 +132,30 @@ public class FlowExecutionHistory {
 
     public void setExecutionCompletedAt(Instant executionCompletedAt) {
         this.executionCompletedAt = executionCompletedAt;
+    }
+
+    public Long getTotalExecutionTimeMs() {
+        return totalExecutionTimeMs;
+    }
+
+    public void setTotalExecutionTimeMs(Long totalExecutionTimeMs) {
+        this.totalExecutionTimeMs = totalExecutionTimeMs;
+    }
+
+    public Integer getNodesExecuted() {
+        return nodesExecuted;
+    }
+
+    public void setNodesExecuted(Integer nodesExecuted) {
+        this.nodesExecuted = nodesExecuted;
+    }
+
+    public String getExecutionLogs() {
+        return executionLogs;
+    }
+
+    public void setExecutionLogs(String executionLogs) {
+        this.executionLogs = executionLogs;
     }
 
     public Instant getCreatedAt() {
