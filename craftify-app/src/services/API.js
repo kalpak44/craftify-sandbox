@@ -171,3 +171,48 @@ export const getNotebookById = async (accessToken, notebookId) => {
     const response = await fetchWithAuth(accessToken, `/notebooks/${notebookId}`);
     return response.json();
 };
+
+// Flow API endpoints
+export const getFlowsPageable = async (accessToken, {page = 0, size = 10, name = ""} = {}) => {
+    const queryParams = [`page=${page}`, `size=${size}`];
+
+    if (name) {
+        queryParams.push(`name=${encodeURIComponent(name)}`);
+    }
+
+    const queryString = queryParams.join("&");
+    const response = await fetchWithAuth(accessToken, `/flows?${queryString}`);
+    return response.json();
+};
+
+export const createFlow = async (accessToken, flowData) => {
+    const response = await fetchWithAuth(accessToken, "/flows", {
+        method: "POST",
+        body: JSON.stringify(flowData),
+    });
+    return response.json();
+};
+
+export const getFlowById = async (accessToken, flowId) => {
+    const response = await fetchWithAuth(accessToken, `/flows/${flowId}`);
+    return response.json();
+};
+
+export const updateFlow = async (accessToken, flowId, flowData) => {
+    const response = await fetchWithAuth(accessToken, `/flows/${flowId}`, {
+        method: "PUT",
+        body: JSON.stringify(flowData),
+    });
+    return response.json();
+};
+
+export const deleteFlow = async (accessToken, flowId) => {
+    const response = await fetchWithAuth(accessToken, `/flows/${flowId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to delete flow. ${body.message}`);
+    }
+    return response.ok;
+};
