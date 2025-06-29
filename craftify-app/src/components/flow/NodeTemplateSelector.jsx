@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { getNodeTemplatesPageable, createNodeTemplate, updateNodeTemplate } from '../../services/API';
+import { getNodeTemplatesPageable, createNodeTemplate, updateNodeTemplate, deleteNodeTemplate } from '../../services/API';
 import PropTypes from 'prop-types';
 
 const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
@@ -13,6 +13,7 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
     const [editingName, setEditingName] = useState('');
     const [creating, setCreating] = useState(false);
     const [updating, setUpdating] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const nameInputRef = useRef(null);
 
     useEffect(() => {
@@ -124,6 +125,25 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
         setEditingTemplateId(null);
         setEditingName('');
         setError(null);
+    };
+
+    const handleDeleteTemplate = async (templateId) => {
+        if (!confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            setDeleting(true);
+            setError(null);
+            const token = await getAccessTokenSilently();
+            await deleteNodeTemplate(token, templateId);
+            setTemplates(templates.filter(t => t.id !== templateId));
+        } catch (error) {
+            console.error('Failed to delete template:', error);
+            setError('Failed to delete template. Please try again.');
+        } finally {
+            setDeleting(false);
+        }
     };
 
     const handleKeyPress = (e, action) => {
@@ -248,6 +268,13 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
                                                 className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
                                             >
                                                 Use
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteTemplate(template.id)}
+                                                disabled={deleting}
+                                                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                                            >
+                                                {deleting ? '...' : 'Del'}
                                             </button>
                                         </>
                                     )}
