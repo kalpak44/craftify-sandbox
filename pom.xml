@@ -5,7 +5,7 @@
         <parent>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-parent</artifactId>
-            <version>3.4.5</version>
+            <version>3.5.3</version>
             <relativePath/> <!-- lookup parent from repository -->
         </parent>
         <groupId>com.craftify</groupId>
@@ -13,11 +13,11 @@
         <version>0.0.1</version>
         <name>craftify</name>
         <description>Craftify sandbox API</description>
-        <url>http://www.craftify.com</url>
+        <url>https://www.craftify.com</url>
         <licenses>
             <license>
                 <name>Apache License, Version 2.0</name>
-                <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+                <url>https://www.apache.org/licenses/LICENSE-2.0</url>
                 <distribution>repo</distribution>
                 <comments>A business-friendly OSS license</comments>
             </license>
@@ -41,7 +41,6 @@
             <spring-doc.version>2.4.0</spring-doc.version>
             <okta-spring-boot-starter.version>3.0.7</okta-spring-boot-starter.version>
         </properties>
-
 
 
         <dependencyManagement>
