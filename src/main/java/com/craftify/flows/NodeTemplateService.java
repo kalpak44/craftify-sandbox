@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 
 @Service
 public class NodeTemplateService {
@@ -29,10 +28,6 @@ public class NodeTemplateService {
         return nodeTemplateRepository.findByUserId(userId, pageable);
     }
 
-    public List<NodeTemplate> getNodeTemplatesByType(String userId, String nodeType) {
-        return nodeTemplateRepository.findByUserIdAndNodeType(userId, nodeType);
-    }
-
     public NodeTemplate getNodeTemplate(String id, String userId) {
         var nodeTemplate = nodeTemplateRepository
                 .findById(id)
@@ -50,7 +45,6 @@ public class NodeTemplateService {
         
         existingNodeTemplate.setName(incoming.getName());
         existingNodeTemplate.setDescription(incoming.getDescription());
-        existingNodeTemplate.setNodeType(incoming.getNodeType());
         existingNodeTemplate.setConfiguration(incoming.getConfiguration());
         existingNodeTemplate.setUpdatedAt(Instant.now());
         

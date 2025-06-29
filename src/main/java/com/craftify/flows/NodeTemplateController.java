@@ -10,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/node-templates")
 public class NodeTemplateController {
@@ -35,12 +33,6 @@ public class NodeTemplateController {
     public Page<NodeTemplate> getNodeTemplatesForUser(@PageableDefault Pageable pageable) {
         var userId = authUtil.getCurrentUserId();
         return nodeTemplateService.getNodeTemplatesForUser(userId, pageable);
-    }
-
-    @GetMapping("/by-type/{nodeType}")
-    public List<NodeTemplate> getNodeTemplatesByType(@PathVariable String nodeType) {
-        var userId = authUtil.getCurrentUserId();
-        return nodeTemplateService.getNodeTemplatesByType(userId, nodeType);
     }
 
     @GetMapping("/{id}")

@@ -25,7 +25,6 @@ public class NodeTemplate {
 
     private String name;
     private String description;
-    private String nodeType;
     private String configuration;
 
     @Indexed
@@ -40,10 +39,9 @@ public class NodeTemplate {
     public NodeTemplate() {
     }
 
-    public NodeTemplate(String name, String description, String nodeType, String configuration, String userId) {
+    public NodeTemplate(String name, String description, String configuration, String userId) {
         this.name = name;
         this.description = description;
-        this.nodeType = nodeType;
         this.configuration = configuration;
         this.userId = userId;
     }
@@ -79,14 +77,6 @@ public class NodeTemplate {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getNodeType() {
-        return nodeType;
-    }
-
-    public void setNodeType(String nodeType) {
-        this.nodeType = nodeType;
     }
 
     public String getConfiguration() {

@@ -26,9 +26,6 @@ const nodeTypes = {
     manualTrigger: ManualTriggerNode,
     cronTrigger: CronTriggerNode,
     action: GenericNode,
-    condition: GenericNode,
-    data: GenericNode,
-    output: GenericNode,
 };
 
 export const FlowCreationPage = () => {
@@ -194,7 +191,7 @@ export const FlowCreationPage = () => {
         // Create a new node based on the template
         const newNode = {
             id: `${Date.now()}`,
-            type: template.nodeType,
+            type: 'action',
             position,
             data: {
                 label: template.name,

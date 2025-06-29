@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { getNodeTemplatesByType, createNodeTemplate, updateNodeTemplate } from '../../services/API';
+import { getNodeTemplatesPageable, createNodeTemplate, updateNodeTemplate } from '../../services/API';
 import PropTypes from 'prop-types';
 
 const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
@@ -8,7 +8,6 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectedOption, setSelectedOption] = useState('new');
     const [newTemplateName, setNewTemplateName] = useState('');
     const [editingTemplateId, setEditingTemplateId] = useState(null);
     const [editingName, setEditingName] = useState('');
@@ -18,7 +17,7 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
 
     useEffect(() => {
         loadTemplates();
-    }, [nodeType]);
+    }, []);
 
     useEffect(() => {
         if (editingTemplateId && nameInputRef.current) {
@@ -32,8 +31,8 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
             setLoading(true);
             setError(null);
             const token = await getAccessTokenSilently();
-            const data = await getNodeTemplatesByType(token, nodeType);
-            setTemplates(data || []);
+            const data = await getNodeTemplatesPageable(token, { size: 100 });
+            setTemplates(data.content || []);
         } catch (error) {
             console.error('Failed to load templates:', error);
             setError('Failed to load templates. Please try again.');
@@ -60,7 +59,6 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
             const templateData = {
                 name: newTemplateName.trim(),
                 description: `Template for ${nodeType} node`,
-                nodeType: nodeType,
                 configuration: JSON.stringify({ 
                     type: nodeType,
                     label: newTemplateName.trim(),
@@ -156,139 +154,109 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
                 </div>
             )}
             
-            {/* Option Selection */}
-            <div className="space-y-2">
-                <label className="flex items-center space-x-2">
+            {/* Create New Template */}
+            <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-300">Create New Template</h4>
+                <div>
                     <input
-                        type="radio"
-                        value="new"
-                        checked={selectedOption === 'new'}
-                        onChange={(e) => setSelectedOption(e.target.value)}
-                        className="text-blue-600"
+                        type="text"
+                        value={newTemplateName}
+                        onChange={(e) => {
+                            setNewTemplateName(e.target.value);
+                            setError(null);
+                        }}
+                        placeholder="Enter template name"
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onKeyPress={(e) => handleKeyPress(e, handleCreateTemplate)}
+                        disabled={creating}
                     />
-                    <span className="text-white">Create new template</span>
-                </label>
-                
-                <label className="flex items-center space-x-2">
-                    <input
-                        type="radio"
-                        value="existing"
-                        checked={selectedOption === 'existing'}
-                        onChange={(e) => setSelectedOption(e.target.value)}
-                        className="text-blue-600"
-                    />
-                    <span className="text-white">Use existing template</span>
-                </label>
+                </div>
+                <button
+                    onClick={handleCreateTemplate}
+                    disabled={creating || !newTemplateName.trim()}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {creating ? 'Creating...' : 'Create Template'}
+                </button>
             </div>
 
-            {/* New Template Creation */}
-            {selectedOption === 'new' && (
-                <div className="space-y-3">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Template Name
-                        </label>
-                        <input
-                            type="text"
-                            value={newTemplateName}
-                            onChange={(e) => {
-                                setNewTemplateName(e.target.value);
-                                setError(null);
-                            }}
-                            placeholder="Enter template name"
-                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onKeyPress={(e) => handleKeyPress(e, handleCreateTemplate)}
-                            disabled={creating}
-                        />
-                    </div>
-                    <button
-                        onClick={handleCreateTemplate}
-                        disabled={creating || !newTemplateName.trim()}
-                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {creating ? 'Creating...' : 'Create Template'}
-                    </button>
-                </div>
-            )}
-
             {/* Existing Templates */}
-            {selectedOption === 'existing' && (
-                <div className="space-y-3">
-                    {templates.length === 0 ? (
-                        <div className="text-gray-400 text-center py-4">
-                            No templates found for this node type
-                        </div>
-                    ) : (
-                        <div className="space-y-2 max-h-48 overflow-y-auto">
-                            {templates.map((template) => (
-                                <div
-                                    key={template.id}
-                                    className="flex items-center justify-between p-2 bg-gray-700 rounded-md hover:bg-gray-600"
-                                >
+            <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-300">Use Existing Template</h4>
+                {templates.length === 0 ? (
+                    <div className="text-gray-400 text-center py-4">
+                        No templates found
+                    </div>
+                ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {templates.map((template) => (
+                            <div
+                                key={template.id}
+                                className="flex items-center justify-between p-2 bg-gray-700 rounded-md hover:bg-gray-600"
+                            >
+                                {editingTemplateId === template.id ? (
+                                    <input
+                                        ref={nameInputRef}
+                                        type="text"
+                                        value={editingName}
+                                        onChange={(e) => {
+                                            setEditingName(e.target.value);
+                                            setError(null);
+                                        }}
+                                        className="flex-1 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white"
+                                        onKeyPress={(e) => handleKeyPress(e, handleSaveEdit)}
+                                        onBlur={handleSaveEdit}
+                                        disabled={updating}
+                                    />
+                                ) : (
+                                    <span
+                                        className="flex-1 text-white cursor-pointer"
+                                        onDoubleClick={() => handleStartEdit(template)}
+                                    >
+                                        {template.name}
+                                    </span>
+                                )}
+                                
+                                <div className="flex space-x-1">
                                     {editingTemplateId === template.id ? (
-                                        <input
-                                            ref={nameInputRef}
-                                            type="text"
-                                            value={editingName}
-                                            onChange={(e) => {
-                                                setEditingName(e.target.value);
-                                                setError(null);
-                                            }}
-                                            className="flex-1 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white"
-                                            onKeyPress={(e) => handleKeyPress(e, handleSaveEdit)}
-                                            onBlur={handleSaveEdit}
-                                            disabled={updating}
-                                        />
+                                        <>
+                                            <button
+                                                onClick={handleSaveEdit}
+                                                disabled={updating}
+                                                className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                                            >
+                                                {updating ? 'Saving...' : 'Save'}
+                                            </button>
+                                            <button
+                                                onClick={handleCancelEdit}
+                                                disabled={updating}
+                                                className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </>
                                     ) : (
-                                        <span
-                                            className="flex-1 text-white cursor-pointer"
-                                            onDoubleClick={() => handleStartEdit(template)}
-                                        >
-                                            {template.name}
-                                        </span>
+                                        <>
+                                            <button
+                                                onClick={() => handleStartEdit(template)}
+                                                className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleSelectTemplate(template)}
+                                                className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                                            >
+                                                Use
+                                            </button>
+                                        </>
                                     )}
-                                    
-                                    <div className="flex space-x-1">
-                                        {editingTemplateId === template.id ? (
-                                            <>
-                                                <button
-                                                    onClick={handleSaveEdit}
-                                                    disabled={updating}
-                                                    className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                                                >
-                                                    {updating ? 'Saving...' : 'Save'}
-                                                </button>
-                                                <button
-                                                    onClick={handleCancelEdit}
-                                                    disabled={updating}
-                                                    className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50"
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <button
-                                                    onClick={() => handleStartEdit(template)}
-                                                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleSelectTemplate(template)}
-                                                    className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                                                >
-                                                    Use
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Close Button */}
             <button

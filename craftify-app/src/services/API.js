@@ -230,11 +230,6 @@ export const getNodeTemplatesPageable = async (accessToken, {page = 0, size = 10
     return response.json();
 };
 
-export const getNodeTemplatesByType = async (accessToken, nodeType) => {
-    const response = await fetchWithAuth(accessToken, `/node-templates/by-type/${nodeType}`);
-    return response.json();
-};
-
 export const createNodeTemplate = async (accessToken, nodeTemplateData) => {
     const response = await fetchWithAuth(accessToken, "/node-templates", {
         method: "POST",
