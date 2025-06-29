@@ -19,11 +19,16 @@ import {
     EdgeOptionsPanel,
     useFlowCreation
 } from '../components/flow';
+import GenericNode from '../components/flow/GenericNode';
 
 const nodeTypes = {
     placeholder: PlaceholderNode,
     manualTrigger: ManualTriggerNode,
     cronTrigger: CronTriggerNode,
+    action: GenericNode,
+    condition: GenericNode,
+    data: GenericNode,
+    output: GenericNode,
 };
 
 export const FlowCreationPage = () => {
@@ -176,6 +181,33 @@ export const FlowCreationPage = () => {
         setNodes((nds) => nds.concat(newNode));
     }, [reactFlowInstance, setNodes]);
 
+    const handleNodeTemplateSelect = useCallback((template) => {
+        if (!reactFlowInstance) return;
+        
+        // Get the center of the viewport
+        const center = reactFlowInstance.getViewport();
+        const position = reactFlowInstance.project({
+            x: center.x + 200,
+            y: center.y + 100,
+        });
+
+        // Create a new node based on the template
+        const newNode = {
+            id: `${Date.now()}`,
+            type: template.nodeType,
+            position,
+            data: {
+                label: template.name,
+                templateId: template.id,
+                templateName: template.name,
+                ...JSON.parse(template.configuration || '{}')
+            }
+        };
+
+        setNodes((nds) => nds.concat(newNode));
+        setRightDragPanelOpen(false);
+    }, [reactFlowInstance, setNodes, setRightDragPanelOpen]);
+
     const onSave = async () => {
         if (!flowName.trim()) return alert('Flow name is required');
         try {
@@ -242,6 +274,7 @@ export const FlowCreationPage = () => {
             <EdgeOptionsPanel
                 rightDragPanelOpen={rightDragPanelOpen}
                 setRightDragPanelOpen={setRightDragPanelOpen}
+                onNodeTemplateSelect={handleNodeTemplateSelect}
             />
         </div>
     );

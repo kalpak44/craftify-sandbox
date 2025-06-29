@@ -216,3 +216,53 @@ export const deleteFlow = async (accessToken, flowId) => {
     }
     return response.ok;
 };
+
+// NodeTemplate API endpoints
+export const getNodeTemplatesPageable = async (accessToken, {page = 0, size = 10, name = ""} = {}) => {
+    const queryParams = [`page=${page}`, `size=${size}`];
+
+    if (name) {
+        queryParams.push(`name=${encodeURIComponent(name)}`);
+    }
+
+    const queryString = queryParams.join("&");
+    const response = await fetchWithAuth(accessToken, `/node-templates?${queryString}`);
+    return response.json();
+};
+
+export const getNodeTemplatesByType = async (accessToken, nodeType) => {
+    const response = await fetchWithAuth(accessToken, `/node-templates/by-type/${nodeType}`);
+    return response.json();
+};
+
+export const createNodeTemplate = async (accessToken, nodeTemplateData) => {
+    const response = await fetchWithAuth(accessToken, "/node-templates", {
+        method: "POST",
+        body: JSON.stringify(nodeTemplateData),
+    });
+    return response.json();
+};
+
+export const getNodeTemplateById = async (accessToken, nodeTemplateId) => {
+    const response = await fetchWithAuth(accessToken, `/node-templates/${nodeTemplateId}`);
+    return response.json();
+};
+
+export const updateNodeTemplate = async (accessToken, nodeTemplateId, nodeTemplateData) => {
+    const response = await fetchWithAuth(accessToken, `/node-templates/${nodeTemplateId}`, {
+        method: "PUT",
+        body: JSON.stringify(nodeTemplateData),
+    });
+    return response.json();
+};
+
+export const deleteNodeTemplate = async (accessToken, nodeTemplateId) => {
+    const response = await fetchWithAuth(accessToken, `/node-templates/${nodeTemplateId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to delete node template. ${body.message}`);
+    }
+    return response.ok;
+};
