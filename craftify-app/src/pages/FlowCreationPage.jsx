@@ -4,8 +4,6 @@ import { useAuth0 } from '@auth0/auth0-react';
 import PropTypes from 'prop-types';
 import ReactFlow, {
     addEdge,
-    MiniMap,
-    Controls,
     Background,
     useNodesState,
     useEdgesState,
@@ -14,14 +12,13 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { createFlow, getFlowById, updateFlow } from '../services/API';
 
-const PlaceholderNode = ({ data, isConnectable }) => (
+const PlaceholderNode = ({ data }) => (
     <div
         className="border-2 border-dashed border-gray-400 rounded-lg p-4 bg-gray-800 text-center cursor-pointer hover:bg-gray-700 transition"
         onClick={data.onClick}
     >
         <div className="text-gray-300 font-medium text-lg">+ Add First Node</div>
         <div className="text-gray-500 text-xs mt-1">Click to create a trigger</div>
-        <Handle type="source" position="bottom" id="a" isConnectable={isConnectable} />
     </div>
 );
 
