@@ -22,6 +22,13 @@ export default function ContextMenu({ contextMenu, contextMenuRef, handleContext
                     </li>
                     <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("createSchema", contextMenu.item)} onKeyDown={e => { if (e.key === 'Enter') handleContextMenuAction("createSchema", contextMenu.item); }}>Create Schema</li>
                 </ul>
+            ) : contextMenu.type === "schema" ? (
+                <ul>
+                    <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("open", contextMenu.item)} onKeyDown={e => { if (e.key === 'Enter') handleContextMenuAction("open", contextMenu.item); }}>Open</li>
+                    <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("rename", contextMenu.item)} onKeyDown={e => { if (e.key === 'Enter') handleContextMenuAction("rename", contextMenu.item); }}>Rename</li>
+                    <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("move", contextMenu.item)} onKeyDown={e => { if (e.key === 'Enter') handleContextMenuAction("move", contextMenu.item); }}>Move</li>
+                    <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("delete", contextMenu.item)} onKeyDown={e => { if (e.key === 'Enter') handleContextMenuAction("delete", contextMenu.item); }}>Delete</li>
+                </ul>
             ) : (
                 <ul>
                     <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("create")}>Create Folder</li>

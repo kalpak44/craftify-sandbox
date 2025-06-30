@@ -6,18 +6,22 @@ import {
     deleteFolder as apiDeleteFolder,
     renameFolder as apiRenameFolder,
     moveFolder as apiMoveFolder,
-    toggleFavorite as apiToggleFavorite
+    toggleFavorite as apiToggleFavorite,
+    listSchemaFiles,
+    saveSchemaFile,
+    deleteSchemaFile
 } from "../services/API";
 import Breadcrumbs from "../components/file-navigator/Breadcrumbs";
 import FolderItem from "../components/file-navigator/FolderItem";
 import ContextMenu from "../components/file-navigator/ContextMenu";
 import FolderDialog from "../components/file-navigator/FolderDialog";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function FileNavigator({ userId, navigateToFolder, onFavoriteToggled }) {
     const { getAccessTokenSilently } = useAuth0();
     const [currentFolder, setCurrentFolder] = useState(null); // null = root
     const [items, setItems] = useState([]);
+    const [schemaFiles, setSchemaFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
     const [error, setError] = useState("");
@@ -27,9 +31,18 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
     const prevNavigateToFolder = useRef(null);
     const [dialog, setDialog] = useState({ open: false, type: null, item: null, defaultValue: "" });
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // On mount, check for initial folderId from location.state
+    useEffect(() => {
+        if (location.state && location.state.folderId) {
+            setCurrentFolder(location.state.folderId === 'root' ? null : location.state.folderId);
+        }
+    }, [location.state]);
 
     useEffect(() => {
         fetchItems(currentFolder);
+        fetchSchemaFiles(currentFolder);
         // eslint-disable-next-line
     }, [currentFolder]);
 
@@ -67,6 +80,16 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
             setError("Failed to load folders: " + e.message);
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function fetchSchemaFiles(parentId) {
+        try {
+            const accessToken = await getAccessTokenSilently();
+            const schemas = await listSchemaFiles(accessToken, parentId ?? 'root');
+            setSchemaFiles(schemas);
+        } catch (e) {
+            // ignore schema fetch errors for now
         }
     }
 
@@ -148,20 +171,47 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
         });
     }
 
+    // Add schema context menu handler
+    function handleSchemaContextMenu(e, schema) {
+        e.preventDefault();
+        setContextMenu({
+            x: e.clientX,
+            y: e.clientY,
+            type: "schema",
+            item: schema
+        });
+    }
+
     function handleContextMenuAction(action, item) {
         setContextMenu(null);
         switch (action) {
             case "open":
-                openFolder(item);
+                if (contextMenu.type === "schema") {
+                    navigate(`/schemas/${currentFolder ?? 'root'}/new`);
+                } else {
+                    openFolder(item);
+                }
                 break;
             case "rename":
-                renameFolder(item);
+                if (contextMenu.type === "schema") {
+                    setDialog({ open: true, type: "renameSchema", item, defaultValue: item.name.replace(/\.json$/i, "") });
+                } else {
+                    renameFolder(item);
+                }
                 break;
             case "move":
-                moveFolder(item);
+                if (contextMenu.type === "schema") {
+                    setDialog({ open: true, type: "moveSchema", item, defaultValue: item.folderId || "" });
+                } else {
+                    moveFolder(item);
+                }
                 break;
             case "delete":
-                deleteFolder(item);
+                if (contextMenu.type === "schema") {
+                    setDialog({ open: true, type: "deleteSchema", item });
+                } else {
+                    deleteFolder(item);
+                }
                 break;
             case "favorite":
                 toggleFavorite(item);
@@ -224,6 +274,50 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
             } finally {
                 setLoading(false);
             }
+        } else if (dialog.type === "renameSchema") {
+            if (!value || value === dialog.item.name.replace(/\.json$/i, "")) return handleDialogCancel();
+            setLoading(true);
+            setError("");
+            try {
+                const accessToken = await getAccessTokenSilently();
+                await saveSchemaFile(accessToken, {
+                    ...dialog.item,
+                    name: value.trim() + ".json"
+                });
+                fetchSchemaFiles(currentFolder);
+            } catch (e) {
+                setError("Failed to rename schema: " + e.message);
+            } finally {
+                setLoading(false);
+            }
+        } else if (dialog.type === "moveSchema") {
+            if (value === dialog.item.folderId) return handleDialogCancel();
+            setLoading(true);
+            setError("");
+            try {
+                const accessToken = await getAccessTokenSilently();
+                await saveSchemaFile(accessToken, {
+                    ...dialog.item,
+                    folderId: value || null
+                });
+                fetchSchemaFiles(currentFolder);
+            } catch (e) {
+                setError("Failed to move schema: " + e.message);
+            } finally {
+                setLoading(false);
+            }
+        } else if (dialog.type === "deleteSchema") {
+            setLoading(true);
+            setError("");
+            try {
+                const accessToken = await getAccessTokenSilently();
+                await deleteSchemaFile(accessToken, dialog.item.id);
+                fetchSchemaFiles(currentFolder);
+            } catch (e) {
+                setError("Failed to delete schema: " + e.message);
+            } finally {
+                setLoading(false);
+            }
         }
         handleDialogCancel();
     }
@@ -261,7 +355,19 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                                 handleFolderContextMenu={handleFolderContextMenu}
                             />
                         ))}
-                        {items.length === 0 && currentFolder === null && (
+                        {/* Show schema files */}
+                        {schemaFiles.length > 0 && schemaFiles.map(schema => (
+                            <div
+                                key={schema.id}
+                                className="flex flex-col items-center justify-center p-4 bg-gray-700 rounded cursor-pointer border border-blue-400 hover:bg-gray-600 group"
+                                onClick={() => navigate(`/schemas/${currentFolder ?? 'root'}/new`)}
+                                onContextMenu={e => { e.stopPropagation(); handleSchemaContextMenu(e, schema); }}
+                            >
+                                <span role="img" aria-label="schema" className="text-3xl mb-2 group-hover:scale-110 transition-transform">📄</span>
+                                <span className="text-white text-sm truncate w-full text-center group-hover:font-bold">{schema.name || 'Schema.json'}</span>
+                            </div>
+                        ))}
+                        {items.length === 0 && schemaFiles.length === 0 && currentFolder === null && (
                             <div className="text-gray-400 col-span-full" onContextMenu={e => { e.preventDefault(); handleBackgroundContextMenu(e); }}>No folders.</div>
                         )}
                     </>
@@ -304,6 +410,37 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                     <div className="bg-gray-800 rounded-lg p-6 min-w-[320px] shadow-lg">
                         <h2 className="text-lg font-semibold text-white mb-4">Delete Folder</h2>
                         <div className="text-white mb-4">Delete folder '{dialog.item?.name}' and all its contents?</div>
+                        <div className="flex justify-end gap-2">
+                            <button className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-500" onClick={handleDialogCancel} disabled={loading}>Cancel</button>
+                            <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-500" onClick={() => handleDialogConfirm()} disabled={loading}>{loading ? '...' : 'Delete'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Dialogs for schema file actions */}
+            <FolderDialog
+                open={dialog.open && dialog.type === "renameSchema"}
+                title="Rename Schema File"
+                defaultValue={dialog.defaultValue}
+                onConfirm={handleDialogConfirm}
+                onCancel={handleDialogCancel}
+                confirmLabel="Rename"
+                loading={loading}
+            />
+            <FolderDialog
+                open={dialog.open && dialog.type === "moveSchema"}
+                title="Move Schema File (enter new parent folder ID or leave empty for root)"
+                defaultValue={dialog.defaultValue}
+                onConfirm={handleDialogConfirm}
+                onCancel={handleDialogCancel}
+                confirmLabel="Move"
+                loading={loading}
+            />
+            {dialog.open && dialog.type === "deleteSchema" && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-gray-800 rounded-lg p-6 min-w-[320px] shadow-lg">
+                        <h2 className="text-lg font-semibold text-white mb-4">Delete Schema File</h2>
+                        <div className="text-white mb-4">Delete schema file '{dialog.item?.name}'?</div>
                         <div className="flex justify-end gap-2">
                             <button className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-500" onClick={handleDialogCancel} disabled={loading}>Cancel</button>
                             <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-500" onClick={() => handleDialogConfirm()} disabled={loading}>{loading ? '...' : 'Delete'}</button>

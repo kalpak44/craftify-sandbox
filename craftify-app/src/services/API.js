@@ -335,3 +335,44 @@ export const toggleFavorite = async (accessToken, id) => {
     if (!response.ok) throw new Error(await response.text());
     return response.json();
 };
+
+export const saveSchemaFile = async (accessToken, schemaFile) => {
+    const response = await fetchWithAuth(accessToken, "/schemas", {
+        method: "POST",
+        body: JSON.stringify(schemaFile),
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || "Failed to save schema");
+    }
+    return response.json();
+};
+
+export const getSchemaFile = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schemas/${schemaId}`);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || "Failed to fetch schema");
+    }
+    return response.json();
+};
+
+export const listSchemaFiles = async (accessToken, folderId) => {
+    const response = await fetchWithAuth(accessToken, `/schemas?folderId=${encodeURIComponent(folderId)}`);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || "Failed to list schemas");
+    }
+    return response.json();
+};
+
+export const deleteSchemaFile = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schemas/${schemaId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || "Failed to delete schema");
+    }
+    return response.ok;
+};
