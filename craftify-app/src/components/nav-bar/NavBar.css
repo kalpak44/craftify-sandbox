@@ -180,3 +180,27 @@
         margin-left: 24px;
     }
 }
+
+.nav-bar__dropdown {
+    background: #18181b;
+    border: 1px solid #27272a;
+    color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.5);
+    min-width: 12rem;
+    padding: 0.25rem 0;
+    transition: background 0.2s, color 0.2s;
+}
+
+.nav-bar__dropdown a {
+    color: #fff;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    display: block;
+    transition: background 0.2s, color 0.2s;
+}
+
+.nav-bar__dropdown a:hover, .nav-bar__dropdown a:focus {
+    background: #27272a;
+    color: #a5b4fc;
+}

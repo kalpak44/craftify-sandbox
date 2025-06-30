@@ -15,6 +15,7 @@ import {FlowsPage} from "./pages/FlowsPage.jsx";
 import {FlowCreationPage} from "./pages/FlowCreationPage.jsx";
 import {NodeTemplatePage} from "./pages/NodeTemplatePage.jsx";
 import {PageFullLayout} from "./components/page-layout/PageFullLayout.jsx";
+import {CreateObjectPage} from "./pages/CreateObjectPage.jsx";
 
 
 export default function App() {
@@ -70,6 +71,10 @@ export default function App() {
             <Route
                 path="/node-templates/edit/:id"
                 element={<AuthenticationGuard component={() => <PageFullLayout><NodeTemplatePage /></PageFullLayout>} />}
+            />
+            <Route
+                path="/data/create-object"
+                element={<AuthenticationGuard component={() => <PageFullLayout><CreateObjectPage/></PageFullLayout>}/>}
             />
 
             <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
