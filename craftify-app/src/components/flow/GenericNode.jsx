@@ -56,7 +56,22 @@ const GenericNode = ({ data, selected, executing }) => {
                 </div>
             )}
             <Handle type="target" position={Position.Top} className="w-3 h-3" />
-            <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
+            {/* Success output handle */}
+            <Handle 
+                type="source" 
+                position={Position.Bottom} 
+                id="success" 
+                className="w-4 h-4 bg-green-400 border-2 border-green-300" 
+                style={{ left: '25%' }}
+            />
+            {/* Failure output handle */}
+            <Handle 
+                type="source" 
+                position={Position.Bottom} 
+                id="failure" 
+                className="w-4 h-4 bg-red-400 border-2 border-red-300" 
+                style={{ left: '75%' }}
+            />
         </div>
     );
 };

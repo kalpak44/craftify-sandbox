@@ -346,7 +346,16 @@ export const FlowCreationPage = () => {
         }
     }, [id, loadFlowData, handlePlaceholderClick, setNodes, setEdges]);
 
-    const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+    const onConnect = useCallback((params) => {
+        // Ensure the edge has the proper sourceHandle information
+        const edge = {
+            ...params,
+            id: `e${params.source}-${params.sourceHandle || 'default'}-${params.target}`,
+            // Preserve sourceHandle if it exists (for success/failure paths)
+            ...(params.sourceHandle && { sourceHandle: params.sourceHandle })
+        };
+        setEdges((eds) => addEdge(edge, eds));
+    }, [setEdges]);
     
     const onDrop = useCallback((event) => {
         event.preventDefault();

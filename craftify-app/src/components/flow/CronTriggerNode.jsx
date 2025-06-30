@@ -26,7 +26,14 @@ const CronTriggerNode = ({data, isConnectable}) => (
             onChange={(e) => data.onCronChange?.(e.target.value)}
             className="mt-2 w-full text-sm px-2 py-1 rounded bg-purple-700 text-white border border-purple-400"
         />
-        <Handle type="source" position="bottom" id="a" isConnectable={isConnectable}/>
+        {/* Single output handle */}
+        <Handle 
+            type="source" 
+            position="bottom" 
+            id="success" 
+            className="w-3 h-3 bg-purple-400" 
+            isConnectable={isConnectable}
+        />
     </div>
 );
 

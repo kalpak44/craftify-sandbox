@@ -19,7 +19,14 @@ const ManualTriggerNode = ({data, isConnectable}) => (
         </div>
         <div className="text-white font-medium mt-4">Manual Trigger</div>
         <div className="text-blue-300 text-xs mt-1">Triggered manually by user</div>
-        <Handle type="source" position="bottom" id="a" isConnectable={isConnectable}/>
+        {/* Single output handle */}
+        <Handle 
+            type="source" 
+            position="bottom" 
+            id="success" 
+            className="w-3 h-3 bg-blue-400" 
+            isConnectable={isConnectable}
+        />
     </div>
 );
 

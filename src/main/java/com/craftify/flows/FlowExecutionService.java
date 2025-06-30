@@ -76,25 +76,76 @@ public class FlowExecutionService {
                 nodeMap.put(node.get("id").asText(), node);
             }
 
-            // Build adjacency map (forward edges)
-            Map<String, List<String>> graph = new HashMap<>();
-            Set<String> targets = new HashSet<>();
+            // Build adjacency maps for success and failure paths
+            Map<String, List<String>> successGraph = new HashMap<>();
+            Map<String, List<String>> failureGraph = new HashMap<>();
+            Set<String> allTargets = new HashSet<>();
+            
             for (JsonNode edge : edges) {
                 String source = edge.get("source").asText();
                 String target = edge.get("target").asText();
-                graph.computeIfAbsent(source, k -> new ArrayList<>()).add(target);
-                targets.add(target);
+                String sourceHandle = edge.has("sourceHandle") ? edge.get("sourceHandle").asText() : null;
+                
+                // Determine which graph to add the edge to based on sourceHandle
+                if ("success".equals(sourceHandle)) {
+                    successGraph.computeIfAbsent(source, k -> new ArrayList<>()).add(target);
+                } else if ("failure".equals(sourceHandle)) {
+                    failureGraph.computeIfAbsent(source, k -> new ArrayList<>()).add(target);
+                } else {
+                    // Legacy support: if no sourceHandle specified, add to both graphs
+                    successGraph.computeIfAbsent(source, k -> new ArrayList<>()).add(target);
+                    failureGraph.computeIfAbsent(source, k -> new ArrayList<>()).add(target);
+                }
+                allTargets.add(target);
             }
 
-            // Find root nodes
+            // Find root nodes (only trigger nodes with no incoming edges)
             List<String> roots = nodeMap.keySet().stream()
-                    .filter(id -> !targets.contains(id))
+                    .filter(id -> {
+                        JsonNode node = nodeMap.get(id);
+                        if (node == null) return false;
+                        String nodeType = node.get("type").asText();
+                        // Only consider trigger nodes as root nodes
+                        boolean isTrigger = "manualTrigger".equals(nodeType) || "cronTrigger".equals(nodeType);
+                        // Must be a trigger AND have no incoming edges
+                        return isTrigger && !allTargets.contains(id);
+                    })
                     .toList();
+
+            logger.info("Found {} root nodes (trigger nodes): {}", roots.size(), roots);
+            
+            // Log all nodes and their types for debugging
+            logger.info("All nodes in flow:");
+            for (String nodeId : nodeMap.keySet()) {
+                JsonNode node = nodeMap.get(nodeId);
+                String nodeType = node.get("type").asText();
+                boolean hasIncomingEdges = allTargets.contains(nodeId);
+                logger.info("  Node {}: type={}, hasIncomingEdges={}", nodeId, nodeType, hasIncomingEdges);
+            }
+            
+            // Log nodes that will be ignored (not connected to any trigger)
+            Set<String> allNodes = new HashSet<>(nodeMap.keySet());
+            Set<String> reachableNodes = new HashSet<>();
+            for (String root : roots) {
+                reachableNodes.add(root);
+                collectReachableNodes(root, successGraph, failureGraph, reachableNodes);
+            }
+            Set<String> ignoredNodes = new HashSet<>(allNodes);
+            ignoredNodes.removeAll(reachableNodes);
+            
+            if (!ignoredNodes.isEmpty()) {
+                logger.info("Ignoring {} unconnected nodes: {}", ignoredNodes.size(), ignoredNodes);
+                executionLogs.append(String.format("[%s] Ignoring %d unconnected nodes: %s\n", 
+                    Instant.now(), ignoredNodes.size(), ignoredNodes));
+            }
 
             Set<String> visited = new HashSet<>();
             for (String root : roots) {
-                nodesExecuted += traverseAndExecuteWithEvents(root, nodeMap, graph, visited, executionLogs, flow.getId());
+                nodesExecuted += traverseAndExecuteWithEvents(root, nodeMap, successGraph, failureGraph, visited, executionLogs, flow.getId());
             }
+
+            // Note: Nodes with no incoming edges are ignored as per requirements
+            // Only nodes reachable from root nodes (trigger nodes) will be executed
 
             // Return updated config as JSON string
             String updatedConfigJson = objectMapper.writeValueAsString(config);
@@ -143,30 +194,73 @@ public class FlowExecutionService {
         }
     }
 
-    private int traverseAndExecuteWithEvents(String nodeId, Map<String, JsonNode> nodeMap, Map<String, List<String>> graph, Set<String> visited, StringBuilder executionLogs, String flowId) {
+    private int traverseAndExecuteWithEvents(String nodeId, Map<String, JsonNode> nodeMap, 
+                                           Map<String, List<String>> successGraph, 
+                                           Map<String, List<String>> failureGraph, 
+                                           Set<String> visited, StringBuilder executionLogs, String flowId) {
         if (visited.contains(nodeId)) return 0;
         visited.add(nodeId);
         JsonNode node = nodeMap.get(nodeId);
         if (node == null) return 0;
+        
+        // Safety check: only execute nodes that are reachable from trigger nodes
+        String nodeType = node.get("type").asText();
+        if (!"manualTrigger".equals(nodeType) && !"cronTrigger".equals(nodeType) && !"action".equals(nodeType)) {
+            logger.warn("Skipping execution of node {} with unknown type: {}", nodeId, nodeType);
+            return 0;
+        }
+        
         // Notify FE: node execution started
         messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
             Map.of("type", "node_execution", "nodeId", nodeId, "status", "started"));
+        
         int executed = 0;
-        if ("action".equals(node.get("type").asText())) {
-            executeActionNode(node, executionLogs, flowId);
+        boolean nodeSucceeded = false;
+        
+        if ("action".equals(nodeType)) {
+            nodeSucceeded = executeActionNode(node, executionLogs, flowId);
             executed++;
-        } else if ("manualTrigger".equals(node.get("type").asText()) || "cronTrigger".equals(node.get("type").asText())) {
-            // Simulate trigger node execution
+        } else if ("manualTrigger".equals(nodeType) || "cronTrigger".equals(nodeType)) {
+            // Trigger nodes always succeed
+            nodeSucceeded = true;
             executed++;
         }
-        List<String> children = graph.getOrDefault(nodeId, List.of());
+        
+        // Determine which graph to use based on execution result
+        Map<String, List<String>> graphToUse = nodeSucceeded ? successGraph : failureGraph;
+        List<String> children = graphToUse.getOrDefault(nodeId, List.of());
+        
+        // Debug logging
+        logger.info("Node {} execution result: success={}, using graph: {}", 
+            nodeId, nodeSucceeded, nodeSucceeded ? "success" : "failure");
+        logger.info("Node {} children from {} graph: {}", 
+            nodeId, nodeSucceeded ? "success" : "failure", children);
+        
         for (String child : children) {
-            executed += traverseAndExecuteWithEvents(child, nodeMap, graph, visited, executionLogs, flowId);
+            executed += traverseAndExecuteWithEvents(child, nodeMap, successGraph, failureGraph, visited, executionLogs, flowId);
         }
+        
         return executed;
     }
 
-    private void executeActionNode(JsonNode node, StringBuilder executionLogs, String flowId) {
+    private void collectReachableNodes(String nodeId, Map<String, List<String>> successGraph, 
+                                     Map<String, List<String>> failureGraph, Set<String> reachableNodes) {
+        if (reachableNodes.contains(nodeId)) return;
+        reachableNodes.add(nodeId);
+        
+        // Add all children from both success and failure graphs
+        List<String> successChildren = successGraph.getOrDefault(nodeId, List.of());
+        List<String> failureChildren = failureGraph.getOrDefault(nodeId, List.of());
+        
+        for (String child : successChildren) {
+            collectReachableNodes(child, successGraph, failureGraph, reachableNodes);
+        }
+        for (String child : failureChildren) {
+            collectReachableNodes(child, successGraph, failureGraph, reachableNodes);
+        }
+    }
+
+    private boolean executeActionNode(JsonNode node, StringBuilder executionLogs, String flowId) {
         try {
             // Extract configuration from node data
             JsonNode data = node.get("data");
@@ -225,6 +319,14 @@ public class FlowExecutionService {
             messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
                 Map.of("type", "node_log", "nodeId", nodeId, "log", finalStatus));
             
+            // Debug logging for success/failure determination
+            boolean isSuccess = result.exitCode == 0;
+            logger.info("Node {} execution completed - exitCode: {}, status: {}, isSuccess: {}", 
+                nodeId, result.exitCode, result.status, isSuccess);
+            
+            // Return true if execution was successful (exit code 0)
+            return isSuccess;
+            
         } catch (Exception e) {
             logger.error("Error executing action node: {}", e.getMessage(), e);
             
@@ -240,6 +342,9 @@ public class FlowExecutionService {
             dataNode.put("error", e.getMessage());
             messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
                 Map.of("type", "node_log", "nodeId", nodeId, "log", "Node failed: " + e.getMessage()));
+            
+            // Return false for failed execution
+            return false;
         }
     }
 
