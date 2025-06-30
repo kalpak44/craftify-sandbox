@@ -10,6 +10,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import {createFlow, updateFlow, executeFlow} from '../services/API';
 import { Client } from '@stomp/stompjs';
+import { useDebouncedCallback } from 'use-debounce';
 
 import {
     PlaceholderNode,
@@ -582,6 +583,27 @@ export const FlowCreationPage = () => {
     // Hydrate nodes with orange border if executing
     const hydratedNodes = nodes;
 
+    // Autosave logic
+    const debouncedSave = useDebouncedCallback(async (nodes, edges, flowName, flowDescription, flowActive, id) => {
+        if (!id) return;
+        try {
+            const token = await getAccessTokenSilently();
+            const flowData = {
+                name: flowName,
+                description: flowDescription,
+                configuration: JSON.stringify({ nodes, edges }),
+                active: flowActive,
+            };
+            await updateFlow(token, id, flowData);
+        } catch (e) {
+            console.error('Autosave failed', e);
+        }
+    }, 1000); // 1s debounce
+
+    useEffect(() => {
+        debouncedSave(nodes, edges, flowName, flowDescription, flowActive, id);
+    }, [nodes, edges, flowName, flowDescription, flowActive, id, debouncedSave]);
+
     return (
         <div className="h-screen flex overflow-hidden overflow-x-hidden">
             <LeftPanel
@@ -667,7 +689,18 @@ export const FlowCreationPage = () => {
                                                 key={key}
                                                 label={key}
                                                 value={value}
-                                                onChange={val => setConfig(cfg => ({ ...cfg, [key]: val }))}
+                                                onChange={val => {
+                                                    setConfig(cfg => ({ ...cfg, [key]: val }));
+                                                    if (selectedActionNode) {
+                                                        setNodes(nds =>
+                                                            nds.map(node =>
+                                                                node.id === selectedActionNode.id
+                                                                    ? { ...node, data: { ...node.data, [key]: val } }
+                                                                    : node
+                                                            )
+                                                        );
+                                                    }
+                                                }}
                                             />
                                         ))}
                                     </div>
