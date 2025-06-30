@@ -139,9 +139,10 @@ public class FlowExecutionService {
                     Instant.now(), ignoredNodes.size(), ignoredNodes));
             }
 
-            Set<String> visited = new HashSet<>();
+            Set<String> visitedSuccess = new HashSet<>();
+            Set<String> visitedFailure = new HashSet<>();
             for (String root : roots) {
-                nodesExecuted += traverseAndExecuteWithEvents(root, nodeMap, successGraph, failureGraph, visited, executionLogs, flow.getId());
+                nodesExecuted += traverseAndExecuteWithEvents(root, nodeMap, successGraph, failureGraph, visitedSuccess, visitedFailure, true, executionLogs, flow.getId());
             }
 
             // Note: Nodes with no incoming edges are ignored as per requirements
@@ -197,7 +198,8 @@ public class FlowExecutionService {
     private int traverseAndExecuteWithEvents(String nodeId, Map<String, JsonNode> nodeMap, 
                                            Map<String, List<String>> successGraph, 
                                            Map<String, List<String>> failureGraph, 
-                                           Set<String> visited, StringBuilder executionLogs, String flowId) {
+                                           Set<String> visitedSuccess, Set<String> visitedFailure, boolean cameFromSuccess, StringBuilder executionLogs, String flowId) {
+        Set<String> visited = cameFromSuccess ? visitedSuccess : visitedFailure;
         if (visited.contains(nodeId)) return 0;
         visited.add(nodeId);
         JsonNode node = nodeMap.get(nodeId);
@@ -237,7 +239,7 @@ public class FlowExecutionService {
             nodeId, nodeSucceeded ? "success" : "failure", children);
         
         for (String child : children) {
-            executed += traverseAndExecuteWithEvents(child, nodeMap, successGraph, failureGraph, visited, executionLogs, flowId);
+            executed += traverseAndExecuteWithEvents(child, nodeMap, successGraph, failureGraph, visitedSuccess, visitedFailure, nodeSucceeded, executionLogs, flowId);
         }
         
         return executed;
