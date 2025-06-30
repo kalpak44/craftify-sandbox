@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import PropTypes from 'prop-types';
 
-const GenericNode = ({ data}) => {
+const GenericNode = ({ data, selected }) => {
     // Parse configuration to get docker image and timeout
     let dockerImage = '';
     let command = '';
@@ -19,7 +19,9 @@ const GenericNode = ({ data}) => {
     }
 
     return (
-        <div className="border border-green-500 rounded-lg p-4 bg-green-900 relative">
+        <div
+            className={`border border-green-500 rounded-lg p-4 bg-green-900 relative transition-shadow duration-200 ${selected ? 'ring-4 ring-green-400 shadow-2xl z-10' : ''}`}
+        >
             <div className="absolute top-1 right-1 flex gap-2">
                 <button 
                     className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500"

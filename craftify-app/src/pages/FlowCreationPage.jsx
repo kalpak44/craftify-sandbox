@@ -43,6 +43,15 @@ export const FlowCreationPage = () => {
     const [rightDragPanelOpen, setRightDragPanelOpen] = useState(false);
     const [leftPanelOpen, setLeftPanelOpen] = useState(true);
 
+    // State for bottom bar and selected action node
+    const [selectedActionNode, setSelectedActionNode] = useState(null);
+    const [bottomBarOpen, setBottomBarOpen] = useState(false);
+    const [bottomBarHeight, setBottomBarHeight] = useState(180); // default height
+    const [isResizingBar, setIsResizingBar] = useState(false);
+    const startYRef = useRef(0);
+    const startHeightRef = useRef(0);
+    const [selectedNodeId, setSelectedNodeId] = useState(null);
+
     const {
         loading,
         flowName,
@@ -125,6 +134,9 @@ export const FlowCreationPage = () => {
 
     const hydrateNode = (node) => {
         const base = {...node};
+        if (node.type === 'action') {
+            base.selected = node.id === selectedNodeId;
+        }
         if (node.type === 'placeholder') {
             base.data = {onClick: () => handlePlaceholderClick(node.id)};
         }
@@ -180,6 +192,10 @@ export const FlowCreationPage = () => {
                 ...node.data,
                 onRemove: () => {
                     setNodes((nds) => nds.filter((n) => n.id !== node.id));
+                },
+                onClick: () => {
+                    setSelectedActionNode(base);
+                    setBottomBarOpen(true);
                 },
             };
         }
@@ -276,6 +292,49 @@ export const FlowCreationPage = () => {
         }
     };
 
+    // Drag handlers for bottom bar
+    const handleBarMouseDown = (e) => {
+        setIsResizingBar(true);
+        startYRef.current = e.clientY;
+        startHeightRef.current = bottomBarHeight;
+        document.body.style.cursor = 'ns-resize';
+        document.body.style.userSelect = 'none';
+    };
+    useEffect(() => {
+        if (!isResizingBar) return;
+        const handleMouseMove = (e) => {
+            const deltaY = startYRef.current - e.clientY;
+            let newHeight = Math.max(100, Math.min(400, startHeightRef.current + deltaY));
+            setBottomBarHeight(newHeight);
+        };
+        const handleMouseUp = () => {
+            setIsResizingBar(false);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isResizingBar]);
+
+    // Close bottom bar if no node is selected
+    useEffect(() => {
+        if (!selectedNodeId) {
+            setBottomBarOpen(false);
+            setSelectedActionNode(null);
+        } else {
+            // If the selected node is not an action node, also close
+            const node = nodes.find(n => n.id === selectedNodeId && n.type === 'action');
+            if (!node) {
+                setBottomBarOpen(false);
+                setSelectedActionNode(null);
+            }
+        }
+    }, [selectedNodeId, nodes]);
+
     return (
         <div className="h-screen flex overflow-hidden">
             <LeftPanel
@@ -309,6 +368,16 @@ export const FlowCreationPage = () => {
                         onInit={setReactFlowInstance}
                         nodeTypes={nodeTypes}
                         fitView
+                        onNodeClick={(event, node) => {
+                            setSelectedNodeId(node.id);
+                            if (node.type === 'action' && node.data?.onClick) {
+                                node.data.onClick();
+                            }
+                        }}
+                        onPaneClick={() => {
+                            setSelectedNodeId(null);
+                            setSelectedActionNode(null);
+                        }}
                     >
                         <Background variant="dots" gap={12} size={1}/>
                     </ReactFlow>
@@ -319,6 +388,36 @@ export const FlowCreationPage = () => {
                     setRightDragPanelOpen={setRightDragPanelOpen}
                     onNodeTemplateSelect={handleNodeTemplateSelect}
                 />
+
+                {/* Bottom Bar for Action Node Logs */}
+                {selectedActionNode && (
+                    <div
+                        className="absolute left-0 right-0 bottom-0 bg-gray-900 text-white border-t border-gray-700 z-50 flex flex-col"
+                        style={{ minHeight: '100px', maxHeight: '400px', height: bottomBarHeight }}
+                    >
+                        {/* Drag handle */}
+                        <div
+                            className="w-full h-3 cursor-ns-resize flex items-center justify-center bg-gray-800 border-b border-gray-700"
+                            onMouseDown={handleBarMouseDown}
+                            style={{ userSelect: 'none' }}
+                        >
+                            <div className="w-12 h-1 rounded bg-gray-600" />
+                        </div>
+                        <div className="flex-1 flex flex-col overflow-y-auto">
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                <div className="font-bold text-lg">
+                                    Node Logs: {selectedActionNode.data?.label || selectedActionNode.data?.templateName || selectedActionNode.id}
+                                </div>
+                            </div>
+                            <div className="mt-3 font-mono text-base text-gray-200">
+                                {/* Mock logs for now */}
+                                <div>[12:00:01] Node started execution...</div>
+                                <div>[12:00:02] Node completed successfully.</div>
+                                <div>[12:00:03] Output: {'{"result": "42"}'}</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <TriggerSelectionPanel
