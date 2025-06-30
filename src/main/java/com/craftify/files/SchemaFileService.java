@@ -26,6 +26,10 @@ public class SchemaFileService {
     }
 
     public List<SchemaFile> listSchemasByFolder(String userId, String folderId) {
+        if (folderId == null || folderId.equals("root")) {
+            // Return schemas where folderId is null or 'root'
+            return schemaFileRepository.findByUserIdAndFolderIdIsNullOrFolderId(userId, "root");
+        }
         return schemaFileRepository.findByUserIdAndFolderId(userId, folderId);
     }
 

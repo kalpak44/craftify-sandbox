@@ -80,6 +80,25 @@ public class FileNodeController {
             schemasByFolder.computeIfAbsent(schema.getFolderId(), k -> new ArrayList<>()).add(schema);
         }
         List<Map<String, Object>> tree = new ArrayList<>();
+        List<SchemaFile> rootSchemas = new ArrayList<>();
+        for (SchemaFile schema : allSchemas) {
+            if (schema.getFolderId() == null || "root".equals(schema.getFolderId())) {
+                rootSchemas.add(schema);
+            }
+        }
+        for (SchemaFile schema : rootSchemas) {
+            Map<String, Object> schemaNode = new HashMap<>();
+            schemaNode.put("id", schema.getId());
+            String name = schema.getName();
+            if (name != null && name.contains(".")) {
+                name = name.substring(0, name.lastIndexOf('.'));
+            }
+            schemaNode.put("name", name);
+            schemaNode.put("type", "schema");
+            schemaNode.put("folderId", schema.getFolderId());
+            schemaNode.put("children", new ArrayList<>());
+            tree.add(schemaNode);
+        }
         for (FileNode folder : allFolders) {
             if (folder.getParentId() == null) {
                 tree.add(buildFolderNode(folder, allFolders, schemasByFolder));

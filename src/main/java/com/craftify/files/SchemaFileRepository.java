@@ -6,4 +6,5 @@ import java.util.List;
 public interface SchemaFileRepository extends MongoRepository<SchemaFile, String> {
     List<SchemaFile> findByUserIdAndFolderId(String userId, String folderId);
     List<SchemaFile> findByUserId(String userId);
+    List<SchemaFile> findByUserIdAndFolderIdIsNullOrFolderId(String userId, String folderId);
 } 
