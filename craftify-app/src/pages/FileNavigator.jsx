@@ -60,7 +60,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
         try {
             const accessToken = await getAccessTokenSilently();
             const data = await apiListFolders(accessToken, parentId);
-            setItems(data);
+            setItems(data.map(item => ({ ...item, isFavorite: item.favorite })));
         } catch (e) {
             setError("Failed to load folders: " + e.message);
         } finally {
@@ -212,6 +212,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                 const accessToken = await getAccessTokenSilently();
                 await apiDeleteFolder(accessToken, dialog.item.id);
                 fetchItems(currentFolder);
+                if (onFavoriteToggled) onFavoriteToggled();
             } catch (e) {
                 setError("Failed to delete folder: " + e.message);
             } finally {
@@ -242,7 +243,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                             <FolderItem
                                 key=".."
                                 item={{ id: "..", name: "..", isFavorite: false }}
-                                openFolder={() => goToBreadcrumb(path.length - 2)}
+                                openFolder={() => goToBreadcrumb(path.length - 2 >= 0 ? path.length - 2 : -1)}
                                 handleFolderContextMenu={() => {}}
                             />
                         )}

@@ -21,6 +21,25 @@ const MinimalLeftPanel = ({ leftPanelOpen, setLeftPanelOpen, favorites, onFavori
     const [viewExpanded, setViewExpanded] = useState(false);
     const [viewMode, setViewMode] = useState('list');
 
+    function renderFavoriteTree(favs, onFavoriteClick, level = 0) {
+        return favs.map(fav => (
+            <li key={fav.id} style={{ marginLeft: level * 16 }}>
+                <button
+                    className="text-blue-300 hover:underline w-full text-left px-2 py-1 flex items-center gap-2"
+                    onClick={() => onFavoriteClick(fav)}
+                >
+                    <span>📁</span>
+                    <span>{fav.name}</span>
+                </button>
+                {fav.children && fav.children.length > 0 && (
+                    <ul>
+                        {renderFavoriteTree(fav.children, onFavoriteClick, level + 1)}
+                    </ul>
+                )}
+            </li>
+        ));
+    }
+
     return (
         <div className={`transition-all bg-gray-900 text-white p-4 ${leftPanelOpen ? 'w-80' : 'w-12'} flex flex-col`}>
             <button
@@ -44,10 +63,11 @@ const MinimalLeftPanel = ({ leftPanelOpen, setLeftPanelOpen, favorites, onFavori
                                 {favorites.map(fav => (
                                     <li key={fav.id}>
                                         <button
-                                            className="text-blue-300 hover:underline w-full text-left px-2 py-1"
+                                            className="text-blue-300 hover:underline w-full text-left px-2 py-1 flex items-center gap-2"
                                             onClick={() => onFavoriteClick(fav)}
                                         >
-                                            📁 {fav.name}
+                                            <span>📁</span>
+                                            <span>{fav.name}</span>
                                         </button>
                                     </li>
                                 ))}
@@ -86,16 +106,30 @@ export const CreateObjectPage = () => {
     const [favorites, setFavorites] = useState([]);
     const [navigateToFolder, setNavigateToFolder] = useState(null);
 
-    async function fetchFavorites() {
+    // Helper to recursively collect all favorite folders
+    const collectAllFavorites = async (accessToken, parentId = null) => {
+        const folders = await listFolders(accessToken, parentId);
+        let favorites = [];
+        for (const folder of folders) {
+            if (folder.favorite) {
+                favorites.push({ ...folder, isFavorite: true });
+            }
+            // Always recurse to find favorites at any depth
+            favorites = favorites.concat(await collectAllFavorites(accessToken, folder.id));
+        }
+        return favorites;
+    };
+
+    const fetchFavorites = async () => {
         if (!user) return;
         try {
             const accessToken = await getAccessTokenSilently();
-            const favs = await listFolders(accessToken, null); // get all root folders
-            setFavorites(favs.filter(f => f.isFavorite));
+            const favs = await collectAllFavorites(accessToken, null);
+            setFavorites(favs);
         } catch (e) {
             setFavorites([]);
         }
-    }
+    };
 
     useEffect(() => {
         fetchFavorites();

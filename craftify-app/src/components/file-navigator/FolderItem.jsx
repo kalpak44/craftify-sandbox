@@ -15,10 +15,22 @@ export default function FolderItem({ item, openFolder, handleFolderContextMenu }
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openFolder(item); }}
         >
             {!isUpFolder && (
-                <span style={{ fontSize: '2.5rem' }}>📁</span>
+                <span style={{ fontSize: '2.5rem', position: 'relative', display: 'inline-block' }}>
+                    📁
+                    {item.isFavorite && (
+                        <span style={{
+                            position: 'absolute',
+                            top: '-0.7em',
+                            right: '-0.7em',
+                            fontSize: '1.5rem',
+                            color: '#FFD700',
+                            pointerEvents: 'none',
+                            textShadow: '0 0 2px #333'
+                        }}>★</span>
+                    )}
+                </span>
             )}
             <span className={isUpFolder ? "mt-2 font-semibold text-lg text-yellow-400 break-all" : "mt-2 font-semibold text-lg text-blue-200 break-all"}>{item.name}</span>
-            {item.isFavorite && <span className="absolute top-2 right-2 text-yellow-400 text-xl">★</span>}
         </div>
     );
 }
