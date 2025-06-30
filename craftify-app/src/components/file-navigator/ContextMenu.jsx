@@ -20,10 +20,12 @@ export default function ContextMenu({ contextMenu, contextMenuRef, handleContext
                     <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("favorite", contextMenu.item)} onKeyDown={e => { if (e.key === 'Enter') handleContextMenuAction("favorite", contextMenu.item); }}>
                         {contextMenu.item.isFavorite ? "Remove from Favorites" : "Add to Favorites"}
                     </li>
+                    <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("createSchema", contextMenu.item)} onKeyDown={e => { if (e.key === 'Enter') handleContextMenuAction("createSchema", contextMenu.item); }}>Create Schema</li>
                 </ul>
             ) : (
                 <ul>
                     <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("create")}>Create Folder</li>
+                    <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" role="menuitem" tabIndex={0} onClick={() => handleContextMenuAction("createSchema")}>Create Schema</li>
                 </ul>
             )}
         </div>

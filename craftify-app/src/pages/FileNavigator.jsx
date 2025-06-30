@@ -12,6 +12,7 @@ import Breadcrumbs from "../components/file-navigator/Breadcrumbs";
 import FolderItem from "../components/file-navigator/FolderItem";
 import ContextMenu from "../components/file-navigator/ContextMenu";
 import FolderDialog from "../components/file-navigator/FolderDialog";
+import { useNavigate } from "react-router-dom";
 
 export default function FileNavigator({ userId, navigateToFolder, onFavoriteToggled }) {
     const { getAccessTokenSilently } = useAuth0();
@@ -25,6 +26,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
     const contextMenuRef = useRef();
     const prevNavigateToFolder = useRef(null);
     const [dialog, setDialog] = useState({ open: false, type: null, item: null, defaultValue: "" });
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchItems(currentFolder);
@@ -166,6 +168,10 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                 break;
             case "create":
                 setDialog({ open: true, type: "create", item: null, defaultValue: "" });
+                break;
+            case "createSchema":
+                const folderId = item?.id || currentFolder;
+                navigate(`/schemas/${folderId || 'root'}/new`);
                 break;
             default:
                 break;

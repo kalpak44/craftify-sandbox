@@ -16,6 +16,7 @@ import {FlowCreationPage} from "./pages/FlowCreationPage.jsx";
 import {NodeTemplatePage} from "./pages/NodeTemplatePage.jsx";
 import {PageFullLayout} from "./components/page-layout/PageFullLayout.jsx";
 import {CreateObjectPage} from "./pages/CreateObjectPage.jsx";
+import SchemaEditor from "./pages/SchemaEditor.jsx";
 
 
 export default function App() {
@@ -75,6 +76,10 @@ export default function App() {
             <Route
                 path="/data-modeler"
                 element={<AuthenticationGuard component={() => <PageFullLayout><CreateObjectPage/></PageFullLayout>}/>}
+            />
+            <Route
+                path="/schemas/:folderId/new"
+                element={<AuthenticationGuard component={() => <PageFullLayout><SchemaEditor /></PageFullLayout>} />}
             />
 
             <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
