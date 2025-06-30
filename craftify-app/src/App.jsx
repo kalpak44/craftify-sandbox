@@ -19,6 +19,7 @@ import {CreateObjectPage} from "./pages/CreateObjectPage.jsx";
 import SchemaEditor from "./pages/SchemaEditor.jsx";
 import SchemaTablePage from "./pages/SchemaTablePage.jsx";
 import { FileStructureProvider } from "./components/file-navigator/FileStructureContext";
+import SchemaAddDataPage from "./pages/SchemaAddDataPage.jsx";
 
 
 export default function App() {
@@ -87,6 +88,14 @@ export default function App() {
                 <Route
                     path="/schemas/:schemaId"
                     element={<AuthenticationGuard component={() => <PageFullLayout><SchemaTablePage /></PageFullLayout>} />}
+                />
+                <Route
+                    path="/schemas/:schemaId/table"
+                    element={<AuthenticationGuard component={() => <PageLayout><SchemaTablePage /></PageLayout>} />}
+                />
+                <Route
+                    path="/schemas/:schemaId/add"
+                    element={<AuthenticationGuard component={() => <PageFullLayout><SchemaAddDataPage /></PageFullLayout>} />}
                 />
 
                 <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
