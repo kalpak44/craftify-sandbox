@@ -10,6 +10,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.Map;
 
@@ -20,11 +21,13 @@ public class FlowController {
     private final FlowService flowService;
     private final FlowExecutionService flowExecutionService;
     private final AuthUtil authUtil;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public FlowController(FlowService flowService, FlowExecutionService flowExecutionService, AuthUtil authUtil) {
+    public FlowController(FlowService flowService, FlowExecutionService flowExecutionService, AuthUtil authUtil, SimpMessagingTemplate messagingTemplate) {
         this.flowService = flowService;
         this.flowExecutionService = flowExecutionService;
         this.authUtil = authUtil;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping

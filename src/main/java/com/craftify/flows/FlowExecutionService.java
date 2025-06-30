@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -33,15 +34,18 @@ public class FlowExecutionService {
     private final FlowExecutionHistoryService flowExecutionHistoryService;
     private final TaskService taskService;
     private final KubernetesClient kubernetesClient;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public FlowExecutionService(ObjectMapper objectMapper, 
                               FlowExecutionHistoryService flowExecutionHistoryService,
                               TaskService taskService,
-                              KubernetesClient kubernetesClient) {
+                              KubernetesClient kubernetesClient,
+                              SimpMessagingTemplate messagingTemplate) {
         this.objectMapper = objectMapper;
         this.flowExecutionHistoryService = flowExecutionHistoryService;
         this.taskService = taskService;
         this.kubernetesClient = kubernetesClient;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public Flow executeFlow(Flow flow) {
@@ -89,7 +93,7 @@ public class FlowExecutionService {
 
             Set<String> visited = new HashSet<>();
             for (String root : roots) {
-                nodesExecuted += traverseAndExecute(root, nodeMap, graph, visited, executionLogs);
+                nodesExecuted += traverseAndExecuteWithEvents(root, nodeMap, graph, visited, executionLogs, flow.getId());
             }
 
             // Return updated config as JSON string
@@ -109,6 +113,9 @@ public class FlowExecutionService {
                 executionLogs.toString()
             );
 
+            // Notify FE: flow completed
+            messagingTemplate.convertAndSend("/topic/flow-execution/" + flow.getId(),
+                Map.of("type", "flow_execution", "status", "completed"));
             return flow;
 
         } catch (Exception e) {
@@ -128,32 +135,35 @@ public class FlowExecutionService {
                 executionLogs.toString()
             );
             
+            // Notify FE: flow failed
+            messagingTemplate.convertAndSend("/topic/flow-execution/" + flow.getId(),
+                Map.of("type", "flow_execution", "status", "failed", "error", e.getMessage()));
+            
             throw new ServerException("Error executing flow: %s".formatted(e.getMessage()));
         }
     }
 
-    private int traverseAndExecute(String nodeId,
-                                   Map<String, JsonNode> nodeMap,
-                                   Map<String, List<String>> graph,
-                                   Set<String> visited,
-                                   StringBuilder executionLogs) {
+    private int traverseAndExecuteWithEvents(String nodeId, Map<String, JsonNode> nodeMap, Map<String, List<String>> graph, Set<String> visited, StringBuilder executionLogs, String flowId) {
         if (visited.contains(nodeId)) return 0;
         visited.add(nodeId);
-
-        int nodesExecuted = 0;
         JsonNode node = nodeMap.get(nodeId);
-        if (node != null && "action".equals(node.get("type").asText())) {
-            // Execute the action node using Kubernetes job
+        if (node == null) return 0;
+        // Notify FE: node execution started
+        messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
+            Map.of("type", "node_execution", "nodeId", nodeId, "status", "started"));
+        int executed = 0;
+        if ("action".equals(node.get("type").asText())) {
             executeActionNode(node, executionLogs);
-            nodesExecuted = 1;
+            executed++;
+        } else if ("manualTrigger".equals(node.get("type").asText()) || "cronTrigger".equals(node.get("type").asText())) {
+            // Simulate trigger node execution
+            executed++;
         }
-
         List<String> children = graph.getOrDefault(nodeId, List.of());
-        for (String childId : children) {
-            nodesExecuted += traverseAndExecute(childId, nodeMap, graph, visited, executionLogs);
+        for (String child : children) {
+            executed += traverseAndExecuteWithEvents(child, nodeMap, graph, visited, executionLogs, flowId);
         }
-        
-        return nodesExecuted;
+        return executed;
     }
 
     private void executeActionNode(JsonNode node, StringBuilder executionLogs) {

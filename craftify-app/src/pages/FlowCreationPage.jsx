@@ -9,6 +9,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {createFlow, updateFlow, executeFlow} from '../services/API';
+import { Client } from '@stomp/stompjs';
 
 import {
     PlaceholderNode,
@@ -159,6 +160,8 @@ export const FlowCreationPage = () => {
     const [variables, setVariables] = useState([]); // system variables
     const [secrets, setSecrets] = useState([]); // secrets
     const [config, setConfig] = useState({});
+
+    const [executingNodeId, setExecutingNodeId] = useState(null);
 
     // Sync config state with selectedActionNode
     useEffect(() => {
@@ -487,6 +490,64 @@ export const FlowCreationPage = () => {
         }
     }, [selectedNodeId, nodes]);
 
+    useEffect(() => {
+        if (!id) return;
+        let client;
+        let isActive = true;
+        (async () => {
+            const token = await getAccessTokenSilently();
+            if (!isActive) return;
+            client = new Client({
+                brokerURL: 'ws://localhost:8080/ws-native',
+                reconnectDelay: 5000,
+                connectHeaders: {
+                    Authorization: `Bearer ${token}`,
+                },
+                debug: (str) => console.log('[STOMP DEBUG]', str),
+            });
+            client.onConnect = (frame) => {
+                console.log('[STOMP] Connected:', frame);
+                client.subscribe(`/topic/flow-execution/${id}`, (message) => {
+                    console.log('[STOMP] Message received:', message.body);
+                    const data = JSON.parse(message.body);
+                    if (data.type === 'node_execution' && data.status === 'started') {
+                        setExecutingNodeId(data.nodeId);
+                    }
+                    if (data.type === 'flow_execution' && data.status === 'completed') {
+                        setExecutingNodeId(null);
+                        alert('Flow execution completed!');
+                    }
+                    if (data.type === 'flow_execution' && data.status === 'failed') {
+                        setExecutingNodeId(null);
+                        alert('Flow execution failed: ' + (data.error || 'Unknown error'));
+                    }
+                });
+                console.log('[STOMP] Subscribed to', `/topic/flow-execution/${id}`);
+            };
+            client.onStompError = (frame) => {
+                console.error('[STOMP] Broker error:', frame.headers['message'], frame.body);
+            };
+            client.onWebSocketError = (event) => {
+                console.error('[STOMP] WebSocket error:', event);
+            };
+            client.onDisconnect = (frame) => {
+                console.log('[STOMP] Disconnected:', frame);
+            };
+            client.activate();
+        })();
+        return () => {
+            isActive = false;
+            if (client) client.deactivate();
+        };
+    }, [id, getAccessTokenSilently]);
+
+    // Hydrate nodes with orange border if executing
+    const hydratedNodes = nodes.map(node =>
+        node.id === executingNodeId
+            ? { ...node, style: { ...(node.style || {}), border: '3px solid orange' } }
+            : node
+    );
+
     return (
         <div className="h-screen flex overflow-hidden overflow-x-hidden">
             <LeftPanel
@@ -506,7 +567,7 @@ export const FlowCreationPage = () => {
             <div className="flex-1 bg-gray-800 relative overflow-x-hidden" ref={reactFlowWrapper}>
                 {!loading && (
                     <ReactFlow
-                        nodes={nodes}
+                        nodes={hydratedNodes}
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
