@@ -376,3 +376,8 @@ export const deleteSchemaFile = async (accessToken, schemaId) => {
     }
     return response.ok;
 };
+
+export const getFolderSchemaTree = async (accessToken) => {
+    const response = await fetchWithAuth(accessToken, "/files/tree");
+    return response.json();
+};

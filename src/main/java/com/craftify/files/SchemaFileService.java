@@ -32,4 +32,8 @@ public class SchemaFileService {
     public void deleteSchema(String id) {
         schemaFileRepository.deleteById(id);
     }
+
+    public List<SchemaFile> listSchemasByUser(String userId) {
+        return schemaFileRepository.findByUserId(userId);
+    }
 } 

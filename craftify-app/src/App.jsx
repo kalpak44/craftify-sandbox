@@ -17,6 +17,7 @@ import {NodeTemplatePage} from "./pages/NodeTemplatePage.jsx";
 import {PageFullLayout} from "./components/page-layout/PageFullLayout.jsx";
 import {CreateObjectPage} from "./pages/CreateObjectPage.jsx";
 import SchemaEditor from "./pages/SchemaEditor.jsx";
+import SchemaTablePage from "./pages/SchemaTablePage.jsx";
 
 
 export default function App() {
@@ -80,6 +81,10 @@ export default function App() {
             <Route
                 path="/schemas/:folderId/edit"
                 element={<AuthenticationGuard component={() => <PageFullLayout><SchemaEditor /></PageFullLayout>} />}
+            />
+            <Route
+                path="/schemas/:schemaId"
+                element={<AuthenticationGuard component={() => <PageFullLayout><SchemaTablePage /></PageFullLayout>} />}
             />
 
             <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
