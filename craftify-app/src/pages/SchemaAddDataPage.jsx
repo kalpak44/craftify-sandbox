@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import { getSchemaFile, createSchemaDataRecord } from "../services/API";
+import { getSchemaFile, createSchemaDataRecord, getSchemaDataRecord, updateSchemaDataRecord } from "../services/API";
 import SchemaDataBuilder from "../components/schema-data-builder/SchemaDataBuilder";
 
 const SchemaAddDataPage = () => {
     const { schemaId } = useParams();
+    const [searchParams] = useSearchParams();
+    const recordId = searchParams.get('recordId');
     const navigate = useNavigate();
     const { getAccessTokenSilently } = useAuth0();
     const [schema, setSchema] = useState(null);
@@ -15,10 +17,11 @@ const SchemaAddDataPage = () => {
     const [error, setError] = useState("");
     const [hasValidationErrors, setHasValidationErrors] = useState(false);
     const [validationFunction, setValidationFunction] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
-        async function fetchSchema() {
+        async function fetchSchemaAndData() {
             setLoading(true);
             setError("");
             try {
@@ -36,15 +39,37 @@ const SchemaAddDataPage = () => {
                     setSchema(parsed);
                     console.log("Loaded schema:", parsed);
                 }
+
+                // If editing, load the existing record data
+                if (recordId) {
+                    setIsEditing(true);
+                    try {
+                        const record = await getSchemaDataRecord(accessToken, recordId);
+                        setFormData(record.data || {});
+                        console.log("Loaded existing record data:", record.data);
+                    } catch (e) {
+                        console.error("Error loading existing record:", e);
+                        setError(`Failed to load existing record: ${e.message}`);
+                        // Don't return here, continue with the schema loading
+                    }
+                }
             } catch (e) {
-                setError(e.message);
+                console.error("Error fetching schema or data:", e);
+                // Check if the error message contains HTML indicators
+                if (e.message && (e.message.includes('<!doctype') || e.message.includes('<html') || e.message.includes('<!DOCTYPE'))) {
+                    setError("Server returned an HTML error page instead of JSON. This usually indicates a server configuration issue or authentication problem.");
+                } else {
+                    setError(`Failed to load schema: ${e.message}`);
+                }
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         }
-        fetchSchema();
+        fetchSchemaAndData();
         return () => { isMounted = false; };
-    }, [schemaId, getAccessTokenSilently]);
+    }, [schemaId, recordId, getAccessTokenSilently]);
 
     // Debug validation function
     useEffect(() => {
@@ -86,11 +111,20 @@ const SchemaAddDataPage = () => {
         try {
             const accessToken = await getAccessTokenSilently();
             console.log("Sending formData to backend:", formData);
-            const record = await createSchemaDataRecord(accessToken, schemaId, formData);
-            console.log("Created data record:", record);
             
-            // Navigate back to the table
-            navigate(`/schemas/${schemaId}/table`);
+            let record;
+            if (isEditing) {
+                // Update existing record
+                record = await updateSchemaDataRecord(accessToken, recordId, formData);
+                console.log("Updated data record:", record);
+            } else {
+                // Create new record
+                record = await createSchemaDataRecord(accessToken, schemaId, formData);
+                console.log("Created data record:", record);
+            }
+            
+            // Navigate back to the table with success indication
+            navigate(`/schemas/${schemaId}/table?updated=true`);
         } catch (e) {
             console.error("Error saving data:", e);
             setError("Failed to save data: " + e.message);
@@ -114,7 +148,7 @@ const SchemaAddDataPage = () => {
                     <button className="px-3 py-1 rounded bg-gray-700 text-white hover:bg-gray-600" onClick={handleCancel}>
                         ← Go Back
                     </button>
-                    <h1 className="text-2xl text-white font-semibold">Add Data - {schema.title || "Schema"}</h1>
+                    <h1 className="text-2xl text-white font-semibold">{isEditing ? "Edit" : "Add"} Data - {schema.title || "Schema"}</h1>
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -128,7 +162,7 @@ const SchemaAddDataPage = () => {
                         onClick={handleSave}
                         disabled={saving}
                     >
-                        {saving ? "Saving..." : "Save"}
+                        {saving ? "Saving..." : (isEditing ? "Update" : "Save")}
                     </button>
                 </div>
             </div>

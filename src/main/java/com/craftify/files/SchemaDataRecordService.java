@@ -1,9 +1,17 @@
 package com.craftify.files;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import com.craftify.common.exception.ResourceNotFoundException;
+
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.Map;
 
 @Service
 public class SchemaDataRecordService {
@@ -40,20 +48,6 @@ public class SchemaDataRecordService {
     }
     
     /**
-     * Update an existing record
-     */
-    public SchemaDataRecord updateRecord(String userId, String recordId, java.util.Map<String, Object> data) {
-        Optional<SchemaDataRecord> existingRecord = getRecord(userId, recordId);
-        if (existingRecord.isEmpty()) {
-            throw new RuntimeException("Record not found or access denied");
-        }
-        
-        SchemaDataRecord record = existingRecord.get();
-        record.setData(data);
-        return schemaDataRecordRepository.save(record);
-    }
-    
-    /**
      * Delete a specific record
      */
     public void deleteRecord(String userId, String recordId) {
@@ -82,5 +76,25 @@ public class SchemaDataRecordService {
      */
     public List<SchemaDataRecord> getAllUserRecords(String userId) {
         return schemaDataRecordRepository.findByUserId(userId);
+    }
+
+    public SchemaDataRecord findByIdAndUserId(String id, String userId) {
+        SchemaDataRecord record = schemaDataRecordRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Schema data record not found"));
+        
+        if (!record.getUserId().equals(userId)) {
+            throw new ResourceNotFoundException("Schema data record not found");
+        }
+        
+        return record;
+    }
+
+    public SchemaDataRecord updateRecord(String id, String userId, Map<String, Object> data) {
+        SchemaDataRecord existingRecord = findByIdAndUserId(id, userId);
+        
+        existingRecord.setData(data);
+        existingRecord.setUpdatedAt(Instant.now());
+        
+        return schemaDataRecordRepository.save(existingRecord);
     }
 } 

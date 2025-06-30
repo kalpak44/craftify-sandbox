@@ -390,27 +390,52 @@ export const createSchemaDataRecord = async (accessToken, schemaId, data) => {
     });
     
     if (!response.ok) {
-        throw new Error(`Failed to create data record: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to create data record: ${errorText}`);
     }
     
     return response.json();
 };
 
-export const getSchemaDataRecords = async (accessToken, schemaId) => {
-    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}`);
-    
+export const getSchemaDataRecords = async (accessToken, schemaId, page = 0, size = 20) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}?page=${page}&size=${size}`);
     if (!response.ok) {
-        throw new Error(`Failed to fetch data records: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch schema data records: ${errorText}`);
     }
+    const records = await response.json();
     
-    return response.json();
+    // Convert to table format with system properties and name/description
+    const tableData = records.map(record => ({
+        id: record.id,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt,
+        name: record.data?.name || null,
+        description: record.data?.description || null
+    }));
+    
+    // Implement client-side pagination
+    const startIndex = page * size;
+    const endIndex = startIndex + size;
+    const content = tableData.slice(startIndex, endIndex);
+    const totalElements = tableData.length;
+    const totalPages = Math.ceil(totalElements / size);
+    
+    return {
+        content,
+        totalElements,
+        totalPages,
+        currentPage: page,
+        size
+    };
 };
 
 export const getSchemaDataRecordsForTable = async (accessToken, schemaId) => {
     const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}/table`);
     
     if (!response.ok) {
-        throw new Error(`Failed to fetch table data: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch table data: ${errorText}`);
     }
     
     return response.json();
@@ -418,11 +443,10 @@ export const getSchemaDataRecordsForTable = async (accessToken, schemaId) => {
 
 export const getSchemaDataRecord = async (accessToken, recordId) => {
     const response = await fetchWithAuth(accessToken, `/schema-data/record/${recordId}`);
-    
     if (!response.ok) {
-        throw new Error(`Failed to fetch data record: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch schema data record: ${errorText}`);
     }
-    
     return response.json();
 };
 
@@ -431,11 +455,10 @@ export const updateSchemaDataRecord = async (accessToken, recordId, data) => {
         method: 'PUT',
         body: JSON.stringify(data)
     });
-    
     if (!response.ok) {
-        throw new Error(`Failed to update data record: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to update schema data record: ${errorText}`);
     }
-    
     return response.json();
 };
 
@@ -445,7 +468,8 @@ export const deleteSchemaDataRecord = async (accessToken, recordId) => {
     });
     
     if (!response.ok) {
-        throw new Error(`Failed to delete data record: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to delete data record: ${errorText}`);
     }
 };
 
@@ -453,7 +477,8 @@ export const getSchemaDataRecordCount = async (accessToken, schemaId) => {
     const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}/count`);
     
     if (!response.ok) {
-        throw new Error(`Failed to fetch record count: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch record count: ${errorText}`);
     }
     
     return response.json();
