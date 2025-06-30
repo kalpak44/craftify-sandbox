@@ -2,6 +2,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { getFolderSchemaTree } from "../../services/API";
+import { useFileStructureContext } from "../file-navigator/FileStructureContext.jsx";
 
 export const NavBarTabs = () => {
     const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -10,6 +11,7 @@ export const NavBarTabs = () => {
     const [dataMenuOpen, setDataMenuOpen] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
+    const { version } = useFileStructureContext();
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -19,7 +21,7 @@ export const NavBarTabs = () => {
                 .then(data => setTree(data))
                 .finally(() => setLoading(false));
         }
-    }, [isAuthenticated, getAccessTokenSilently]);
+    }, [isAuthenticated, getAccessTokenSilently, version]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -58,7 +60,7 @@ export const NavBarTabs = () => {
                                     onClick={e => {
                                         e.preventDefault();
                                         setDataMenuOpen(false);
-                                        navigate(`/schemas/${node.id}`);
+                                        navigate(`/schemas/${node.folderId}/edit`);
                                     }}
                                     className="nav-bar__dropdown-link"
                                 >

@@ -114,6 +114,7 @@ public class FileNodeController {
             }
             schemaNode.put("name", name);
             schemaNode.put("type", "schema");
+            schemaNode.put("folderId", schema.getFolderId());
             children.add(schemaNode);
         }
         for (FileNode subfolder : allFolders) {

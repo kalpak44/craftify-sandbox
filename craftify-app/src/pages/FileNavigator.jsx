@@ -16,6 +16,7 @@ import FolderItem from "../components/file-navigator/FolderItem";
 import ContextMenu from "../components/file-navigator/ContextMenu";
 import FolderDialog from "../components/file-navigator/FolderDialog";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useFileStructureContext } from "../components/file-navigator/FileStructureContext";
 
 export default function FileNavigator({ userId, navigateToFolder, onFavoriteToggled }) {
     const { getAccessTokenSilently } = useAuth0();
@@ -32,6 +33,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
     const [dialog, setDialog] = useState({ open: false, type: null, item: null, defaultValue: "" });
     const navigate = useNavigate();
     const location = useLocation();
+    const { notifyFileStructureChanged } = useFileStructureContext();
 
     // On mount, check for initial folderId from location.state
     useEffect(() => {
@@ -88,6 +90,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
             const accessToken = await getAccessTokenSilently();
             const schemas = await listSchemaFiles(accessToken, parentId ?? 'root');
             setSchemaFiles(schemas);
+            notifyFileStructureChanged();
         } catch (e) {
             // ignore schema fetch errors for now
         }
@@ -105,6 +108,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
             const accessToken = await getAccessTokenSilently();
             await apiCreateFolder(accessToken, { name, parentId: currentFolder });
             fetchItems(currentFolder);
+            notifyFileStructureChanged();
         } catch (e) {
             setError("Failed to create folder: " + e.message);
         } finally {
@@ -134,6 +138,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
             await apiToggleFavorite(accessToken, item.id);
             fetchItems(currentFolder);
             if (onFavoriteToggled) onFavoriteToggled();
+            notifyFileStructureChanged();
         } catch (e) {
             setError("Failed to toggle favorite: " + e.message);
         }
@@ -141,14 +146,17 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
 
     async function deleteFolder(item) {
         setDialog({ open: true, type: "delete", item });
+        notifyFileStructureChanged();
     }
 
     async function renameFolder(item) {
         setDialog({ open: true, type: "rename", item, defaultValue: item.name });
+        notifyFileStructureChanged();
     }
 
     async function moveFolder(item) {
         setDialog({ open: true, type: "move", item, defaultValue: item.parentId || "" });
+        notifyFileStructureChanged();
     }
 
     function handleFolderContextMenu(e, item) {
@@ -187,7 +195,8 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
         switch (action) {
             case "open":
                 if (contextMenu.type === "schema") {
-                    navigate(`/schemas/${currentFolder ?? 'root'}/edit`);
+                    const folderId = item.folderId || currentFolder || 'root';
+                    navigate(`/schemas/${folderId}/edit`);
                 } else {
                     openFolder(item);
                 }
