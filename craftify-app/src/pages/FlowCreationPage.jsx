@@ -45,8 +45,8 @@ export const FlowCreationPage = () => {
 
     // State for bottom bar and selected action node
     const [selectedActionNode, setSelectedActionNode] = useState(null);
-    const [bottomBarOpen, setBottomBarOpen] = useState(false);
-    const [bottomBarHeight, setBottomBarHeight] = useState(180); // default height
+    const [, setBottomBarOpen] = useState(false);
+    const [bottomBarHeight, setBottomBarHeight] = useState(180);
     const [isResizingBar, setIsResizingBar] = useState(false);
     const startYRef = useRef(0);
     const startHeightRef = useRef(0);
@@ -336,7 +336,7 @@ export const FlowCreationPage = () => {
     }, [selectedNodeId, nodes]);
 
     return (
-        <div className="h-screen flex overflow-hidden">
+        <div className="h-screen flex overflow-hidden overflow-x-hidden">
             <LeftPanel
                 leftPanelOpen={leftPanelOpen}
                 setLeftPanelOpen={setLeftPanelOpen}
@@ -351,7 +351,7 @@ export const FlowCreationPage = () => {
                 onSave={onSave}
             />
 
-            <div className="flex-1 bg-gray-800 relative" ref={reactFlowWrapper}>
+            <div className="flex-1 bg-gray-800 relative overflow-x-hidden" ref={reactFlowWrapper}>
                 {!loading && (
                     <ReactFlow
                         nodes={nodes}
