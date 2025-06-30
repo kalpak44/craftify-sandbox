@@ -284,3 +284,54 @@ export const deleteNodeTemplate = async (accessToken, nodeTemplateId) => {
     }
     return response.ok;
 };
+
+// File/Folder API
+export const listFolders = async (accessToken, parentId = null) => {
+    const url = parentId ? `/files?parentId=${parentId}` : "/files";
+    const response = await fetchWithAuth(accessToken, url);
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const createFolder = async (accessToken, { name, parentId }) => {
+    const response = await fetchWithAuth(accessToken, "/files", {
+        method: "POST",
+        body: JSON.stringify({ name, type: "folder", parentId })
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const deleteFolder = async (accessToken, id) => {
+    const response = await fetchWithAuth(accessToken, `/files/${id}`, {
+        method: "DELETE"
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return true;
+};
+
+export const renameFolder = async (accessToken, id, newName) => {
+    const response = await fetchWithAuth(accessToken, `/files/${id}/rename`, {
+        method: "PATCH",
+        body: JSON.stringify(newName)
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const moveFolder = async (accessToken, id, newParentId) => {
+    const response = await fetchWithAuth(accessToken, `/files/${id}/move`, {
+        method: "PATCH",
+        body: JSON.stringify(newParentId)
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const toggleFavorite = async (accessToken, id) => {
+    const response = await fetchWithAuth(accessToken, `/files/${id}/favorite`, {
+        method: "PATCH"
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
