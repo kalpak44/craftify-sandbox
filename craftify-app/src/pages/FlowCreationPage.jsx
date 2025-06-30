@@ -130,7 +130,7 @@ export const FlowCreationPage = () => {
 
     // State for bottom bar and selected action node
     const [selectedActionNode, setSelectedActionNode] = useState(null);
-    const [, setBottomBarOpen] = useState(false);
+    const [bottomBarOpen, setBottomBarOpen] = useState(false);
     const [bottomBarHeight, setBottomBarHeight] = useState(180);
     const [isResizingBar, setIsResizingBar] = useState(false);
     const startYRef = useRef(0);
@@ -155,6 +155,12 @@ export const FlowCreationPage = () => {
     const [config, setConfig] = useState({});
 
     const [executingNodeId, setExecutingNodeId] = useState(null);
+
+    // Add state to store logs for each node
+    const [nodeLogs, setNodeLogs] = useState({});
+
+    // Track if a flow execution is in progress to clear logs on new execution
+    const executionInProgress = useRef(false);
 
     // Move nodeTypes here so it can access executingNodeId
     const nodeTypes = useMemo(() => ({
@@ -479,14 +485,17 @@ export const FlowCreationPage = () => {
     // Close bottom bar if no node is selected
     useEffect(() => {
         if (!selectedNodeId) {
-            setBottomBarOpen(false);
             setSelectedActionNode(null);
+            setBottomBarOpen(false);
         } else {
-            // If the selected node is not an action node, also close
+            // Find the node and set as selectedActionNode
             const node = nodes.find(n => n.id === selectedNodeId && n.type === 'action');
-            if (!node) {
-                setBottomBarOpen(false);
+            if (node) {
+                setSelectedActionNode(node);
+                setBottomBarOpen(true);
+            } else {
                 setSelectedActionNode(null);
+                setBottomBarOpen(false);
             }
         }
     }, [selectedNodeId, nodes]);
@@ -512,14 +521,35 @@ export const FlowCreationPage = () => {
                     console.log('[STOMP] Message received:', message.body);
                     const data = JSON.parse(message.body);
                     if (data.type === 'node_execution' && data.status === 'started') {
+                        // If not already in progress, clear logs for all nodes
+                        if (!executionInProgress.current) {
+                            setNodeLogs({});
+                            executionInProgress.current = true;
+                        }
                         setExecutingNodeId(data.nodeId);
+                        setSelectedNodeId(data.nodeId);
+                        setBottomBarTab('Logs');
+                        setBottomBarOpen(true);
                     }
                     if (data.type === 'flow_execution' && data.status === 'completed') {
                         setExecutingNodeId(null);
+                        executionInProgress.current = false;
                     }
                     if (data.type === 'flow_execution' && data.status === 'failed') {
                         setExecutingNodeId(null);
                         alert('Flow execution failed: ' + (data.error || 'Unknown error'));
+                        executionInProgress.current = false;
+                    }
+                    if (data.type === 'node_log' && data.nodeId && data.log) {
+                        console.log('[LOG EVENT]', data);
+                        setNodeLogs(prev => {
+                            const updated = {
+                                ...prev,
+                                [data.nodeId]: [...(prev[data.nodeId] || []), data.log]
+                            };
+                            console.log('[nodeLogs updated]', updated);
+                            return updated;
+                        });
                     }
                 });
                 console.log('[STOMP] Subscribed to', `/topic/flow-execution/${id}`);
@@ -540,6 +570,14 @@ export const FlowCreationPage = () => {
             if (client) client.deactivate();
         };
     }, [id, getAccessTokenSilently]);
+
+    useEffect(() => {
+        console.log('[nodeLogs state]', nodeLogs);
+    }, [nodeLogs]);
+
+    useEffect(() => {
+        console.log('[selectedActionNode]', selectedActionNode?.id);
+    }, [selectedActionNode]);
 
     // Hydrate nodes with orange border if executing
     const hydratedNodes = nodes;
@@ -599,7 +637,7 @@ export const FlowCreationPage = () => {
                 />
 
                 {/* Bottom Bar for Action Node Logs */}
-                {selectedActionNode && (
+                {bottomBarOpen && selectedActionNode && (
                     <div
                         className="absolute left-0 right-0 bottom-0 bg-gray-900 text-white border-t border-gray-700 z-50 flex flex-col"
                         style={{ minHeight: '100px', maxHeight: '400px', height: bottomBarHeight }}
@@ -639,13 +677,13 @@ export const FlowCreationPage = () => {
                             {bottomBarTab === 'Logs' && (
                                 <div>
                                     <div className="font-bold text-lg mb-2">
-                                        Node Logs: {selectedActionNode.data?.label || selectedActionNode.data?.templateName || selectedActionNode.id}
+                                        Node Logs: {selectedActionNode?.data?.label || selectedActionNode?.data?.templateName || selectedActionNode?.id}
                                     </div>
-                                    <div className="mt-3 font-mono text-base text-gray-200">
-                                        {/* Mock logs for now */}
-                                        <div>[12:00:01] Node started execution...</div>
-                                        <div>[12:00:02] Node completed successfully.</div>
-                                        <div>[12:00:03] Output: {'{"result": "42"}'}</div>
+                                    <div className="mt-3 font-mono text-base text-gray-200" style={{whiteSpace: 'pre-wrap'}}>
+                                        {(selectedActionNode && nodeLogs[selectedActionNode.id]) ?
+                                            nodeLogs[selectedActionNode.id].join('\n') :
+                                            <div className="text-gray-400">No logs yet.</div>
+                                        }
                                     </div>
                                 </div>
                             )}

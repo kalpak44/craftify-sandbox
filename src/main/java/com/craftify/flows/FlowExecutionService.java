@@ -153,7 +153,7 @@ public class FlowExecutionService {
             Map.of("type", "node_execution", "nodeId", nodeId, "status", "started"));
         int executed = 0;
         if ("action".equals(node.get("type").asText())) {
-            executeActionNode(node, executionLogs);
+            executeActionNode(node, executionLogs, flowId);
             executed++;
         } else if ("manualTrigger".equals(node.get("type").asText()) || "cronTrigger".equals(node.get("type").asText())) {
             // Simulate trigger node execution
@@ -166,7 +166,7 @@ public class FlowExecutionService {
         return executed;
     }
 
-    private void executeActionNode(JsonNode node, StringBuilder executionLogs) {
+    private void executeActionNode(JsonNode node, StringBuilder executionLogs, String flowId) {
         try {
             // Extract configuration from node data
             JsonNode data = node.get("data");
@@ -188,15 +188,23 @@ public class FlowExecutionService {
                     Instant.now(), code.substring(0, Math.min(code.length(), 100)) + "..."));
             }
             
+            // Emit: container prepared
+            messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
+                Map.of("type", "node_log", "nodeId", nodeId, "log", "Container prepared for execution."));
+
             logger.info("Executing action node {} with docker image: {}, command: {}", nodeId, dockerImage, command);
             
             // Create and submit job with custom configuration
             String jobName = createCustomJob(dockerImage, command, code, timeout);
             executionLogs.append(String.format("[%s] Job submitted: %s\n", Instant.now(), jobName));
             logger.info("Job submitted with name: {}", jobName);
-            
+
+            // Emit: container scheduled
+            messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
+                Map.of("type", "node_log", "nodeId", nodeId, "log", "Container scheduled: " + jobName));
+
             // Monitor job execution with custom timeout
-            JobExecutionResult result = monitorJobExecution(jobName, Duration.ofSeconds(timeout));
+            JobExecutionResult result = monitorJobExecutionWithLogs(jobName, Duration.ofSeconds(timeout), flowId, nodeId);
             
             // Update node with execution results
             ObjectNode dataNode = (ObjectNode) data;
@@ -211,6 +219,11 @@ public class FlowExecutionService {
                 result.output.length() > 200 ? result.output.substring(0, 200) + "..." : result.output));
             
             logger.info("Action node execution completed with status: {}", result.status);
+
+            // Emit: succeeded/failed
+            String finalStatus = result.status.equalsIgnoreCase("SUCCESS") ? "Node succeeded." : "Node failed.";
+            messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
+                Map.of("type", "node_log", "nodeId", nodeId, "log", finalStatus));
             
         } catch (Exception e) {
             logger.error("Error executing action node: {}", e.getMessage(), e);
@@ -225,6 +238,8 @@ public class FlowExecutionService {
             dataNode.put("output", "Error: " + e.getMessage());
             dataNode.put("status", "FAILED");
             dataNode.put("error", e.getMessage());
+            messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
+                Map.of("type", "node_log", "nodeId", nodeId, "log", "Node failed: " + e.getMessage()));
         }
     }
 
@@ -321,38 +336,38 @@ public class FlowExecutionService {
         return parts.toArray(new String[0]);
     }
 
-    private JobExecutionResult monitorJobExecution(String jobName, Duration timeout) {
+    private JobExecutionResult monitorJobExecutionWithLogs(String jobName, Duration timeout, String flowId, String nodeId) {
         Instant startTime = Instant.now();
         Instant deadline = startTime.plus(timeout);
-        
+        String lastLogs = "";
         while (Instant.now().isBefore(deadline)) {
             try {
                 Thread.sleep(POLL_INTERVAL.toMillis());
-                
                 Pod pod = getJobPod(jobName);
                 if (pod == null) {
                     continue;
                 }
-                
                 String phase = pod.getStatus() != null ? pod.getStatus().getPhase() : "unknown";
-                
+                String logs = getPodLogs(pod.getMetadata().getName());
+                if (!logs.equals(lastLogs)) {
+                    String newLogs = logs.substring(lastLogs.length());
+                    if (!newLogs.isBlank()) {
+                        messagingTemplate.convertAndSend("/topic/flow-execution/" + flowId,
+                            Map.of("type", "node_log", "nodeId", nodeId, "log", newLogs));
+                    }
+                    lastLogs = logs;
+                }
                 if ("Succeeded".equalsIgnoreCase(phase)) {
-                    String logs = getPodLogs(pod.getMetadata().getName());
                     long executionTime = Duration.between(startTime, Instant.now()).toMillis();
                     return new JobExecutionResult(0, logs, "SUCCESS", executionTime);
                 }
-                
                 if ("Failed".equalsIgnoreCase(phase)) {
-                    String logs = getPodLogs(pod.getMetadata().getName());
                     long executionTime = Duration.between(startTime, Instant.now()).toMillis();
                     return new JobExecutionResult(1, logs, "FAILED", executionTime);
                 }
-                
                 if ("Running".equalsIgnoreCase(phase)) {
-                    // Job is still running, continue monitoring
                     continue;
                 }
-                
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RuntimeException("Job monitoring interrupted", e);
@@ -360,7 +375,6 @@ public class FlowExecutionService {
                 logger.warn("Error monitoring job {}: {}", jobName, e.getMessage());
             }
         }
-        
         // Timeout reached
         cleanupJob(jobName);
         long executionTime = Duration.between(startTime, Instant.now()).toMillis();
