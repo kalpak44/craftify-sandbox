@@ -313,7 +313,7 @@ export const deleteFolder = async (accessToken, id) => {
 export const renameFolder = async (accessToken, id, newName) => {
     const response = await fetchWithAuth(accessToken, `/files/${id}/rename`, {
         method: "PATCH",
-        body: JSON.stringify(newName)
+        body: JSON.stringify({ name: newName })
     });
     if (!response.ok) throw new Error(await response.text());
     return response.json();
@@ -322,7 +322,7 @@ export const renameFolder = async (accessToken, id, newName) => {
 export const moveFolder = async (accessToken, id, newParentId) => {
     const response = await fetchWithAuth(accessToken, `/files/${id}/move`, {
         method: "PATCH",
-        body: JSON.stringify(newParentId)
+        body: JSON.stringify({ parentId: newParentId })
     });
     if (!response.ok) throw new Error(await response.text());
     return response.json();

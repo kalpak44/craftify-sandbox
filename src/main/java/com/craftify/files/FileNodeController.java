@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/files")
@@ -50,14 +51,16 @@ public class FileNodeController {
     }
 
     @PatchMapping("/{id}/rename")
-    public FileNode renameFolder(@PathVariable String id, @RequestBody String newName) {
+    public FileNode renameFolder(@PathVariable String id, @RequestBody Map<String, String> body) {
         String userId = authUtil.getCurrentUserId();
+        String newName = body.get("name");
         return fileNodeService.renameFolder(userId, id, newName);
     }
 
     @PatchMapping("/{id}/move")
-    public FileNode moveFolder(@PathVariable String id, @RequestBody String newParentId) {
+    public FileNode moveFolder(@PathVariable String id, @RequestBody Map<String, String> body) {
         String userId = authUtil.getCurrentUserId();
+        String newParentId = body.get("parentId");
         return fileNodeService.moveFolder(userId, id, newParentId);
     }
 } 

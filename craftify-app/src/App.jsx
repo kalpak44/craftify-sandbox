@@ -73,7 +73,7 @@ export default function App() {
                 element={<AuthenticationGuard component={() => <PageFullLayout><NodeTemplatePage /></PageFullLayout>} />}
             />
             <Route
-                path="/data/create-object"
+                path="/data-modeler"
                 element={<AuthenticationGuard component={() => <PageFullLayout><CreateObjectPage/></PageFullLayout>}/>}
             />
 

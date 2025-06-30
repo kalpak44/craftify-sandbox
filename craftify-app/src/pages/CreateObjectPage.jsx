@@ -121,4 +121,7 @@ export const CreateObjectPage = () => {
             </div>
         </div>
     );
-}; 
+};
+
+// This is the Data Modeler page
+export default CreateObjectPage; 
