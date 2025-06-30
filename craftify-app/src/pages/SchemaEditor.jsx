@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { saveSchemaFile, listSchemaFiles } from "../services/API";
+import JsonBuilder from "../components/json-builder/JsonBuilder";
 
 const AUTO_SAVE_DELAY = 1000; // ms
 
@@ -9,7 +10,7 @@ const SchemaEditor = () => {
     const { folderId } = useParams();
     const navigate = useNavigate();
     const { user, getAccessTokenSilently } = useAuth0();
-    const [schema, setSchema] = useState("{\n  \"title\": \"New Schema\"\n}");
+    const [schemaObject, setSchemaObject] = useState({ title: "New Schema" });
     const [schemaId, setSchemaId] = useState(null);
     const [fileBaseName, setFileBaseName] = useState("Schema");
     const [saving, setSaving] = useState(false);
@@ -34,7 +35,14 @@ const SchemaEditor = () => {
                 }
                 if (schemas && schemas.length > 0) {
                     if (isMounted) {
-                        setSchema(schemas[0].content);
+                        // Parse JSON content
+                        let parsed = { title: "New Schema" };
+                        try {
+                            parsed = JSON.parse(schemas[0].content);
+                        } catch (e) {
+                            setError("Invalid JSON in schema file.");
+                        }
+                        setSchemaObject(parsed);
                         setSchemaId(schemas[0].id);
                         // Remove .json extension for input
                         const name = schemas[0].name || "Schema.json";
@@ -42,7 +50,7 @@ const SchemaEditor = () => {
                     }
                 } else {
                     if (isMounted) {
-                        setSchema("{\n  \"title\": \"New Schema\"\n}");
+                        setSchemaObject({ title: "New Schema" });
                         setSchemaId(null);
                         setFileBaseName("Schema");
                     }
@@ -95,7 +103,7 @@ const SchemaEditor = () => {
                 const schemaFile = {
                     id: schemaId,
                     name: fileBaseName.trim() + ".json",
-                    content: schema,
+                    content: JSON.stringify(schemaObject, null, 2),
                     folderId: folderId,
                     userId: user?.sub,
                 };
@@ -110,7 +118,7 @@ const SchemaEditor = () => {
             }
         }, AUTO_SAVE_DELAY);
         return () => clearTimeout(saveTimeout.current);
-    }, [schema, fileBaseName, folderId, nameError]);
+    }, [schemaObject, fileBaseName, folderId, nameError]);
 
     const handleGoBack = () => {
         navigate('/data-modeler', { state: { folderId } });
@@ -149,14 +157,7 @@ const SchemaEditor = () => {
             </div>
             {error && <div className="text-red-400 px-8 py-2">{error}</div>}
             <div className="flex-1 flex flex-col">
-                <textarea
-                    className="flex-1 w-full p-6 bg-gray-900 text-white border-none outline-none resize-none font-mono text-base"
-                    value={schema}
-                    onChange={e => setSchema(e.target.value)}
-                    spellCheck={false}
-                    style={{ minHeight: 0 }}
-                    disabled={loading}
-                />
+                <JsonBuilder value={schemaObject} onChange={setSchemaObject} />
             </div>
         </div>
     );
