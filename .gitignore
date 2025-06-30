@@ -36,3 +36,6 @@ build/
 ### Spring ###
 /src/main/resources/application-*.yaml
 /src/test/resources/application-*.yaml
+
+### Mac OS ###
+.DS_Store
