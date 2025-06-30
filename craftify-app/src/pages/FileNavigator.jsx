@@ -230,7 +230,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                 break;
             case "createSchema":
                 const folderId = item?.id || currentFolder;
-                navigate(`/schemas/${folderId || 'root'}/new`);
+                navigate(`/schemas/${folderId || 'root'}/edit`);
                 break;
             default:
                 break;
@@ -337,7 +337,15 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
             style={{ background: '#1F2836' }}
             onContextMenu={e => { e.preventDefault(); handleBackgroundContextMenu(e); }}
         >
-            <Breadcrumbs path={path} goToBreadcrumb={goToBreadcrumb} />
+            <div className="flex items-center justify-between mb-4">
+                <Breadcrumbs path={path} goToBreadcrumb={goToBreadcrumb} />
+                <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition"
+                    onClick={() => navigate(`/schemas/${currentFolder ?? 'root'}/edit`)}
+                >
+                    + New Schema
+                </button>
+            </div>
             {error && <div className="text-red-400 mb-2">{error}</div>}
             <div
                 className="bg-gray-800 rounded p-6 min-h-[300px] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
@@ -368,12 +376,18 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                         {schemaFiles.length > 0 && schemaFiles.map(schema => (
                             <div
                                 key={schema.id}
-                                className="flex flex-col items-center justify-center p-4 bg-gray-700 rounded cursor-pointer border border-blue-400 hover:bg-gray-600 group"
-                                onClick={() => navigate(`/schemas/${currentFolder ?? 'root'}/edit`)}
+                                className="flex flex-col items-center justify-center p-4 bg-gray-700 rounded border border-blue-400 hover:bg-gray-600 group relative cursor-pointer"
+                                onClick={() => navigate(`/schemas/${currentFolder ?? 'root'}/edit?schemaId=${schema.id}`)}
                                 onContextMenu={e => { e.stopPropagation(); handleSchemaContextMenu(e, schema); }}
                             >
                                 <span role="img" aria-label="schema" className="text-3xl mb-2 group-hover:scale-110 transition-transform">📄</span>
                                 <span className="text-white text-sm truncate w-full text-center group-hover:font-bold">{schema.name || 'Schema.json'}</span>
+                                <button
+                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-blue-500 text-white px-2 py-1 rounded text-xs transition-opacity"
+                                    onClick={e => { e.stopPropagation(); navigate(`/schemas/${currentFolder ?? 'root'}/edit?schemaId=${schema.id}`); }}
+                                >
+                                    Edit
+                                </button>
                             </div>
                         ))}
                         {items.length === 0 && schemaFiles.length === 0 && currentFolder === null && (

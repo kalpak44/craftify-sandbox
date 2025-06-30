@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { saveSchemaFile, listSchemaFiles } from "../services/API";
 import JsonBuilder from "../components/json-builder/JsonBuilder";
@@ -8,10 +8,12 @@ const AUTO_SAVE_DELAY = 1000; // ms
 
 const SchemaEditor = () => {
     const { folderId } = useParams();
+    const [searchParams] = useSearchParams();
+    const schemaIdParam = searchParams.get('schemaId');
     const navigate = useNavigate();
     const { user, getAccessTokenSilently } = useAuth0();
     const [schemaObject, setSchemaObject] = useState({ title: "New Schema" });
-    const [schemaId, setSchemaId] = useState(null);
+    const [schemaId, setSchemaId] = useState(schemaIdParam || null);
     const [fileBaseName, setFileBaseName] = useState("Schema");
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -29,27 +31,31 @@ const SchemaEditor = () => {
             setError("");
             try {
                 const accessToken = await getAccessTokenSilently();
-                const schemas = await listSchemaFiles(accessToken, folderId);
-                if (isMounted) {
-                    setAllSchemaNames(schemas.map(s => ({ id: s.id, name: (s.name || "Schema.json").toLowerCase() })));
-                }
-                if (schemas && schemas.length > 0) {
+                if (schemaIdParam) {
+                    // Editing existing schema
+                    const { getSchemaFile, listSchemaFiles } = await import("../services/API");
+                    const schema = await getSchemaFile(accessToken, schemaIdParam);
                     if (isMounted) {
-                        // Parse JSON content
                         let parsed = { title: "New Schema" };
                         try {
-                            parsed = JSON.parse(schemas[0].content);
+                            parsed = JSON.parse(schema.content);
                         } catch (e) {
                             setError("Invalid JSON in schema file.");
                         }
                         setSchemaObject(parsed);
-                        setSchemaId(schemas[0].id);
-                        // Remove .json extension for input
-                        const name = schemas[0].name || "Schema.json";
+                        setSchemaId(schema.id);
+                        const name = schema.name || "Schema.json";
                         setFileBaseName(name.endsWith('.json') ? name.slice(0, -5) : name);
+                        // For name validation
+                        const schemas = await listSchemaFiles(accessToken, folderId);
+                        setAllSchemaNames(schemas.map(s => ({ id: s.id, name: (s.name || "Schema.json").toLowerCase() })));
                     }
                 } else {
+                    // Creating new schema
+                    const { listSchemaFiles } = await import("../services/API");
+                    const schemas = await listSchemaFiles(accessToken, folderId);
                     if (isMounted) {
+                        setAllSchemaNames(schemas.map(s => ({ id: s.id, name: (s.name || "Schema.json").toLowerCase() })));
                         setSchemaObject({ title: "New Schema" });
                         setSchemaId(null);
                         setFileBaseName("Schema");
@@ -63,7 +69,7 @@ const SchemaEditor = () => {
         }
         fetchSchema();
         return () => { isMounted = false; };
-    }, [folderId, getAccessTokenSilently]);
+    }, [folderId, getAccessTokenSilently, schemaIdParam]);
 
     // Check for duplicate name
     useEffect(() => {
@@ -101,12 +107,13 @@ const SchemaEditor = () => {
             try {
                 const accessToken = await getAccessTokenSilently();
                 const schemaFile = {
-                    id: schemaId,
+                    id: schemaIdParam || schemaId,
                     name: fileBaseName.trim() + ".json",
                     content: JSON.stringify(schemaObject, null, 2),
                     folderId: folderId,
                     userId: user?.sub,
                 };
+                const { saveSchemaFile } = await import("../services/API");
                 const savedSchema = await saveSchemaFile(accessToken, schemaFile);
                 setSchemaId(savedSchema.id);
                 setSaving(false);
@@ -118,7 +125,7 @@ const SchemaEditor = () => {
             }
         }, AUTO_SAVE_DELAY);
         return () => clearTimeout(saveTimeout.current);
-    }, [schemaObject, fileBaseName, folderId, nameError]);
+    }, [schemaObject, fileBaseName, folderId, nameError, schemaIdParam]);
 
     const handleGoBack = () => {
         navigate('/data-modeler', { state: { folderId } });
