@@ -237,9 +237,37 @@ export const FlowCreationPage = () => {
             x: event.clientX - bounds.left,
             y: event.clientY - bounds.top,
         });
-        const newNode = {id: `${Date.now()}`, type, position, data: {label: `${type} node`}};
+        const nodeId = `${Date.now()}`;
+        let newNode;
+        if (type === 'action') {
+            newNode = {
+                id: nodeId,
+                type,
+                position,
+                data: {
+                    label: `${type} node`,
+                    onRemove: () => {
+                        setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+                    },
+                    onClick: () => {
+                        setSelectedNodeId(nodeId);
+                        setSelectedActionNode({
+                            id: nodeId,
+                            type: 'action',
+                            position,
+                            data: {
+                                label: `${type} node`,
+                            }
+                        });
+                        setBottomBarOpen(true);
+                    },
+                }
+            };
+        } else {
+            newNode = {id: nodeId, type, position, data: {label: `${type} node`}};
+        }
         setNodes((nds) => nds.concat(newNode));
-    }, [reactFlowInstance, setNodes]);
+    }, [reactFlowInstance, setNodes, setSelectedActionNode, setSelectedNodeId]);
 
     const handleNodeTemplateSelect = useCallback((template) => {
         if (!reactFlowInstance) return;
@@ -263,16 +291,31 @@ export const FlowCreationPage = () => {
                 label: template.name,
                 templateId: template.id,
                 templateName: template.name,
+                ...JSON.parse(template.configuration || '{}'),
                 onRemove: () => {
                     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
                 },
-                ...JSON.parse(template.configuration || '{}')
+                onClick: () => {
+                    setSelectedNodeId(nodeId);
+                    setSelectedActionNode({
+                        id: nodeId,
+                        type: 'action',
+                        position,
+                        data: {
+                            label: template.name,
+                            templateId: template.id,
+                            templateName: template.name,
+                            ...JSON.parse(template.configuration || '{}'),
+                        }
+                    });
+                    setBottomBarOpen(true);
+                },
             }
         };
 
         setNodes((nds) => nds.concat(newNode));
         setRightDragPanelOpen(false);
-    }, [reactFlowInstance, setNodes, setRightDragPanelOpen]);
+    }, [reactFlowInstance, setNodes, setRightDragPanelOpen, setSelectedActionNode, setSelectedNodeId]);
 
     const onSave = async () => {
         if (!flowName.trim()) return alert('Flow name is required');
