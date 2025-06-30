@@ -28,6 +28,97 @@ const nodeTypes = {
     action: GenericNode,
 };
 
+// Add a simple Tabs component for the bottom bar
+const BottomBarTabs = ({ tabs, activeTab, setActiveTab }) => (
+    <div className="flex border-b border-gray-700 bg-gray-800">
+        {tabs.map((tab) => (
+            <button
+                key={tab}
+                className={`px-4 py-2 focus:outline-none ${activeTab === tab ? 'border-b-2 border-blue-400 text-blue-400' : 'text-gray-300'}`}
+                onClick={() => setActiveTab(tab)}
+            >
+                {tab}
+            </button>
+        ))}
+    </div>
+);
+
+// Inline editable config row
+const EditableConfigRow = ({ label, value, onChange }) => {
+    const [editing, setEditing] = useState(false);
+    const [editValue, setEditValue] = useState(value);
+    useEffect(() => { setEditValue(value); }, [value]);
+    return (
+        <div className="flex items-center py-1">
+            <div className="w-40 text-gray-400">{label}</div>
+            {editing ? (
+                <input
+                    className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 flex-1"
+                    value={editValue}
+                    autoFocus
+                    onChange={e => setEditValue(e.target.value)}
+                    onBlur={() => { setEditing(false); onChange(editValue); }}
+                    onKeyDown={e => { if (e.key === 'Enter') { setEditing(false); onChange(editValue); } }}
+                />
+            ) : (
+                <div
+                    className="flex-1 cursor-pointer text-gray-200 hover:underline"
+                    onDoubleClick={() => setEditing(true)}
+                    title="Double-click to edit"
+                >
+                    {String(value)}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Variables/Secrets management section
+const VariableManager = ({ items, setItems, type }) => {
+    const [newKey, setNewKey] = useState('');
+    const [newValue, setNewValue] = useState('');
+    const handleAdd = () => {
+        if (!newKey) return;
+        if (type === 'secrets') {
+            setItems([...items, { key: newKey }]);
+        } else {
+            setItems([...items, { key: newKey, value: newValue }]);
+        }
+        setNewKey(''); setNewValue('');
+    };
+    const handleEdit = (idx, key, value) => {
+        if (type === 'secrets') {
+            setItems(items.map((item, i) => i === idx ? { key } : item));
+        } else {
+            setItems(items.map((item, i) => i === idx ? { key, value } : item));
+        }
+    };
+    const handleDelete = (idx) => {
+        setItems(items.filter((_, i) => i !== idx));
+    };
+    return (
+        <div className="space-y-2">
+            <div className="flex gap-2 mb-2">
+                <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600" placeholder="Key" value={newKey} onChange={e => setNewKey(e.target.value)} />
+                {type !== 'secrets' && (
+                    <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600" placeholder="Value" value={newValue} onChange={e => setNewValue(e.target.value)} />
+                )}
+                <button className="bg-blue-600 px-3 py-1 rounded text-white" onClick={handleAdd}>Add</button>
+            </div>
+            {items.length === 0 && <div className="text-gray-400">No {type} defined.</div>}
+            {items.map((item, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                    <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 w-32" value={item.key} onChange={e => handleEdit(idx, e.target.value, item.value)} />
+                    {type !== 'secrets' && (
+                        <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 flex-1" value={item.value} onChange={e => handleEdit(idx, item.key, e.target.value)} />
+                    )}
+                    <button className="text-red-400 px-2" onClick={() => handleDelete(idx)}>Delete</button>
+                </div>
+            ))}
+        </div>
+    );
+};
+
 export const FlowCreationPage = () => {
     const {getAccessTokenSilently} = useAuth0();
     const {id} = useParams();
@@ -63,6 +154,24 @@ export const FlowCreationPage = () => {
         onCancel,
         loadFlowData
     } = useFlowCreation(id);
+
+    const [bottomBarTab, setBottomBarTab] = useState('Config');
+    const [variables, setVariables] = useState([]); // system variables
+    const [secrets, setSecrets] = useState([]); // secrets
+    const [config, setConfig] = useState({});
+
+    // Sync config state with selectedActionNode
+    useEffect(() => {
+        if (selectedActionNode && selectedActionNode.data) {
+            // Only show primitive values for config (not functions)
+            const filtered = Object.fromEntries(
+                Object.entries(selectedActionNode.data).filter(
+                    ([k, v]) => typeof v !== 'function'
+                )
+            );
+            setConfig(filtered);
+        }
+    }, [selectedActionNode]);
 
     const handlePlaceholderClick = useCallback((id) => {
         setPlaceholderId(id);
@@ -446,18 +555,55 @@ export const FlowCreationPage = () => {
                         >
                             <div className="w-12 h-1 rounded bg-gray-600" />
                         </div>
-                        <div className="flex-1 flex flex-col overflow-y-auto">
-                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                                <div className="font-bold text-lg">
-                                    Node Logs: {selectedActionNode.data?.label || selectedActionNode.data?.templateName || selectedActionNode.id}
+                        {/* Tabs */}
+                        <BottomBarTabs
+                            tabs={['Config', 'Logs', 'Variables', 'Secrets']}
+                            activeTab={bottomBarTab}
+                            setActiveTab={setBottomBarTab}
+                        />
+                        <div className="flex-1 flex flex-col overflow-y-auto p-4">
+                            {bottomBarTab === 'Config' && (
+                                <div>
+                                    <div className="font-bold text-lg mb-2">Config</div>
+                                    <div className="space-y-2">
+                                        {Object.entries(config).length === 0 && <div className="text-gray-400">No config available.</div>}
+                                        {Object.entries(config).map(([key, value]) => (
+                                            <EditableConfigRow
+                                                key={key}
+                                                label={key}
+                                                value={value}
+                                                onChange={val => setConfig(cfg => ({ ...cfg, [key]: val }))}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-2">Double-click a value to edit.</div>
                                 </div>
-                            </div>
-                            <div className="mt-3 font-mono text-base text-gray-200">
-                                {/* Mock logs for now */}
-                                <div>[12:00:01] Node started execution...</div>
-                                <div>[12:00:02] Node completed successfully.</div>
-                                <div>[12:00:03] Output: {'{"result": "42"}'}</div>
-                            </div>
+                            )}
+                            {bottomBarTab === 'Logs' && (
+                                <div>
+                                    <div className="font-bold text-lg mb-2">
+                                        Node Logs: {selectedActionNode.data?.label || selectedActionNode.data?.templateName || selectedActionNode.id}
+                                    </div>
+                                    <div className="mt-3 font-mono text-base text-gray-200">
+                                        {/* Mock logs for now */}
+                                        <div>[12:00:01] Node started execution...</div>
+                                        <div>[12:00:02] Node completed successfully.</div>
+                                        <div>[12:00:03] Output: {'{"result": "42"}'}</div>
+                                    </div>
+                                </div>
+                            )}
+                            {bottomBarTab === 'Variables' && (
+                                <div>
+                                    <div className="font-bold text-lg mb-2">System Variables</div>
+                                    <VariableManager items={variables} setItems={setVariables} type="variables" />
+                                </div>
+                            )}
+                            {bottomBarTab === 'Secrets' && (
+                                <div>
+                                    <div className="font-bold text-lg mb-2">Secrets</div>
+                                    <VariableManager items={secrets} setItems={setSecrets} type="secrets" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
