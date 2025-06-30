@@ -116,7 +116,7 @@ const VariableManager = ({ items, setItems, type }) => {
 
 export const FlowCreationPage = () => {
     const {getAccessTokenSilently} = useAuth0();
-    const {id} = useParams();
+    const {id: paramId} = useParams();
     const navigate = useNavigate();
     const reactFlowWrapper = useRef(null);
 
@@ -138,6 +138,9 @@ export const FlowCreationPage = () => {
     const startHeightRef = useRef(0);
     const [selectedNodeId, setSelectedNodeId] = useState(null);
 
+    // Use local flowId state to track the current flow id (initialized from params.id if present)
+    const [flowId, setFlowId] = useState(paramId || null);
+
     const {
         loading,
         flowName,
@@ -148,7 +151,7 @@ export const FlowCreationPage = () => {
         setFlowActive,
         onCancel,
         loadFlowData
-    } = useFlowCreation(id);
+    } = useFlowCreation(flowId);
 
     const [bottomBarTab, setBottomBarTab] = useState('Config');
     const [variables, setVariables] = useState([]); // system variables
@@ -209,13 +212,13 @@ export const FlowCreationPage = () => {
         const nodeId = placeholderId;
 
         const onExecute = async () => {
-            if (!id) {
+            if (!flowId) {
                 alert('Please save the flow first before executing it.');
                 return;
             }
             try {
                 const token = await getAccessTokenSilently();
-                await executeFlow(token, id);
+                await executeFlow(token, flowId);
                 alert(`${type.toUpperCase()} trigger executed successfully!`);
             } catch (error) {
                 console.error('Flow execution failed:', error);
@@ -250,7 +253,7 @@ export const FlowCreationPage = () => {
 
         setRightPanelOpen(false);
         setPlaceholderId(null);
-    }, [placeholderId, resetToPlaceholder, setNodes, id, getAccessTokenSilently]);
+    }, [placeholderId, resetToPlaceholder, setNodes, flowId, getAccessTokenSilently]);
 
     const hydrateNode = (node) => {
         const base = {...node};
@@ -264,13 +267,13 @@ export const FlowCreationPage = () => {
             base.data = {
                 ...node.data,
                 onExecute: async () => {
-                    if (!id) {
+                    if (!flowId) {
                         alert('Please save the flow first before executing it.');
                         return;
                     }
                     try {
                         const token = await getAccessTokenSilently();
-                        await executeFlow(token, id);
+                        await executeFlow(token, flowId);
                         alert('Manual trigger executed successfully!');
                     } catch (error) {
                         console.error('Flow execution failed:', error);
@@ -284,13 +287,13 @@ export const FlowCreationPage = () => {
             base.data = {
                 ...node.data,
                 onExecute: async () => {
-                    if (!id) {
+                    if (!flowId) {
                         alert('Please save the flow first before executing it.');
                         return;
                     }
                     try {
                         const token = await getAccessTokenSilently();
-                        await executeFlow(token, id);
+                        await executeFlow(token, flowId);
                         alert('Cron trigger executed successfully!');
                     } catch (error) {
                         console.error('Flow execution failed:', error);
@@ -323,7 +326,7 @@ export const FlowCreationPage = () => {
     };
 
     useEffect(() => {
-        if (!id) {
+        if (!flowId) {
             setNodes([
                 {
                     id: '1',
@@ -344,7 +347,7 @@ export const FlowCreationPage = () => {
             };
             initializeFlow();
         }
-    }, [id, loadFlowData, handlePlaceholderClick, setNodes, setEdges]);
+    }, [flowId, loadFlowData, handlePlaceholderClick, setNodes, setEdges]);
 
     const onConnect = useCallback((params) => {
         // Ensure the edge has the proper sourceHandle information
@@ -446,6 +449,7 @@ export const FlowCreationPage = () => {
         setRightDragPanelOpen(false);
     }, [reactFlowInstance, setNodes, setRightDragPanelOpen, setSelectedActionNode, setSelectedNodeId]);
 
+    // Save handler (used for Save button)
     const onSave = async () => {
         if (!flowName.trim()) return alert('Flow name is required');
         try {
@@ -456,7 +460,14 @@ export const FlowCreationPage = () => {
                 configuration: JSON.stringify({nodes, edges}),
                 active: flowActive,
             };
-            id ? await updateFlow(token, id, flowData) : await createFlow(token, flowData);
+            if (flowId) {
+                await updateFlow(token, flowId, flowData);
+            } else {
+                const created = await createFlow(token, flowData);
+                if (created && created.id) {
+                    setFlowId(created.id);
+                }
+            }
             navigate('/flows');
         } catch (e) {
             console.error('Save failed', e);
@@ -511,7 +522,7 @@ export const FlowCreationPage = () => {
     }, [selectedNodeId, nodes]);
 
     useEffect(() => {
-        if (!id) return;
+        if (!flowId) return;
         let client;
         let isActive = true;
         (async () => {
@@ -527,7 +538,7 @@ export const FlowCreationPage = () => {
             });
             client.onConnect = (frame) => {
                 console.log('[STOMP] Connected:', frame);
-                client.subscribe(`/topic/flow-execution/${id}`, (message) => {
+                client.subscribe(`/topic/flow-execution/${flowId}`, (message) => {
                     console.log('[STOMP] Message received:', message.body);
                     const data = JSON.parse(message.body);
                     if (data.type === 'node_execution' && data.status === 'started') {
@@ -562,7 +573,7 @@ export const FlowCreationPage = () => {
                         });
                     }
                 });
-                console.log('[STOMP] Subscribed to', `/topic/flow-execution/${id}`);
+                console.log('[STOMP] Subscribed to', `/topic/flow-execution/${flowId}`);
             };
             client.onStompError = (frame) => {
                 console.error('[STOMP] Broker error:', frame.headers['message'], frame.body);
@@ -579,7 +590,7 @@ export const FlowCreationPage = () => {
             isActive = false;
             if (client) client.deactivate();
         };
-    }, [id, getAccessTokenSilently]);
+    }, [flowId, getAccessTokenSilently]);
 
     useEffect(() => {
         console.log('[nodeLogs state]', nodeLogs);
@@ -593,8 +604,8 @@ export const FlowCreationPage = () => {
     const hydratedNodes = nodes;
 
     // Autosave logic
-    const debouncedSave = useDebouncedCallback(async (nodes, edges, flowName, flowDescription, flowActive, id) => {
-        if (!id) return;
+    const debouncedSave = useDebouncedCallback(async (nodes, edges, flowName, flowDescription, flowActive, flowId) => {
+        if (!flowName.trim()) return; // Don't save if no name
         try {
             const token = await getAccessTokenSilently();
             const flowData = {
@@ -603,22 +614,30 @@ export const FlowCreationPage = () => {
                 configuration: JSON.stringify({ nodes, edges }),
                 active: flowActive,
             };
-            await updateFlow(token, id, flowData);
+            if (flowId) {
+                await updateFlow(token, flowId, flowData);
+            } else {
+                // Create new flow and set id for subsequent updates
+                const created = await createFlow(token, flowData);
+                if (created && created.id) {
+                    setFlowId(created.id);
+                }
+            }
         } catch (e) {
             console.error('Autosave failed', e);
         }
     }, 1000); // 1s debounce
 
     useEffect(() => {
-        debouncedSave(nodes, edges, flowName, flowDescription, flowActive, id);
-    }, [nodes, edges, flowName, flowDescription, flowActive, id, debouncedSave]);
+        debouncedSave(nodes, edges, flowName, flowDescription, flowActive, flowId);
+    }, [nodes, edges, flowName, flowDescription, flowActive, flowId, debouncedSave]);
 
     return (
         <div className="h-screen flex overflow-hidden overflow-x-hidden">
             <LeftPanel
                 leftPanelOpen={leftPanelOpen}
                 setLeftPanelOpen={setLeftPanelOpen}
-                id={id}
+                id={flowId}
                 flowName={flowName}
                 setFlowName={setFlowName}
                 flowDescription={flowDescription}
