@@ -1,4 +1,4 @@
-import {useState, useCallback, useRef, useEffect} from 'react';
+import {useState, useCallback, useRef, useEffect, useMemo} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import {useAuth0} from '@auth0/auth0-react';
 import ReactFlow, {
@@ -22,14 +22,7 @@ import {
 } from '../components/flow';
 import GenericNode from '../components/flow/GenericNode';
 
-const nodeTypes = {
-    placeholder: PlaceholderNode,
-    manualTrigger: ManualTriggerNode,
-    cronTrigger: CronTriggerNode,
-    action: GenericNode,
-};
-
-// Add a simple Tabs component for the bottom bar
+// Helper components
 const BottomBarTabs = ({ tabs, activeTab, setActiveTab }) => (
     <div className="flex border-b border-gray-700 bg-gray-800">
         {tabs.map((tab) => (
@@ -162,6 +155,14 @@ export const FlowCreationPage = () => {
     const [config, setConfig] = useState({});
 
     const [executingNodeId, setExecutingNodeId] = useState(null);
+
+    // Move nodeTypes here so it can access executingNodeId
+    const nodeTypes = useMemo(() => ({
+        placeholder: PlaceholderNode,
+        manualTrigger: ManualTriggerNode,
+        cronTrigger: CronTriggerNode,
+        action: (props) => <GenericNode {...props} executing={props.id === executingNodeId} />,
+    }), [executingNodeId]);
 
     // Sync config state with selectedActionNode
     useEffect(() => {
@@ -515,7 +516,6 @@ export const FlowCreationPage = () => {
                     }
                     if (data.type === 'flow_execution' && data.status === 'completed') {
                         setExecutingNodeId(null);
-                        alert('Flow execution completed!');
                     }
                     if (data.type === 'flow_execution' && data.status === 'failed') {
                         setExecutingNodeId(null);
@@ -542,11 +542,7 @@ export const FlowCreationPage = () => {
     }, [id, getAccessTokenSilently]);
 
     // Hydrate nodes with orange border if executing
-    const hydratedNodes = nodes.map(node =>
-        node.id === executingNodeId
-            ? { ...node, style: { ...(node.style || {}), border: '3px solid orange' } }
-            : node
-    );
+    const hydratedNodes = nodes;
 
     return (
         <div className="h-screen flex overflow-hidden overflow-x-hidden">

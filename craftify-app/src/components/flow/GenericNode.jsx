@@ -1,8 +1,9 @@
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import PropTypes from 'prop-types';
+import loader from '../../assets/loader.svg';
 
-const GenericNode = ({ data, selected }) => {
+const GenericNode = ({ data, selected, executing }) => {
     // Parse configuration to get docker image and timeout
     let dockerImage = '';
     let command = '';
@@ -30,6 +31,11 @@ const GenericNode = ({ data, selected }) => {
                     ✕
                 </button>
             </div>
+            {executing && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 z-20 rounded-lg pointer-events-none">
+                    <img src={loader} alt="Loading..." className="w-8 h-8 animate-spin" />
+                </div>
+            )}
             <div className="text-white font-medium mt-4">Action Node</div>
             <div className="text-green-300 text-xs mt-1">
                 {data.templateName ? `Template: ${data.templateName}` : 'Action node'}
@@ -63,7 +69,8 @@ GenericNode.propTypes = {
         configuration: PropTypes.string,
         onRemove: PropTypes.func
     }).isRequired,
-    selected: PropTypes.bool
+    selected: PropTypes.bool,
+    executing: PropTypes.bool
 };
 
 export default memo(GenericNode); 
