@@ -381,3 +381,80 @@ export const getFolderSchemaTree = async (accessToken) => {
     const response = await fetchWithAuth(accessToken, "/files/tree");
     return response.json();
 };
+
+// Schema Data Records API
+export const createSchemaDataRecord = async (accessToken, schemaId, data) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}`, {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Failed to create data record: ${response.statusText}`);
+    }
+    
+    return response.json();
+};
+
+export const getSchemaDataRecords = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}`);
+    
+    if (!response.ok) {
+        throw new Error(`Failed to fetch data records: ${response.statusText}`);
+    }
+    
+    return response.json();
+};
+
+export const getSchemaDataRecordsForTable = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}/table`);
+    
+    if (!response.ok) {
+        throw new Error(`Failed to fetch table data: ${response.statusText}`);
+    }
+    
+    return response.json();
+};
+
+export const getSchemaDataRecord = async (accessToken, recordId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/record/${recordId}`);
+    
+    if (!response.ok) {
+        throw new Error(`Failed to fetch data record: ${response.statusText}`);
+    }
+    
+    return response.json();
+};
+
+export const updateSchemaDataRecord = async (accessToken, recordId, data) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/record/${recordId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Failed to update data record: ${response.statusText}`);
+    }
+    
+    return response.json();
+};
+
+export const deleteSchemaDataRecord = async (accessToken, recordId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/record/${recordId}`, {
+        method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Failed to delete data record: ${response.statusText}`);
+    }
+};
+
+export const getSchemaDataRecordCount = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}/count`);
+    
+    if (!response.ok) {
+        throw new Error(`Failed to fetch record count: ${response.statusText}`);
+    }
+    
+    return response.json();
+};

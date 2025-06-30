@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import { getSchemaFile } from "../services/API";
+import { getSchemaFile, createSchemaDataRecord } from "../services/API";
 import SchemaDataBuilder from "../components/schema-data-builder/SchemaDataBuilder";
 
 const SchemaAddDataPage = () => {
@@ -46,14 +46,33 @@ const SchemaAddDataPage = () => {
         return () => { isMounted = false; };
     }, [schemaId, getAccessTokenSilently]);
 
+    // Debug validation function
+    useEffect(() => {
+        console.log("Validation function changed:", validationFunction);
+        console.log("Type of validationFunction:", typeof validationFunction);
+    }, [validationFunction]);
+
+    // Fallback validation function
+    const fallbackValidation = () => {
+        console.log("Using fallback validation");
+        // Basic validation - check if formData has any values
+        const hasData = Object.keys(formData).length > 0;
+        return {
+            isValid: hasData,
+            errors: hasData ? {} : { general: ["No data entered"] }
+        };
+    };
+
     const handleSave = async () => {
-        if (!validationFunction) {
-            setError("Validation function not available.");
-            return;
-        }
+        let validationResult;
         
-        // Run comprehensive validation
-        const validationResult = validationFunction();
+        if (!validationFunction || typeof validationFunction !== 'function') {
+            console.log("Using fallback validation");
+            validationResult = fallbackValidation();
+        } else {
+            console.log("Using SchemaDataBuilder validation");
+            validationResult = validationFunction();
+        }
         
         if (!validationResult.isValid) {
             setError("Please fix all validation errors before saving.");
@@ -66,12 +85,14 @@ const SchemaAddDataPage = () => {
         
         try {
             const accessToken = await getAccessTokenSilently();
-            // TODO: Implement save logic - you'll need to add the API endpoint
-            // await createSchemaData(accessToken, schemaId, formData);
+            console.log("Sending formData to backend:", formData);
+            const record = await createSchemaDataRecord(accessToken, schemaId, formData);
+            console.log("Created data record:", record);
             
-            // For now, just navigate back to the table
+            // Navigate back to the table
             navigate(`/schemas/${schemaId}/table`);
         } catch (e) {
+            console.error("Error saving data:", e);
             setError("Failed to save data: " + e.message);
         } finally {
             setSaving(false);

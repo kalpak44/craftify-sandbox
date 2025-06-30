@@ -11,6 +11,9 @@ import java.util.Optional;
 public class SchemaFileService {
     @Autowired
     private SchemaFileRepository schemaFileRepository;
+    
+    @Autowired
+    private SchemaDataRecordService schemaDataRecordService;
 
     public SchemaFile createOrUpdateSchema(SchemaFile schema) {
         Instant now = Instant.now();
@@ -24,6 +27,14 @@ public class SchemaFileService {
     public Optional<SchemaFile> getSchemaById(String id) {
         return schemaFileRepository.findById(id);
     }
+    
+    public SchemaFile getSchemaFile(String userId, String schemaId) {
+        Optional<SchemaFile> schema = schemaFileRepository.findById(schemaId);
+        if (schema.isPresent() && schema.get().getUserId().equals(userId)) {
+            return schema.get();
+        }
+        return null;
+    }
 
     public List<SchemaFile> listSchemasByFolder(String userId, String folderId) {
         if (folderId == null || folderId.equals("root")) {
@@ -34,6 +45,9 @@ public class SchemaFileService {
     }
 
     public void deleteSchema(String id) {
+        // First delete all data records for this schema
+        schemaDataRecordService.deleteRecordsBySchema(id);
+        // Then delete the schema itself
         schemaFileRepository.deleteById(id);
     }
 

@@ -94,8 +94,13 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
 
     // Store the validation function in ref and notify parent
     useEffect(() => {
+        console.log("SchemaDataBuilder: Setting validation function");
+        console.log("validateAllFields:", validateAllFields);
+        console.log("onValidateAll:", onValidateAll);
+        
         validationFunctionRef.current = validateAllFields;
         if (onValidateAll) {
+            console.log("Calling onValidateAll with function");
             onValidateAll(validateAllFields);
         }
     }, [validateAllFields, onValidateAll]);

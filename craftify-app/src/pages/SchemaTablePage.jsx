@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import { getSchemaFile } from "../services/API";
+import { getSchemaFile, getSchemaDataRecordsForTable } from "../services/API";
 
 const PAGE_SIZE = 10;
 
@@ -21,7 +21,7 @@ const SchemaTablePage = () => {
 
     useEffect(() => {
         let isMounted = true;
-        async function fetchSchema() {
+        async function fetchSchemaAndData() {
             setLoading(true);
             setError("");
             try {
@@ -37,8 +37,18 @@ const SchemaTablePage = () => {
                 }
                 if (isMounted) {
                     setSchema(parsed);
-                    setFields(parsed.fields || []);
-                    setData(parsed.data || []);
+                    // Define system properties and common fields to display in table
+                    const systemFields = [
+                        { name: 'id', label: 'ID', type: 'string' },
+                        { name: 'name', label: 'Name', type: 'string' },
+                        { name: 'description', label: 'Description', type: 'string' },
+                        { name: 'createdAt', label: 'Created At', type: 'date' },
+                        { name: 'updatedAt', label: 'Updated At', type: 'date' }
+                    ];
+                    setFields(systemFields);
+                    // Fetch table data (system properties only) for this schema
+                    const tableData = await getSchemaDataRecordsForTable(accessToken, schemaId);
+                    setData(tableData);
                 }
             } catch (e) {
                 setError(e.message);
@@ -46,7 +56,7 @@ const SchemaTablePage = () => {
                 setLoading(false);
             }
         }
-        fetchSchema();
+        fetchSchemaAndData();
         return () => { isMounted = false; };
     }, [schemaId, getAccessTokenSilently]);
 
