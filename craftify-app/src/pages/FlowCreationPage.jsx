@@ -8,7 +8,7 @@ import ReactFlow, {
     useEdgesState,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import {createFlow, updateFlow} from '../services/API';
+import {createFlow, updateFlow, executeFlow} from '../services/API';
 
 import {
     PlaceholderNode,
@@ -79,7 +79,20 @@ export const FlowCreationPage = () => {
         if (!placeholderId) return;
         const nodeId = placeholderId;
 
-        const onExecute = () => alert(`${type.toUpperCase()} triggered`);
+        const onExecute = async () => {
+            if (!id) {
+                alert('Please save the flow first before executing it.');
+                return;
+            }
+            try {
+                const token = await getAccessTokenSilently();
+                await executeFlow(token, id);
+                alert(`${type.toUpperCase()} trigger executed successfully!`);
+            } catch (error) {
+                console.error('Flow execution failed:', error);
+                alert(`Failed to execute flow: ${error.message}`);
+            }
+        };
         const onRemove = () => resetToPlaceholder(nodeId);
 
         const data =
@@ -108,7 +121,7 @@ export const FlowCreationPage = () => {
 
         setRightPanelOpen(false);
         setPlaceholderId(null);
-    }, [placeholderId, resetToPlaceholder, setNodes]);
+    }, [placeholderId, resetToPlaceholder, setNodes, id, getAccessTokenSilently]);
 
     const hydrateNode = (node) => {
         const base = {...node};
@@ -118,14 +131,40 @@ export const FlowCreationPage = () => {
         if (node.type === 'manualTrigger') {
             base.data = {
                 ...node.data,
-                onExecute: () => alert('MANUAL triggered'),
+                onExecute: async () => {
+                    if (!id) {
+                        alert('Please save the flow first before executing it.');
+                        return;
+                    }
+                    try {
+                        const token = await getAccessTokenSilently();
+                        await executeFlow(token, id);
+                        alert('Manual trigger executed successfully!');
+                    } catch (error) {
+                        console.error('Flow execution failed:', error);
+                        alert(`Failed to execute flow: ${error.message}`);
+                    }
+                },
                 onRemove: () => resetToPlaceholder(node.id),
             };
         }
         if (node.type === 'cronTrigger') {
             base.data = {
                 ...node.data,
-                onExecute: () => alert('CRON triggered'),
+                onExecute: async () => {
+                    if (!id) {
+                        alert('Please save the flow first before executing it.');
+                        return;
+                    }
+                    try {
+                        const token = await getAccessTokenSilently();
+                        await executeFlow(token, id);
+                        alert('Cron trigger executed successfully!');
+                    } catch (error) {
+                        console.error('Flow execution failed:', error);
+                        alert(`Failed to execute flow: ${error.message}`);
+                    }
+                },
                 onRemove: () => resetToPlaceholder(node.id),
                 onCronChange: (cron) => {
                     setNodes((nds) =>

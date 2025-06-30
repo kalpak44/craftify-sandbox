@@ -206,6 +206,17 @@ export const updateFlow = async (accessToken, flowId, flowData) => {
     return response.json();
 };
 
+export const executeFlow = async (accessToken, flowId) => {
+    const response = await fetchWithAuth(accessToken, `/flows/${flowId}/execute`, {
+        method: "POST",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to execute flow. ${body.message || 'Unknown error'}`);
+    }
+    return response.json();
+};
+
 export const deleteFlow = async (accessToken, flowId) => {
     const response = await fetchWithAuth(accessToken, `/flows/${flowId}`, {
         method: "DELETE",
