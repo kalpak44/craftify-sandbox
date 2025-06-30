@@ -78,7 +78,7 @@ export default function App() {
                 element={<AuthenticationGuard component={() => <PageFullLayout><CreateObjectPage/></PageFullLayout>}/>}
             />
             <Route
-                path="/schemas/:folderId/new"
+                path="/schemas/:folderId/edit"
                 element={<AuthenticationGuard component={() => <PageFullLayout><SchemaEditor /></PageFullLayout>} />}
             />
 

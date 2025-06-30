@@ -187,7 +187,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
         switch (action) {
             case "open":
                 if (contextMenu.type === "schema") {
-                    navigate(`/schemas/${currentFolder ?? 'root'}/new`);
+                    navigate(`/schemas/${currentFolder ?? 'root'}/edit`);
                 } else {
                     openFolder(item);
                 }
@@ -360,7 +360,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                             <div
                                 key={schema.id}
                                 className="flex flex-col items-center justify-center p-4 bg-gray-700 rounded cursor-pointer border border-blue-400 hover:bg-gray-600 group"
-                                onClick={() => navigate(`/schemas/${currentFolder ?? 'root'}/new`)}
+                                onClick={() => navigate(`/schemas/${currentFolder ?? 'root'}/edit`)}
                                 onContextMenu={e => { e.stopPropagation(); handleSchemaContextMenu(e, schema); }}
                             >
                                 <span role="img" aria-label="schema" className="text-3xl mb-2 group-hover:scale-110 transition-transform">📄</span>
