@@ -18,13 +18,14 @@ import {PageFullLayout} from "./components/page-layout/PageFullLayout.jsx";
 import {SchemaNavigationPage} from "./pages/SchemaNavigationPage.jsx";
 import SchemaEditorPage from "./pages/SchemaEditorPage.jsx";
 import SchemaTablePage from "./pages/SchemaTablePage.jsx";
-import { FileStructureProvider } from "./components/file-navigator/FileStructureContext";
+import {FileStructureProvider} from "./components/file-navigator/FileStructureContext";
 import DataEditorPage from "./pages/DataEditorPage.jsx";
 
 
 export default function App() {
     const {isLoading} = useAuth0();
 
+    // Show a loading spinner while authentication state is being determined
     if (isLoading) {
         return (
             <div className="page-layout">
@@ -41,6 +42,7 @@ export default function App() {
                     path="/profile"
                     element={<AuthenticationGuard component={() => <PageLayout><ProfilePage/></PageLayout>}/>}
                 />
+                {/* Playground routes for testing different techniques */}
                 <Route
                     path="/notebooks"
                     element={<AuthenticationGuard component={() => <PageLayout><NotebooksPage/></PageLayout>}/>}
@@ -55,47 +57,56 @@ export default function App() {
                 />
                 <Route
                     path="/chat"
-                    element={<AuthenticationGuard component={() => <PageLayout><ChatPage /></PageLayout>} />}
+                    element={<AuthenticationGuard component={() => <PageLayout><ChatPage/></PageLayout>}/>}
                 />
+                {/* End playground */}
                 <Route
                     path="/flows"
-                    element={<AuthenticationGuard component={() => <PageLayout><FlowsPage /></PageLayout>} />}
+                    element={<AuthenticationGuard component={() => <PageLayout><FlowsPage/></PageLayout>}/>}
                 />
                 <Route
                     path="/flows/create"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><FlowCreationPage /></PageFullLayout>} />}
+                    element={<AuthenticationGuard
+                        component={() => <PageFullLayout><FlowCreationPage/></PageFullLayout>}/>}
                 />
                 <Route
                     path="/flows/edit/:id"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><FlowCreationPage /></PageFullLayout>} />}
+                    element={<AuthenticationGuard
+                        component={() => <PageFullLayout><FlowCreationPage/></PageFullLayout>}/>}
                 />
                 <Route
                     path="/node-templates/create"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><NodeTemplatePage /></PageFullLayout>} />}
+                    element={<AuthenticationGuard
+                        component={() => <PageFullLayout><NodeTemplatePage/></PageFullLayout>}/>}
                 />
                 <Route
                     path="/node-templates/edit/:id"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><NodeTemplatePage /></PageFullLayout>} />}
+                    element={<AuthenticationGuard
+                        component={() => <PageFullLayout><NodeTemplatePage/></PageFullLayout>}/>}
                 />
                 <Route
                     path="/data-modeler"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><SchemaNavigationPage/></PageFullLayout>}/>}
+                    element={<AuthenticationGuard
+                        component={() => <PageFullLayout><SchemaNavigationPage/></PageFullLayout>}/>}
                 />
                 <Route
                     path="/schemas/:folderId/edit"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><SchemaEditorPage /></PageFullLayout>} />}
+                    element={<AuthenticationGuard
+                        component={() => <PageFullLayout><SchemaEditorPage/></PageFullLayout>}/>}
                 />
                 <Route
                     path="/schemas/:schemaId"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><SchemaTablePage /></PageFullLayout>} />}
+                    element={<AuthenticationGuard
+                        component={() => <PageFullLayout><SchemaTablePage/></PageFullLayout>}/>}
                 />
                 <Route
                     path="/data/:schemaId/list"
-                    element={<AuthenticationGuard component={() => <PageLayout><SchemaTablePage /></PageLayout>} />}
+                    element={<AuthenticationGuard component={() => <PageLayout><SchemaTablePage/></PageLayout>}/>}
                 />
                 <Route
                     path="/data/:schemaId/edit"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><DataEditorPage /></PageFullLayout>} />}
+                    element={<AuthenticationGuard
+                        component={() => <PageFullLayout><DataEditorPage/></PageFullLayout>}/>}
                 />
                 <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
                 <Route path="*" element={<PageLayout><NotFoundPage/></PageLayout>}/>
