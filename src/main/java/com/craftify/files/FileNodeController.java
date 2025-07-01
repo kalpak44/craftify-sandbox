@@ -141,4 +141,36 @@ public class FileNodeController {
     schemaNode.setFolderId(schema.getFolderId());
     return schemaNode;
   }
+
+  @GetMapping("/overview")
+  public ResponseEntity<Map<String, Object>> getFolderOverview(@RequestParam(required = false) String folderId) {
+    String userId = authUtil.getCurrentUserId();
+    // Folders in this folder
+    List<FileNode> folders = fileNodeService.listByParent(userId, (folderId == null || folderId.equals("root")) ? null : folderId);
+    // Schemas in this folder
+    List<SchemaFile> schemas = schemaFileService.listSchemasByFolder(userId, folderId == null ? "root" : folderId);
+    // Breadcrumbs
+    List<Map<String, String>> breadcrumbs = new ArrayList<>();
+    if (folderId != null && !folderId.equals("root")) {
+      FileNode current = fileNodeService.getFolderById(userId, folderId);
+      List<Map<String, String>> reversed = new ArrayList<>();
+      while (current != null) {
+        Map<String, String> crumb = new HashMap<>();
+        crumb.put("id", current.getId());
+        crumb.put("name", current.getName());
+        reversed.add(crumb);
+        if (current.getParentId() == null) break;
+        current = fileNodeService.getFolderById(userId, current.getParentId());
+      }
+      // Reverse to get root -> ... -> current
+      for (int i = reversed.size() - 1; i >= 0; i--) {
+        breadcrumbs.add(reversed.get(i));
+      }
+    }
+    Map<String, Object> result = new HashMap<>();
+    result.put("folders", folders);
+    result.put("schemas", schemas);
+    result.put("breadcrumbs", breadcrumbs);
+    return ResponseEntity.ok(result);
+  }
 }

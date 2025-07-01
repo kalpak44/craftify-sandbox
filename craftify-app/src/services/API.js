@@ -483,3 +483,13 @@ export const getSchemaDataRecordCount = async (accessToken, schemaId) => {
     
     return response.json();
 };
+
+export const getFolderOverview = async (accessToken, folderId = null) => {
+    const url = folderId ? `/files/overview?folderId=${encodeURIComponent(folderId)}` : '/files/overview';
+    const response = await fetchWithAuth(accessToken, url);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || 'Failed to fetch folder overview');
+    }
+    return response.json();
+};

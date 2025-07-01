@@ -20,6 +20,7 @@ import SchemaEditor from "./pages/SchemaEditor.jsx";
 import SchemaTablePage from "./pages/SchemaTablePage.jsx";
 import { FileStructureProvider } from "./components/file-navigator/FileStructureContext";
 import SchemaAddDataPage from "./pages/SchemaAddDataPage.jsx";
+import FileNavigator from "./pages/FileNavigator.jsx";
 
 
 export default function App() {
@@ -96,6 +97,10 @@ export default function App() {
                 <Route
                     path="/schemas/:schemaId/add"
                     element={<AuthenticationGuard component={() => <PageFullLayout><SchemaAddDataPage /></PageFullLayout>} />}
+                />
+                <Route
+                    path="/files/:folderId?"
+                    element={<AuthenticationGuard component={() => <PageFullLayout><FileNavigator /></PageFullLayout>} />}
                 />
 
                 <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>

@@ -149,9 +149,7 @@ export const CreateObjectPage = () => {
                 onFavoriteClick={handleFavoriteClick}
             />
             <div className="flex-1 flex items-center justify-center" style={{ background: '#1F2836', height: '100vh' }}>
-                <div className="w-full h-full">
-                    {user && <FileNavigator userId={user.sub} navigateToFolder={navigateToFolder} onFavoriteToggled={fetchFavorites} />}
-                </div>
+                {user && <FileNavigator userId={user.sub} navigateToFolder={navigateToFolder} onFavoriteToggled={fetchFavorites} />}
             </div>
         </div>
     );
