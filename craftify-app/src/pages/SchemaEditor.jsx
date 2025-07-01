@@ -12,7 +12,7 @@ const SchemaEditor = () => {
     const schemaIdParam = searchParams.get('schemaId');
     const navigate = useNavigate();
     const { user, getAccessTokenSilently } = useAuth0();
-    const [schemaObject, setSchemaObject] = useState({ title: "New Schema" });
+    const [schemaObject, setSchemaObject] = useState({});
     const [schemaId, setSchemaId] = useState(schemaIdParam || null);
     const [fileBaseName, setFileBaseName] = useState("Schema");
     const [saving, setSaving] = useState(false);
@@ -39,6 +39,7 @@ const SchemaEditor = () => {
                         let parsed = { title: "New Schema" };
                         try {
                             parsed = JSON.parse(schema.content);
+                            if (parsed.title) delete parsed.title;
                         } catch (e) {
                             setError("Invalid JSON in schema file.");
                         }
@@ -56,7 +57,7 @@ const SchemaEditor = () => {
                     const schemas = await listSchemaFiles(accessToken, folderId);
                     if (isMounted) {
                         setAllSchemaNames(schemas.map(s => ({ id: s.id, name: (s.name || "Schema.json").toLowerCase() })));
-                        setSchemaObject({ title: "New Schema" });
+                        setSchemaObject({});
                         setSchemaId(null);
                         setFileBaseName("Schema");
                     }
