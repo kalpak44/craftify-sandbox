@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import { getSchemaFile, getSchemaDataRecordsForTable } from "../services/API";
+import { getSchemaFile, getSchemaDataRecordsForTable, deleteSchemaDataRecord } from "../services/API";
 
 const PAGE_SIZE = 10;
 
@@ -68,8 +68,21 @@ const SchemaTablePage = () => {
         navigate(`/schemas/${schemaId}/add?recordId=${row.id}`);
     };
 
-    const handleDelete = (row) => {
-        // Implement delete logic
+    const handleDelete = async (row) => {
+        if (!window.confirm("Are you sure you want to delete this record? This action cannot be undone.")) return;
+        setLoading(true);
+        setError("");
+        try {
+            const accessToken = await getAccessTokenSilently();
+            await deleteSchemaDataRecord(accessToken, row.id);
+            // Refresh table data
+            const tableData = await getSchemaDataRecordsForTable(accessToken, schemaId);
+            setData(tableData);
+        } catch (e) {
+            setError("Failed to delete record: " + e.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (loading) return <div className="p-8 text-white">Loading...</div>;
