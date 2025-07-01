@@ -1,4 +1,4 @@
-# Craftify Sandbox
+# Craftify API
 
 The project is split into two main components:
 
