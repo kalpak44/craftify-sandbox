@@ -5,10 +5,10 @@ export default function Breadcrumbs({path, goToBreadcrumb}) {
         <div className="mb-4 flex items-center gap-2 text-gray-300" aria-label="Breadcrumb">
             <span className="cursor-pointer hover:underline" onClick={() => goToBreadcrumb(-1)}>Root</span>
             {path.map((p, idx) => (
-                <React.Fragment key={p.id}>
+                <div key={p.id}>
                     <span>/</span>
                     <span className="cursor-pointer hover:underline" onClick={() => goToBreadcrumb(idx)}>{p.name}</span>
-                </React.Fragment>
+                </div>
             ))}
         </div>
     );

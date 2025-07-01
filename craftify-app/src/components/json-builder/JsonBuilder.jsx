@@ -1,3 +1,5 @@
+import {useEffect, useState} from "react";
+
 const SYSTEM_FIELDS = [
     {
         key: "name",
@@ -113,10 +115,10 @@ function EditableField({
                        }) {
     const {type, required, validations, description, fields, item, propertyKey} = field;
     const editable = !isSystem;
-    const [keyInput, setKeyInput] = React.useState(propertyKey || fieldKey || "");
-    const [keyError, setKeyError] = React.useState("");
+    const [keyInput, setKeyInput] = useState(propertyKey || fieldKey || "");
+    const [keyError, setKeyError] = useState("");
 
-    React.useEffect(() => {
+    useEffect(() => {
         setKeyInput(propertyKey || fieldKey || "");
     }, [propertyKey, fieldKey]);
 
@@ -307,7 +309,7 @@ export default function JsonBuilder({value, onChange, showSystemFields = true}) 
         onChange({...schema, [id]: {...getDefaultField(), id, propertyKey: ""}});
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!showSystemFields) return; // <-- prevent injecting in nested JsonBuilder
         const fullSchema = {...value};
         let changed = false;
