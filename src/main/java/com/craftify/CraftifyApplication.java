@@ -12,16 +12,16 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 @SpringBootApplication
 @OpenAPIDefinition(
-        info = @Info(title = "Craftify API", version = "v1"),
-        servers = {@Server(url = "http://localhost:8080"), @Server(url = "https://api.craftyfy.pro/")})
+    info = @Info(title = "Craftify API", version = "v1"),
+    servers = {@Server(url = "http://localhost:8080"), @Server(url = "https://api.craftyfy.pro/")})
 @EnableMongoRepositories
 public class CraftifyApplication {
 
-    public static void main(String[] args) {
-        // Set the default time zone to UTC.
-        TimeZone.setDefault(TimeZone.getTimeZone(UTC));
+  public static void main(String[] args) {
+    // Set the default time zone to UTC.
+    TimeZone.setDefault(TimeZone.getTimeZone(UTC));
 
-        // Start the Spring Boot application.
-        SpringApplication.run(CraftifyApplication.class, args);
-    }
+    // Start the Spring Boot application.
+    SpringApplication.run(CraftifyApplication.class, args);
+  }
 }

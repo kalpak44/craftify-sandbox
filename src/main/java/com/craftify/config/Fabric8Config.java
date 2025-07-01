@@ -11,16 +11,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class Fabric8Config {
 
-    private static final Logger logger = LoggerFactory.getLogger(Fabric8Config.class);
+  private static final Logger logger = LoggerFactory.getLogger(Fabric8Config.class);
 
-    @Bean(destroyMethod = "close")
-    public KubernetesClient kubernetesClient() {
-        logger.info("Initializing Fabric8 KubernetesClient for localhost...");
+  @Bean(destroyMethod = "close")
+  public KubernetesClient kubernetesClient() {
+    logger.info("Initializing Fabric8 KubernetesClient for localhost...");
 
-        // Explicit config for local Docker Desktop
-        var config =
-                new ConfigBuilder().withMasterUrl("https://localhost:6443").withTrustCerts(true).build();
+    // Explicit config for local Docker Desktop
+    var config =
+        new ConfigBuilder().withMasterUrl("https://localhost:6443").withTrustCerts(true).build();
 
-        return new KubernetesClientBuilder().withConfig(config).build();
-    }
+    return new KubernetesClientBuilder().withConfig(config).build();
+  }
 }
