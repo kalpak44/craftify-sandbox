@@ -171,3 +171,325 @@ export const getNotebookById = async (accessToken, notebookId) => {
     const response = await fetchWithAuth(accessToken, `/notebooks/${notebookId}`);
     return response.json();
 };
+
+// Flow API endpoints
+export const getFlowsPageable = async (accessToken, {page = 0, size = 10, name = ""} = {}) => {
+    const queryParams = [`page=${page}`, `size=${size}`];
+
+    if (name) {
+        queryParams.push(`name=${encodeURIComponent(name)}`);
+    }
+
+    const queryString = queryParams.join("&");
+    const response = await fetchWithAuth(accessToken, `/flows?${queryString}`);
+    return response.json();
+};
+
+export const createFlow = async (accessToken, flowData) => {
+    const response = await fetchWithAuth(accessToken, "/flows", {
+        method: "POST",
+        body: JSON.stringify(flowData),
+    });
+    return response.json();
+};
+
+export const getFlowById = async (accessToken, flowId) => {
+    const response = await fetchWithAuth(accessToken, `/flows/${flowId}`);
+    return response.json();
+};
+
+export const updateFlow = async (accessToken, flowId, flowData) => {
+    const response = await fetchWithAuth(accessToken, `/flows/${flowId}`, {
+        method: "PUT",
+        body: JSON.stringify(flowData),
+    });
+    return response.json();
+};
+
+export const executeFlow = async (accessToken, flowId) => {
+    const response = await fetchWithAuth(accessToken, `/flows/${flowId}/execute`, {
+        method: "POST",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to execute flow. ${body.message || 'Unknown error'}`);
+    }
+    return response.json();
+};
+
+export const deleteFlow = async (accessToken, flowId) => {
+    const response = await fetchWithAuth(accessToken, `/flows/${flowId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to delete flow. ${body.message}`);
+    }
+    return response.ok;
+};
+
+// NodeTemplate API endpoints
+export const getNodeTemplatesPageable = async (accessToken, {page = 0, size = 10, name = ""} = {}) => {
+    const queryParams = [`page=${page}`, `size=${size}`];
+
+    if (name) {
+        queryParams.push(`name=${encodeURIComponent(name)}`);
+    }
+
+    const queryString = queryParams.join("&");
+    const response = await fetchWithAuth(accessToken, `/node-templates?${queryString}`);
+    return response.json();
+};
+
+export const createNodeTemplate = async (accessToken, nodeTemplateData) => {
+    const response = await fetchWithAuth(accessToken, "/node-templates", {
+        method: "POST",
+        body: JSON.stringify(nodeTemplateData),
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to create node template. ${body.message || 'Unknown error'}`);
+    }
+    return response.json();
+};
+
+export const getNodeTemplateById = async (accessToken, nodeTemplateId) => {
+    const response = await fetchWithAuth(accessToken, `/node-templates/${nodeTemplateId}`);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to get node template. ${body.message || 'Unknown error'}`);
+    }
+    return response.json();
+};
+
+export const updateNodeTemplate = async (accessToken, nodeTemplateId, nodeTemplateData) => {
+    const response = await fetchWithAuth(accessToken, `/node-templates/${nodeTemplateId}`, {
+        method: "PUT",
+        body: JSON.stringify(nodeTemplateData),
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to update node template. ${body.message || 'Unknown error'}`);
+    }
+    return response.json();
+};
+
+export const deleteNodeTemplate = async (accessToken, nodeTemplateId) => {
+    const response = await fetchWithAuth(accessToken, `/node-templates/${nodeTemplateId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(`Failed to delete node template. ${body.message}`);
+    }
+    return response.ok;
+};
+
+// File/Folder API
+export const listFolders = async (accessToken, parentId = null) => {
+    const url = parentId ? `/files?parentId=${parentId}` : "/files";
+    const response = await fetchWithAuth(accessToken, url);
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const createFolder = async (accessToken, { name, parentId }) => {
+    const response = await fetchWithAuth(accessToken, "/files", {
+        method: "POST",
+        body: JSON.stringify({ name, type: "folder", parentId })
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const deleteFolder = async (accessToken, id) => {
+    const response = await fetchWithAuth(accessToken, `/files/${id}`, {
+        method: "DELETE"
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return true;
+};
+
+export const renameFolder = async (accessToken, id, newName) => {
+    const response = await fetchWithAuth(accessToken, `/files/${id}/rename`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: newName })
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const moveFolder = async (accessToken, id, newParentId) => {
+    const response = await fetchWithAuth(accessToken, `/files/${id}/move`, {
+        method: "PATCH",
+        body: JSON.stringify({ parentId: newParentId })
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const toggleFavorite = async (accessToken, id) => {
+    const response = await fetchWithAuth(accessToken, `/files/${id}/favorite`, {
+        method: "PATCH"
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+};
+
+export const saveSchemaFile = async (accessToken, schemaFile) => {
+    const response = await fetchWithAuth(accessToken, "/schemas", {
+        method: "POST",
+        body: JSON.stringify(schemaFile),
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || "Failed to save schema");
+    }
+    return response.json();
+};
+
+export const getSchemaFile = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schemas/${schemaId}`);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || "Failed to fetch schema");
+    }
+    return response.json();
+};
+
+export const listSchemaFiles = async (accessToken, folderId) => {
+    const response = await fetchWithAuth(accessToken, `/schemas?folderId=${encodeURIComponent(folderId)}`);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || "Failed to list schemas");
+    }
+    return response.json();
+};
+
+export const deleteSchemaFile = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schemas/${schemaId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || "Failed to delete schema");
+    }
+    return response.ok;
+};
+
+export const getFolderSchemaTree = async (accessToken) => {
+    const response = await fetchWithAuth(accessToken, "/files/tree");
+    return response.json();
+};
+
+// Schema Data Records API
+export const createSchemaDataRecord = async (accessToken, schemaId, data) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}`, {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create data record: ${errorText}`);
+    }
+    
+    return response.json();
+};
+
+export const getSchemaDataRecords = async (accessToken, schemaId, page = 0, size = 20) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}?page=${page}&size=${size}`);
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch schema data records: ${errorText}`);
+    }
+    const records = await response.json();
+    
+    // Convert to table format with system properties and name/description
+    const tableData = records.map(record => ({
+        id: record.id,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt,
+        name: record.data?.name || null,
+        description: record.data?.description || null
+    }));
+    
+    // Implement client-side pagination
+    const startIndex = page * size;
+    const endIndex = startIndex + size;
+    const content = tableData.slice(startIndex, endIndex);
+    const totalElements = tableData.length;
+    const totalPages = Math.ceil(totalElements / size);
+    
+    return {
+        content,
+        totalElements,
+        totalPages,
+        currentPage: page,
+        size
+    };
+};
+
+export const getSchemaDataRecordsForTable = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}/table`);
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch table data: ${errorText}`);
+    }
+    
+    return response.json();
+};
+
+export const getSchemaDataRecord = async (accessToken, recordId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/record/${recordId}`);
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch schema data record: ${errorText}`);
+    }
+    return response.json();
+};
+
+export const updateSchemaDataRecord = async (accessToken, recordId, data) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/record/${recordId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update schema data record: ${errorText}`);
+    }
+    return response.json();
+};
+
+export const deleteSchemaDataRecord = async (accessToken, recordId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/record/${recordId}`, {
+        method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete data record: ${errorText}`);
+    }
+};
+
+export const getSchemaDataRecordCount = async (accessToken, schemaId) => {
+    const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}/count`);
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch record count: ${errorText}`);
+    }
+    
+    return response.json();
+};
+
+export const getFolderOverview = async (accessToken, folderId = null) => {
+    const url = folderId ? `/files/overview?folderId=${encodeURIComponent(folderId)}` : '/files/overview';
+    const response = await fetchWithAuth(accessToken, url);
+    if (!response.ok) {
+        const body = await response.json();
+        throw new Error(body.message || 'Failed to fetch folder overview');
+    }
+    return response.json();
+};

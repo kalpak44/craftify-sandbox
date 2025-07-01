@@ -14,8 +14,26 @@ server:
     # Minimum response size to trigger compression
     min-response-size: 1024
 
+#logging:
+#  level:
+#    org.springframework: INFO
+#    com.craftify: INFO
+#  pattern:
+#    console: "%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
+#    file: "%d %p %c{1.} [%t] %m%n"
+#  file:
+#    name: "logger.log"
+#  logback:
+#    rollingpolicy:
+#      max-file-size: 100MB
+#      max-history: 10
+
 # Spring configuration
 spring:
+  ai:
+    # API key for accessing OpenAI services
+    openai:
+      api-key: ${OPENAI_API_KEY}
   data:
     mongodb:
       # MongoDB URI with placeholders for environment variables
@@ -46,3 +64,8 @@ okta:
     issuer: ${AUTH0_ISSUER}
     # Replace with the API Identifier for your Auth0 API.
     audience: ${AUTH0_AUDIENCE}
+
+# Kubernetes client configuration
+kubernetes:
+  master-url: https://localhost:6443
+  trust-certs: true

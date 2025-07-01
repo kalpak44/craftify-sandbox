@@ -1,223 +1,144 @@
-import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { deleteNotebook, getNotebooksPageable } from "../services/API";
-import { PageLoader } from "../components/page-loader/PageLoader.jsx";
-import { Modal } from "../components/modal/Modal.jsx";
-import { Notification } from "../components/notification/Notification.jsx";
-import noDataImage from '../assets/no-data.png';
+import { useAuth0 } from "@auth0/auth0-react";
+import { Link, useNavigate } from "react-router-dom";
 
 export const NotebooksPage = () => {
-    const [notebooks, setNotebooks] = useState([]);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
-    const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-    const [notebookToDelete, setNotebookToDelete] = useState(null);
-    const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
     const navigate = useNavigate();
 
+    const [notebooks, setNotebooks] = useState([]);
+    const [page, setPage] = useState(0);
+    const [size] = useState(5);
+    const [totalPages, setTotalPages] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    const API_BASE = "http://localhost:8080/api";
+
+    const fetchNotebooks = async () => {
+        setLoading(true);
+        try {
+            const token = await getAccessTokenSilently();
+            const response = await fetch(
+                `${API_BASE}/notebooks?page=${page}&size=${size}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            setNotebooks(data.content || []);
+            setTotalPages(data.totalPages);
+        } catch (err) {
+            console.error("Fetch error", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const deleteNotebook = async (id) => {
+        try {
+            const token = await getAccessTokenSilently();
+            await fetch(`${API_BASE}/notebooks/${id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            fetchNotebooks();
+        } catch (err) {
+            console.error("Delete error", err);
+        }
+    };
+
     useEffect(() => {
-        let isMounted = true;
-
-        const getNotebookData = async (page) => {
-            setLoading(true);
-            setError(null);
-            try {
-                const accessToken = await getAccessTokenSilently();
-                const notebooksData = await getNotebooksPageable(accessToken, { page: page });
-
-                if (!isMounted) {
-                    return;
-                }
-
-                if (notebooksData && notebooksData.content) {
-                    setNotebooks(notebooksData.content);
-                    setTotalPages(notebooksData.totalPages);
-                }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        getNotebookData(currentPage).catch((error) => {
-            console.error(error);
-            setLoading(false);
-            setError(error.message);
-        });
-
-        return () => {
-            isMounted = false;
-        };
-    }, [getAccessTokenSilently, currentPage]);
-
-    const handleEdit = (id) => {
-        navigate(`/notebooks/${id}`);
-    };
-
-    const handleRemove = (id) => {
-        setNotebookToDelete(id);
-        setShowModal(true);
-    };
-
-    const confirmDelete = async () => {
-        setError(null);
-        setLoading(true);
-        try {
-            const accessToken = await getAccessTokenSilently();
-            await deleteNotebook(accessToken, notebookToDelete);
-            await fetchNotebooks(currentPage);
-            setShowModal(false);
-            setNotebookToDelete(null);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchNotebooks = async (page) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const accessToken = await getAccessTokenSilently();
-            const notebooksData = await getNotebooksPageable(accessToken, { page });
-            setNotebooks(notebooksData.content);
-            setTotalPages(notebooksData.totalPages);
-            setCurrentPage(page);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handlePreviousPage = () => {
-        if (currentPage > 0) {
-            fetchNotebooks(currentPage - 1);
-        }
-    };
-
-    const handleNextPage = () => {
-        if (currentPage < totalPages - 1) {
-            fetchNotebooks(currentPage + 1);
-        }
-    };
+        fetchNotebooks();
+    }, [page]);
 
     return (
-        <>
-            <div className="container mx-auto p-4">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-xl font-bold text-white">Notebooks Page</h1>
-                    <button
-                        className="text-white font-bold py-2 px-4 rounded"
-                        style={{
-                            minWidth: '8.4rem',
-                            border: '0.1rem solid var(--indigo)',
-                            color: 'var(--white)',
-                            background: 'var(--indigo)',
-                            width: '17%',
-                            fontSize: '1.6rem',
-                            marginRight: '1.6rem',
-                            fontFamily: 'var(--font-primary)',
-                            fontStyle: 'normal',
-                            fontWeight: '600',
-                            lineHeight: '3.2rem',
-                            padding: '0.8rem 0',
-                            borderRadius: '0.8rem',
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            WebkitUserSelect: 'none',
-                            MozUserSelect: 'none',
-                            userSelect: 'none',
-                            marginBottom: '15px',
-                            transition: 'background 0.3s ease-out, color 0.3s ease-out'
-                        }}
-                        onClick={() => navigate('/notebooks/add')}
-                    >
-                        Add Notebook
-                    </button>
-                </div>
-                {loading ? (
-                    <PageLoader />
-                ) : (
-                    <div className="overflow-x-auto p-4 border rounded-lg shadow-md bg-gray-800">
-                        {notebooks.length > 0 ? (
-                            <>
-                                <table className="min-w-full bg-gray-800 text-white">
-                                    <thead>
-                                    <tr>
-                                        <th className="py-3 px-6 border-b-2 border-gray-600 text-left">ID</th>
-                                        <th className="py-3 px-6 border-b-2 border-gray-600 text-left">Name</th>
-                                        <th className="py-3 px-6 border-b-2 border-gray-600 text-left">Actions</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {notebooks.map((notebook) => (
-                                        <tr key={notebook.id}>
-                                            <td className="py-3 px-6 border-b border-gray-600">{notebook.id}</td>
-                                            <td className="py-3 px-6 border-b border-gray-600">{notebook.name}</td>
-                                            <td className="py-3 px-6 border-b border-gray-600">
-                                                <button
-                                                    className="p-2 bg-green-500 text-white rounded mr-2"
-                                                    onClick={() => handleEdit(notebook.id)}
-                                                >
-                                                    Open
-                                                </button>
-                                                <button
-                                                    className="p-2 bg-red-500 text-white rounded"
-                                                    onClick={() => handleRemove(notebook.id)}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                                <div className="flex justify-between items-center py-4">
-                                    <button
-                                        className={`p-2 rounded ${currentPage === 0 ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white cursor-pointer'}`}
-                                        onClick={handlePreviousPage}
-                                        disabled={currentPage === 0}
-                                    >
-                                        Previous
-                                    </button>
-                                    <span className="text-white">Page {currentPage + 1} of {totalPages}</span>
-                                    <button
-                                        className={`p-2 rounded ${currentPage === totalPages - 1 ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white cursor-pointer'}`}
-                                        onClick={handleNextPage}
-                                        disabled={currentPage === totalPages - 1}
-                                    >
-                                        Next
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            noDataImage && (
-                                <div className="flex justify-center items-center">
-                                    <img src={noDataImage || undefined} alt="No Data" />
-                                </div>
-                            )
-                        )}
-                    </div>
-                )}
+        <div className="mt-5">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Notebooks</h1>
+                <button
+                    onClick={() => navigate("/notebooks/create")}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                    + New Notebook
+                </button>
             </div>
-            <Modal
-                show={showModal}
-                onClose={() => setShowModal(false)}
-                onConfirm={confirmDelete}
-                title="Confirm Deletion"
-                message="Are you sure you want to delete this notebook?"
-            />
-            <Notification
-                show={!!error}
-                message={error}
-                onClose={() => setError(null)}
-            />
-        </>
+
+            {loading ? (
+                <p className="text-gray-500">Loading...</p>
+            ) : (
+                <>
+                    <ul className="space-y-4">
+                        {notebooks.map((notebook) => (
+                            <li
+                                key={notebook.id}
+                                className="w-full border rounded-xl p-6 shadow hover:shadow-md transition"
+                            >
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                    <div className="w-full">
+                                        <h2 className="text-xl font-semibold">{notebook.title}</h2>
+                                        <p className="text-gray-700 mt-1">{notebook.content}</p>
+                                        <p className="text-sm text-gray-400 mt-2">
+                                            Created: {new Date(notebook.createdAt).toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2 mt-4 md:mt-0 md:ml-6">
+                                        <Link
+                                            to={`/notebooks/${notebook.id}`}
+                                            className="px-3 py-1 bg-green-950 rounded hover:bg-green-900 text-sm text-white inline-block"
+                                        >
+                                            Details
+                                        </Link>
+                                        <button
+                                            onClick={() => alert("Edit not implemented")}
+                                            className="px-3 py-1 bg-gray-900 rounded hover:bg-gray-600 text-sm"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => deleteNotebook(notebook.id)}
+                                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <div className="flex items-center justify-center space-x-2 mt-6">
+                        <button
+                            onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                            disabled={page === 0}
+                            className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                        >
+                            Prev
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setPage(i)}
+                                className={`px-3 py-1 border rounded ${
+                                    i === page ? "bg-blue-500 text-white" : "hover:bg-gray-100"
+                                }`}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+                            disabled={page >= totalPages - 1}
+                            className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </>
+            )}
+        </div>
     );
 };
