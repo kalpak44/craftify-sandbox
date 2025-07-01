@@ -129,7 +129,9 @@ const SchemaEditor = () => {
     };
 
     const handleGoBack = () => {
-        navigate('/data-modeler', { state: { folderId } });
+        // navigate('/data-modeler', { state: { folderId } });
+        // todo: fix navigator to works with url
+        navigate('/data-modeler');
     };
 
     return (

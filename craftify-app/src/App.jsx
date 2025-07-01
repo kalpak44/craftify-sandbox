@@ -98,11 +98,6 @@ export default function App() {
                     path="/schemas/:schemaId/add"
                     element={<AuthenticationGuard component={() => <PageFullLayout><SchemaAddDataPage /></PageFullLayout>} />}
                 />
-                <Route
-                    path="/files/:folderId?"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><FileNavigator /></PageFullLayout>} />}
-                />
-
                 <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
                 <Route path="*" element={<PageLayout><NotFoundPage/></PageLayout>}/>
             </Routes>
