@@ -90,14 +90,6 @@ export const NavBarTabs = () => {
             {isAuthenticated && (
                 <>
                     <NavLink
-                        to="/notebooks"
-                        className={({isActive}) =>
-                            "nav-bar__tab " + (isActive ? "nav-bar__tab--active" : "")
-                        }
-                    >
-                        My Notebooks
-                    </NavLink>
-                    <NavLink
                         to="/flows"
                         className={({isActive}) =>
                             "nav-bar__tab " + (isActive ? "nav-bar__tab--active" : "")
