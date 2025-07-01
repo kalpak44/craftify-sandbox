@@ -64,3 +64,8 @@ okta:
     issuer: ${AUTH0_ISSUER}
     # Replace with the API Identifier for your Auth0 API.
     audience: ${AUTH0_AUDIENCE}
+
+# Kubernetes client configuration
+kubernetes:
+  master-url: https://localhost:6443
+  trust-certs: true
