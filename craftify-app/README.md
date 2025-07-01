@@ -1,6 +1,6 @@
 # Craftify UI - React Vite Project
 
-This project is the frontend user interface for the Craftify Sandbox platform. It connects to the Craftify backend API and provides a modern, interactive web experience.
+This project is the frontend user interface for the Craftify API platform.
 
 ## Prerequisites
 
