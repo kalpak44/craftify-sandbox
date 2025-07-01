@@ -9,6 +9,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashMap;
 import java.util.ArrayList;
+import com.craftify.files.TreeNodeDTO;
 
 @RestController
 @RequestMapping("/files")
@@ -70,7 +71,7 @@ public class FileNodeController {
     }
 
     @GetMapping("/tree")
-    public List<Map<String, Object>> getFolderSchemaTree() {
+    public List<TreeNodeDTO> getFolderSchemaTree() {
         String userId = authUtil.getCurrentUserId();
         List<FileNode> allFolders = new ArrayList<>();
         collectFolders(userId, null, allFolders);
@@ -79,7 +80,7 @@ public class FileNodeController {
         for (SchemaFile schema : allSchemas) {
             schemasByFolder.computeIfAbsent(schema.getFolderId(), k -> new ArrayList<>()).add(schema);
         }
-        List<Map<String, Object>> tree = new ArrayList<>();
+        List<TreeNodeDTO> tree = new ArrayList<>();
         List<SchemaFile> rootSchemas = new ArrayList<>();
         for (SchemaFile schema : allSchemas) {
             if (schema.getFolderId() == null || "root".equals(schema.getFolderId())) {
@@ -87,16 +88,15 @@ public class FileNodeController {
             }
         }
         for (SchemaFile schema : rootSchemas) {
-            Map<String, Object> schemaNode = new HashMap<>();
-            schemaNode.put("id", schema.getId());
+            TreeNodeDTO schemaNode = new TreeNodeDTO();
+            schemaNode.setId(schema.getId());
             String name = schema.getName();
             if (name != null && name.contains(".")) {
                 name = name.substring(0, name.lastIndexOf('.'));
             }
-            schemaNode.put("name", name);
-            schemaNode.put("type", "schema");
-            schemaNode.put("folderId", schema.getFolderId());
-            schemaNode.put("children", new ArrayList<>());
+            schemaNode.setName(name);
+            schemaNode.setType("schema");
+            schemaNode.setFolderId(schema.getFolderId());
             tree.add(schemaNode);
         }
         for (FileNode folder : allFolders) {
@@ -117,23 +117,23 @@ public class FileNodeController {
         }
     }
 
-    private Map<String, Object> buildFolderNode(FileNode folder, List<FileNode> allFolders, Map<String, List<SchemaFile>> schemasByFolder) {
-        Map<String, Object> node = new HashMap<>();
-        node.put("id", folder.getId());
-        node.put("name", folder.getName());
-        node.put("type", "folder");
-        List<Map<String, Object>> children = new ArrayList<>();
+    private TreeNodeDTO buildFolderNode(FileNode folder, List<FileNode> allFolders, Map<String, List<SchemaFile>> schemasByFolder) {
+        TreeNodeDTO node = new TreeNodeDTO();
+        node.setId(folder.getId());
+        node.setName(folder.getName());
+        node.setType("folder");
+        List<TreeNodeDTO> children = new ArrayList<>();
         List<SchemaFile> schemas = schemasByFolder.getOrDefault(folder.getId(), new ArrayList<>());
         for (SchemaFile schema : schemas) {
-            Map<String, Object> schemaNode = new HashMap<>();
-            schemaNode.put("id", schema.getId());
+            TreeNodeDTO schemaNode = new TreeNodeDTO();
+            schemaNode.setId(schema.getId());
             String name = schema.getName();
             if (name != null && name.contains(".")) {
                 name = name.substring(0, name.lastIndexOf('.'));
             }
-            schemaNode.put("name", name);
-            schemaNode.put("type", "schema");
-            schemaNode.put("folderId", schema.getFolderId());
+            schemaNode.setName(name);
+            schemaNode.setType("schema");
+            schemaNode.setFolderId(schema.getFolderId());
             children.add(schemaNode);
         }
         for (FileNode subfolder : allFolders) {
@@ -141,7 +141,7 @@ public class FileNodeController {
                 children.add(buildFolderNode(subfolder, allFolders, schemasByFolder));
             }
         }
-        node.put("children", children);
+        node.setChildren(children);
         return node;
     }
 } 
