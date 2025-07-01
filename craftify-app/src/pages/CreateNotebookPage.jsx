@@ -1,10 +1,10 @@
-import React, { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import React, {useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
 import Editor from "@monaco-editor/react";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 export const CreateNotebookPage = () => {
-    const { getAccessTokenSilently, user } = useAuth0();
+    const {getAccessTokenSilently, user} = useAuth0();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("// Write your code here...");
     const [saving, setSaving] = useState(false);

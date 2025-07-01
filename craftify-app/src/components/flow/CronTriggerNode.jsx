@@ -4,13 +4,13 @@ import {Handle} from 'reactflow';
 const CronTriggerNode = ({data, isConnectable}) => (
     <div className="border border-purple-500 rounded-lg p-4 bg-purple-900 relative">
         <div className="absolute top-1 right-1 flex gap-2">
-            <button 
+            <button
                 className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-500"
                 onClick={data.onExecute}
             >
                 ▶
             </button>
-            <button 
+            <button
                 className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500"
                 onClick={data.onRemove}
             >
@@ -27,11 +27,11 @@ const CronTriggerNode = ({data, isConnectable}) => (
             className="mt-2 w-full text-sm px-2 py-1 rounded bg-purple-700 text-white border border-purple-400"
         />
         {/* Single output handle */}
-        <Handle 
-            type="source" 
-            position="bottom" 
-            id="success" 
-            className="w-3 h-3 bg-purple-400" 
+        <Handle
+            type="source"
+            position="bottom"
+            id="success"
+            className="w-3 h-3 bg-purple-400"
             isConnectable={isConnectable}
         />
     </div>

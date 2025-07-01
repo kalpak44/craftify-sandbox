@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import NodeTemplateSelector from './NodeTemplateSelector';
 import ResizablePanel from './ResizablePanel';
 
-const EdgeOptionsPanel = ({ rightDragPanelOpen, setRightDragPanelOpen, onNodeTemplateSelect }) => {
+const EdgeOptionsPanel = ({rightDragPanelOpen, setRightDragPanelOpen, onNodeTemplateSelect}) => {
     if (!rightDragPanelOpen) return null;
 
     const handleTemplateSelect = (template) => {

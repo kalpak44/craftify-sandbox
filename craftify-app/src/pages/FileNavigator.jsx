@@ -1,39 +1,38 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import React, {useEffect, useRef, useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
 import {
-    listFolders as apiListFolders,
     createFolder as apiCreateFolder,
     deleteFolder as apiDeleteFolder,
-    renameFolder as apiRenameFolder,
-    moveFolder as apiMoveFolder,
-    toggleFavorite as apiToggleFavorite,
+    deleteSchemaFile,
+    listFolders as apiListFolders,
     listSchemaFiles,
+    moveFolder as apiMoveFolder,
+    renameFolder as apiRenameFolder,
     saveSchemaFile,
-    deleteSchemaFile
+    toggleFavorite as apiToggleFavorite
 } from "../services/API";
 import Breadcrumbs from "../components/file-navigator/Breadcrumbs";
 import FolderItem from "../components/file-navigator/FolderItem";
 import ContextMenu from "../components/file-navigator/ContextMenu";
 import FolderDialog from "../components/file-navigator/FolderDialog";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useFileStructureContext } from "../components/file-navigator/FileStructureContext";
+import {useLocation, useNavigate} from "react-router-dom";
+import {useFileStructureContext} from "../components/file-navigator/FileStructureContext";
 
-export default function FileNavigator({ userId, navigateToFolder, onFavoriteToggled }) {
-    const { getAccessTokenSilently } = useAuth0();
+export default function FileNavigator({navigateToFolder, onFavoriteToggled}) {
+    const {getAccessTokenSilently} = useAuth0();
     const [currentFolder, setCurrentFolder] = useState(null); // null = root
     const [items, setItems] = useState([]);
     const [schemaFiles, setSchemaFiles] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [newFolderName, setNewFolderName] = useState("");
     const [error, setError] = useState("");
     const [path, setPath] = useState([]); // breadcrumb
     const [contextMenu, setContextMenu] = useState(null); // {x, y, type, item}
     const contextMenuRef = useRef();
     const prevNavigateToFolder = useRef(null);
-    const [dialog, setDialog] = useState({ open: false, type: null, item: null, defaultValue: "" });
+    const [dialog, setDialog] = useState({open: false, type: null, item: null, defaultValue: ""});
     const navigate = useNavigate();
     const location = useLocation();
-    const { notifyFileStructureChanged } = useFileStructureContext();
+    const {notifyFileStructureChanged} = useFileStructureContext();
 
     // On mount, check for initial folderId from location.state
     useEffect(() => {
@@ -49,9 +48,18 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
     }, [currentFolder]);
 
     useEffect(() => {
-        function handleClick() { setContextMenu(null); }
-        function handleScroll() { setContextMenu(null); }
-        function handleResize() { setContextMenu(null); }
+        function handleClick() {
+            setContextMenu(null);
+        }
+
+        function handleScroll() {
+            setContextMenu(null);
+        }
+
+        function handleResize() {
+            setContextMenu(null);
+        }
+
         window.addEventListener("click", handleClick);
         window.addEventListener("scroll", handleScroll, true);
         window.addEventListener("resize", handleResize);
@@ -77,7 +85,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
         try {
             const accessToken = await getAccessTokenSilently();
             const data = await apiListFolders(accessToken, parentId);
-            setItems(data.map(item => ({ ...item, isFavorite: item.favorite })));
+            setItems(data.map(item => ({...item, isFavorite: item.favorite})));
         } catch (e) {
             setError("Failed to load folders: " + e.message);
         } finally {
@@ -106,7 +114,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
         setError("");
         try {
             const accessToken = await getAccessTokenSilently();
-            await apiCreateFolder(accessToken, { name, parentId: currentFolder });
+            await apiCreateFolder(accessToken, {name, parentId: currentFolder});
             fetchItems(currentFolder);
             notifyFileStructureChanged();
         } catch (e) {
@@ -117,7 +125,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
     }
 
     function openFolder(folder) {
-        setPath(prev => [...prev, { id: folder.id, name: folder.name }]);
+        setPath(prev => [...prev, {id: folder.id, name: folder.name}]);
         setCurrentFolder(folder.id);
     }
 
@@ -145,17 +153,17 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
     }
 
     async function deleteFolder(item) {
-        setDialog({ open: true, type: "delete", item });
+        setDialog({open: true, type: "delete", item});
         notifyFileStructureChanged();
     }
 
     async function renameFolder(item) {
-        setDialog({ open: true, type: "rename", item, defaultValue: item.name });
+        setDialog({open: true, type: "rename", item, defaultValue: item.name});
         notifyFileStructureChanged();
     }
 
     async function moveFolder(item) {
-        setDialog({ open: true, type: "move", item, defaultValue: item.parentId || "" });
+        setDialog({open: true, type: "move", item, defaultValue: item.parentId || ""});
         notifyFileStructureChanged();
     }
 
@@ -203,21 +211,26 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                 break;
             case "rename":
                 if (contextMenu.type === "schema") {
-                    setDialog({ open: true, type: "renameSchema", item, defaultValue: item.name.replace(/\.json$/i, "") });
+                    setDialog({
+                        open: true,
+                        type: "renameSchema",
+                        item,
+                        defaultValue: item.name.replace(/\.json$/i, "")
+                    });
                 } else {
                     renameFolder(item);
                 }
                 break;
             case "move":
                 if (contextMenu.type === "schema") {
-                    setDialog({ open: true, type: "moveSchema", item, defaultValue: item.folderId || "" });
+                    setDialog({open: true, type: "moveSchema", item, defaultValue: item.folderId || ""});
                 } else {
                     moveFolder(item);
                 }
                 break;
             case "delete":
                 if (contextMenu.type === "schema") {
-                    setDialog({ open: true, type: "deleteSchema", item });
+                    setDialog({open: true, type: "deleteSchema", item});
                 } else {
                     deleteFolder(item);
                 }
@@ -226,9 +239,10 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                 toggleFavorite(item);
                 break;
             case "create":
-                setDialog({ open: true, type: "create", item: null, defaultValue: "" });
+                setDialog({open: true, type: "create", item: null, defaultValue: ""});
                 break;
             case "createSchema":
+                // eslint-disable-next-line no-case-declarations
                 const folderId = item?.id || currentFolder;
                 navigate(`/schemas/${folderId || 'root'}/edit`);
                 break;
@@ -238,7 +252,7 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
     }
 
     function handleDialogCancel() {
-        setDialog({ open: false, type: null, item: null, defaultValue: "" });
+        setDialog({open: false, type: null, item: null, defaultValue: ""});
     }
 
     async function handleDialogConfirm(value) {
@@ -334,11 +348,14 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
     return (
         <div
             className="w-full h-full p-8 relative"
-            style={{ background: '#1F2836' }}
-            onContextMenu={e => { e.preventDefault(); handleBackgroundContextMenu(e); }}
+            style={{background: '#1F2836'}}
+            onContextMenu={e => {
+                e.preventDefault();
+                handleBackgroundContextMenu(e);
+            }}
         >
             <div className="flex items-center justify-between mb-4">
-                <Breadcrumbs path={path} goToBreadcrumb={goToBreadcrumb} />
+                <Breadcrumbs path={path} goToBreadcrumb={goToBreadcrumb}/>
                 <button
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition"
                     onClick={() => navigate(`/schemas/${currentFolder ?? 'root'}/edit`)}
@@ -349,8 +366,11 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
             {error && <div className="text-red-400 mb-2">{error}</div>}
             <div
                 className="bg-gray-800 rounded p-6 min-h-[300px] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-                style={{ position: 'relative' }}
-                onContextMenu={e => { e.preventDefault(); handleBackgroundContextMenu(e); }}
+                style={{position: 'relative'}}
+                onContextMenu={e => {
+                    e.preventDefault();
+                    handleBackgroundContextMenu(e);
+                }}
             >
                 {loading ? (
                     <div className="text-gray-400 col-span-full">Loading...</div>
@@ -359,9 +379,10 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                         {currentFolder !== null && (
                             <FolderItem
                                 key=".."
-                                item={{ id: "..", name: "..", isFavorite: false }}
+                                item={{id: "..", name: "..", isFavorite: false}}
                                 openFolder={() => goToBreadcrumb(path.length - 2 >= 0 ? path.length - 2 : -1)}
-                                handleFolderContextMenu={() => {}}
+                                handleFolderContextMenu={() => {
+                                }}
                             />
                         )}
                         {items.length > 0 && items.map(item => (
@@ -378,20 +399,31 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                                 key={schema.id}
                                 className="flex flex-col items-center justify-center p-4 bg-gray-700 rounded border border-blue-400 hover:bg-gray-600 group relative cursor-pointer"
                                 onClick={() => navigate(`/schemas/${currentFolder ?? 'root'}/edit?schemaId=${schema.id}`)}
-                                onContextMenu={e => { e.stopPropagation(); handleSchemaContextMenu(e, schema); }}
+                                onContextMenu={e => {
+                                    e.stopPropagation();
+                                    handleSchemaContextMenu(e, schema);
+                                }}
                             >
-                                <span role="img" aria-label="schema" className="text-3xl mb-2 group-hover:scale-110 transition-transform">📄</span>
-                                <span className="text-white text-sm truncate w-full text-center group-hover:font-bold">{schema.name || 'Schema.json'}</span>
+                                <span role="img" aria-label="schema"
+                                      className="text-3xl mb-2 group-hover:scale-110 transition-transform">📄</span>
+                                <span
+                                    className="text-white text-sm truncate w-full text-center group-hover:font-bold">{schema.name || 'Schema.json'}</span>
                                 <button
                                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-blue-500 text-white px-2 py-1 rounded text-xs transition-opacity"
-                                    onClick={e => { e.stopPropagation(); navigate(`/schemas/${currentFolder ?? 'root'}/edit?schemaId=${schema.id}`); }}
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        navigate(`/schemas/${currentFolder ?? 'root'}/edit?schemaId=${schema.id}`);
+                                    }}
                                 >
                                     Edit
                                 </button>
                             </div>
                         ))}
                         {items.length === 0 && schemaFiles.length === 0 && currentFolder === null && (
-                            <div className="text-gray-400 col-span-full" onContextMenu={e => { e.preventDefault(); handleBackgroundContextMenu(e); }}>No folders.</div>
+                            <div className="text-gray-400 col-span-full" onContextMenu={e => {
+                                e.preventDefault();
+                                handleBackgroundContextMenu(e);
+                            }}>No folders.</div>
                         )}
                     </>
                 )}
@@ -434,8 +466,12 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                         <h2 className="text-lg font-semibold text-white mb-4">Delete Folder</h2>
                         <div className="text-white mb-4">Delete folder '{dialog.item?.name}' and all its contents?</div>
                         <div className="flex justify-end gap-2">
-                            <button className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-500" onClick={handleDialogCancel} disabled={loading}>Cancel</button>
-                            <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-500" onClick={() => handleDialogConfirm()} disabled={loading}>{loading ? '...' : 'Delete'}</button>
+                            <button className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-500"
+                                    onClick={handleDialogCancel} disabled={loading}>Cancel
+                            </button>
+                            <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-500"
+                                    onClick={() => handleDialogConfirm()}
+                                    disabled={loading}>{loading ? '...' : 'Delete'}</button>
                         </div>
                     </div>
                 </div>
@@ -465,8 +501,12 @@ export default function FileNavigator({ userId, navigateToFolder, onFavoriteTogg
                         <h2 className="text-lg font-semibold text-white mb-4">Delete Schema File</h2>
                         <div className="text-white mb-4">Delete schema file '{dialog.item?.name}'?</div>
                         <div className="flex justify-end gap-2">
-                            <button className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-500" onClick={handleDialogCancel} disabled={loading}>Cancel</button>
-                            <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-500" onClick={() => handleDialogConfirm()} disabled={loading}>{loading ? '...' : 'Delete'}</button>
+                            <button className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-500"
+                                    onClick={handleDialogCancel} disabled={loading}>Cancel
+                            </button>
+                            <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-500"
+                                    onClick={() => handleDialogConfirm()}
+                                    disabled={loading}>{loading ? '...' : 'Delete'}</button>
                         </div>
                     </div>
                 </div>

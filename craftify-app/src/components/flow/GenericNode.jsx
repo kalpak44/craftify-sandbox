@@ -1,9 +1,9 @@
-import { memo } from 'react';
-import { Handle, Position } from 'reactflow';
+import {memo} from 'react';
+import {Handle, Position} from 'reactflow';
 import PropTypes from 'prop-types';
 import loader from '../../assets/loader.svg';
 
-const GenericNode = ({ data, selected, executing }) => {
+const GenericNode = ({data, selected, executing}) => {
     // Parse configuration to get docker image and timeout
     let dockerImage = '';
     let command = '';
@@ -24,7 +24,7 @@ const GenericNode = ({ data, selected, executing }) => {
             className={`border border-green-500 rounded-lg p-4 bg-green-900 relative transition-shadow duration-200 ${selected ? 'ring-4 ring-green-400 shadow-2xl z-10' : ''}`}
         >
             <div className="absolute top-1 right-1 flex gap-2">
-                <button 
+                <button
                     className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500"
                     onClick={data.onRemove}
                 >
@@ -32,8 +32,9 @@ const GenericNode = ({ data, selected, executing }) => {
                 </button>
             </div>
             {executing && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 z-20 rounded-lg pointer-events-none">
-                    <img src={loader} alt="Loading..." className="w-8 h-8 animate-spin" />
+                <div
+                    className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 z-20 rounded-lg pointer-events-none">
+                    <img src={loader} alt="Loading..." className="w-8 h-8 animate-spin"/>
                 </div>
             )}
             <div className="text-white font-medium mt-4">Action Node</div>
@@ -55,22 +56,22 @@ const GenericNode = ({ data, selected, executing }) => {
                     ⏱️ {timeout}s timeout
                 </div>
             )}
-            <Handle type="target" position={Position.Top} className="w-3 h-3" />
+            <Handle type="target" position={Position.Top} className="w-3 h-3"/>
             {/* Success output handle */}
-            <Handle 
-                type="source" 
-                position={Position.Bottom} 
-                id="success" 
-                className="w-4 h-4 bg-green-400 border-2 border-green-300" 
-                style={{ left: '25%' }}
+            <Handle
+                type="source"
+                position={Position.Bottom}
+                id="success"
+                className="w-4 h-4 bg-green-400 border-2 border-green-300"
+                style={{left: '25%'}}
             />
             {/* Failure output handle */}
-            <Handle 
-                type="source" 
-                position={Position.Bottom} 
-                id="failure" 
-                className="w-4 h-4 bg-red-400 border-2 border-red-300" 
-                style={{ left: '75%' }}
+            <Handle
+                type="source"
+                position={Position.Bottom}
+                id="failure"
+                className="w-4 h-4 bg-red-400 border-2 border-red-300"
+                style={{left: '75%'}}
             />
         </div>
     );

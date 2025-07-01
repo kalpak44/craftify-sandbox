@@ -1,4 +1,3 @@
-import React from "react";
 import Loading from "../../assets/loader.svg?react";
 import "./PageLoader.css";
 

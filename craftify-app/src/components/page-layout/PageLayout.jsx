@@ -1,6 +1,3 @@
-import React from "react";
-
-
 import {NavBar} from "../nav-bar/NavBar.jsx";
 import {PageFooter} from "../page-footer/PageFooter.jsx";
 import "./PageLayout.css";

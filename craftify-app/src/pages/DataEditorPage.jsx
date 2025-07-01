@@ -1,7 +1,7 @@
-import {useState, useEffect} from "react";
-import {useParams, useNavigate, useSearchParams} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {useNavigate, useParams, useSearchParams} from "react-router-dom";
 import {useAuth0} from "@auth0/auth0-react";
-import {getSchemaFile, createSchemaDataRecord, getSchemaDataRecord, updateSchemaDataRecord} from "../services/API";
+import {createSchemaDataRecord, getSchemaDataRecord, getSchemaFile, updateSchemaDataRecord} from "../services/API";
 import SchemaDataBuilder from "../components/schema-data-builder/SchemaDataBuilder";
 
 const DataEditorPage = () => {

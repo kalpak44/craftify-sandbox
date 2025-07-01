@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getNodeTemplatesPageable, deleteNodeTemplate } from '../../services/API';
+import {useEffect, useState} from 'react';
+import {useAuth0} from '@auth0/auth0-react';
+import {useNavigate, useParams} from 'react-router-dom';
+import {deleteNodeTemplate, getNodeTemplatesPageable} from '../../services/API';
 import PropTypes from 'prop-types';
 
-const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
-    const { getAccessTokenSilently } = useAuth0();
+const NodeTemplateSelector = ({onTemplateSelect, onClose}) => {
+    const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
-    const { id: flowId } = useParams();
+    const {id: flowId} = useParams();
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [deleting, setDeleting] = useState(false);
-    
+
     // Pagination state
     const [page, setPage] = useState(0);
     const [size] = useState(10); // Smaller page size for better UX
@@ -28,7 +28,7 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
             setLoading(true);
             setError(null);
             const token = await getAccessTokenSilently();
-            const data = await getNodeTemplatesPageable(token, { page, size });
+            const data = await getNodeTemplatesPageable(token, {page, size});
             setTemplates(data.content || []);
             setTotalPages(data.totalPages || 0);
             setTotalElements(data.totalElements || 0);
@@ -65,7 +65,7 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
             setError(null);
             const token = await getAccessTokenSilently();
             await deleteNodeTemplate(token, templateId);
-            
+
             // Refresh the current page after deletion
             await loadTemplates();
         } catch (error) {
@@ -91,13 +91,13 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
     return (
         <div className="p-4 space-y-4 flex flex-col h-full">
             <h3 className="text-lg font-semibold text-white">Node Template</h3>
-            
+
             {error && (
                 <div className="p-2 bg-red-600 text-white text-sm rounded">
                     {error}
                 </div>
             )}
-            
+
             {/* Create New Template */}
             <div className="space-y-3">
                 <h4 className="text-sm font-medium text-gray-300">Create New Template</h4>
@@ -119,7 +119,7 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
                         </span>
                     )}
                 </div>
-                
+
                 {templates.length === 0 ? (
                     <div className="text-gray-400 text-center py-4 flex-1 flex items-center justify-center">
                         No templates found
@@ -170,7 +170,7 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
                                                     </div>
                                                 )}
                                             </div>
-                                            
+
                                             <div className="flex space-x-1 ml-2">
                                                 <button
                                                     onClick={() => handleEditTemplate(template.id)}
@@ -208,11 +208,11 @@ const NodeTemplateSelector = ({ nodeType, onTemplateSelect, onClose }) => {
                                 >
                                     Prev
                                 </button>
-                                
+
                                 <span className="text-xs text-gray-400">
                                     Page {page + 1} of {totalPages}
                                 </span>
-                                
+
                                 <button
                                     onClick={() => handlePageChange(page + 1)}
                                     disabled={page >= totalPages - 1}

@@ -29,8 +29,6 @@ body {
 }
 
 
-
-
 blockquote {
     padding: 1.6rem 3.2rem;
     margin: 0 0 3.2rem;
@@ -49,6 +47,7 @@ textarea {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
 button,
 input,
 select,

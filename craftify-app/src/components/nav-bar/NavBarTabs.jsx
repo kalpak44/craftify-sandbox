@@ -1,17 +1,17 @@
 import {useAuth0} from "@auth0/auth0-react";
-import { useState, useEffect, useRef } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { getFolderSchemaTree } from "../../services/API";
-import { useFileStructureContext } from "../file-navigator/FileStructureContext.jsx";
+import {useEffect, useRef, useState} from "react";
+import {NavLink, useNavigate} from "react-router-dom";
+import {getFolderSchemaTree} from "../../services/API";
+import {useFileStructureContext} from "../file-navigator/FileStructureContext.jsx";
 
 export const NavBarTabs = () => {
-    const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+    const {isAuthenticated, getAccessTokenSilently} = useAuth0();
     const [tree, setTree] = useState([]);
     const [loading, setLoading] = useState(false);
     const [dataMenuOpen, setDataMenuOpen] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
-    const { version } = useFileStructureContext();
+    const {version} = useFileStructureContext();
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -30,6 +30,7 @@ export const NavBarTabs = () => {
                 setDataMenuOpen(false);
             }
         }
+
         if (dataMenuOpen) {
             document.addEventListener("mousedown", handleClickOutside);
         } else {
@@ -108,7 +109,7 @@ export const NavBarTabs = () => {
                 </>
             )}
             {isAuthenticated && !loading && tree.length > 0 && (
-                <div className="nav-bar__tab nav-bar__tab--dropdown" ref={dropdownRef} style={{ position: 'relative' }}>
+                <div className="nav-bar__tab nav-bar__tab--dropdown" ref={dropdownRef} style={{position: 'relative'}}>
                     <button
                         className="nav-bar__tab nav-bar__tab--dropdown-btn"
                         onClick={() => setDataMenuOpen(open => !open)}

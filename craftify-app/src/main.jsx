@@ -9,7 +9,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <BrowserRouter>
             <Auth0ProviderWithNavigate>
-                <App />
+                <App/>
             </Auth0ProviderWithNavigate>
         </BrowserRouter>
     </React.StrictMode>

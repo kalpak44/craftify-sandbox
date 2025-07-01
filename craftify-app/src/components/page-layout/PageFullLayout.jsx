@@ -1,10 +1,10 @@
-import { NavBar } from "../nav-bar/NavBar.jsx";
+import {NavBar} from "../nav-bar/NavBar.jsx";
 import "./PageFullLayout.css";
 
-export const PageFullLayout = ({ children }) => {
+export const PageFullLayout = ({children}) => {
     return (
         <div className="page-full-layout">
-            <NavBar />
+            <NavBar/>
             <div className="page-full-layout__content">
                 {children}
             </div>

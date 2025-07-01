@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import {useEffect, useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
 import FileNavigator from "./FileNavigator.jsx";
-import { listFolders } from "../services/API";
+import {listFolders} from "../services/API";
 
-const AccordionSection = ({ title, expanded, onClick, children }) => (
+const AccordionSection = ({title, expanded, onClick, children}) => (
     <div className="mb-2">
         <button
             className="w-full text-left px-2 py-2 bg-gray-800 hover:bg-gray-700 rounded font-semibold text-white flex justify-between items-center"
@@ -16,7 +16,7 @@ const AccordionSection = ({ title, expanded, onClick, children }) => (
     </div>
 );
 
-const MinimalLeftPanel = ({ leftPanelOpen, setLeftPanelOpen, favorites, onFavoriteClick }) => {
+const MinimalLeftPanel = ({leftPanelOpen, setLeftPanelOpen, favorites, onFavoriteClick}) => {
     const [favExpanded, setFavExpanded] = useState(true);
     const [viewExpanded, setViewExpanded] = useState(false);
     const [viewMode, setViewMode] = useState('list');
@@ -83,7 +83,7 @@ const MinimalLeftPanel = ({ leftPanelOpen, setLeftPanelOpen, favorites, onFavori
 
 export const SchemaNavigationPage = () => {
     const [leftPanelOpen, setLeftPanelOpen] = useState(true);
-    const { user, getAccessTokenSilently } = useAuth0();
+    const {user, getAccessTokenSilently} = useAuth0();
     const [favorites, setFavorites] = useState([]);
     const [navigateToFolder, setNavigateToFolder] = useState(null);
 
@@ -93,7 +93,7 @@ export const SchemaNavigationPage = () => {
         let favorites = [];
         for (const folder of folders) {
             if (folder.favorite) {
-                favorites.push({ ...folder, isFavorite: true });
+                favorites.push({...folder, isFavorite: true});
             }
             // Always recurse to find favorites at any depth
             favorites = favorites.concat(await collectAllFavorites(accessToken, folder.id));
@@ -129,8 +129,9 @@ export const SchemaNavigationPage = () => {
                 favorites={favorites}
                 onFavoriteClick={handleFavoriteClick}
             />
-            <div className="flex-1 flex items-center justify-center" style={{ background: '#1F2836', height: '100vh' }}>
-                {user && <FileNavigator userId={user.sub} navigateToFolder={navigateToFolder} onFavoriteToggled={fetchFavorites} />}
+            <div className="flex-1 flex items-center justify-center" style={{background: '#1F2836', height: '100vh'}}>
+                {user && <FileNavigator userId={user.sub} navigateToFolder={navigateToFolder}
+                                        onFavoriteToggled={fetchFavorites}/>}
             </div>
         </div>
     );

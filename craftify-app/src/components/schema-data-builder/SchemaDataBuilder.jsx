@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
-const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onValidateAll }) => {
+const SchemaDataBuilder = ({schema, value, onChange, onValidationChange, onValidateAll}) => {
     const [validationErrors, setValidationErrors] = useState({});
     const [expandedFields, setExpandedFields] = useState({});
     const [schemaFields, setSchemaFields] = useState([]);
@@ -11,7 +11,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
             // Convert schema object to fields array
             const fields = convertSchemaToFields(schema);
             setSchemaFields(fields);
-            
+
             // Initialize expanded fields recursively
             const initialExpanded = {};
             const expandFieldsRecursively = (fieldList, parentPath = '') => {
@@ -19,14 +19,14 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                     const fullFieldName = parentPath ? `${parentPath}.${field.name}` : field.name;
                     // Expand all fields by default
                     initialExpanded[fullFieldName] = true;
-                    
+
                     // Also expand nested fields recursively
                     if (field.type === 'object' && field.fields) {
                         expandFieldsRecursively(field.fields, fullFieldName);
                     }
                 });
             };
-            
+
             expandFieldsRecursively(fields);
             setExpandedFields(initialExpanded);
         }
@@ -64,12 +64,12 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                 const fullFieldName = parentPath ? `${parentPath}.${field.name}` : field.name;
                 const fieldValue = getNestedValue(value, fullFieldName);
                 const errors = validateField(field, fieldValue);
-                
+
                 if (errors.length > 0) {
                     allErrors[fullFieldName] = errors;
                     hasAnyErrors = true;
                 }
-                
+
                 // Validate nested object fields
                 if (field.type === 'object' && field.fields) {
                     validateFieldRecursively(field.fields, fullFieldName);
@@ -78,10 +78,10 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
         };
 
         validateFieldRecursively(schemaFields);
-        
+
         // Update validation errors state
         setValidationErrors(allErrors);
-        
+
         return {
             isValid: !hasAnyErrors,
             errors: allErrors
@@ -98,7 +98,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
 
     const convertSchemaToFields = (schemaObj) => {
         const fields = [];
-        
+
         Object.keys(schemaObj).forEach(key => {
             const fieldDef = schemaObj[key];
             if (fieldDef && typeof fieldDef === 'object' && fieldDef.type) {
@@ -110,38 +110,44 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                     description: fieldDef.description || "",
                     ...fieldDef.validations
                 };
-                
+
                 // Handle nested object fields
                 if (fieldDef.type === 'object' && fieldDef.fields) {
                     field.fields = convertSchemaToFields(fieldDef.fields);
                 }
-                
+
                 fields.push(field);
             }
         });
-        
+
         return fields;
     };
 
     const getDefaultValue = (field) => {
         switch (field.type) {
-            case 'number': return '';
-            case 'boolean': return false;
-            case 'date': return new Date().toISOString().split('T')[0]; // Today's date
-            case 'array': return [];
-            case 'object': return {};
-            default: return '';
+            case 'number':
+                return '';
+            case 'boolean':
+                return false;
+            case 'date':
+                return new Date().toISOString().split('T')[0]; // Today's date
+            case 'array':
+                return [];
+            case 'object':
+                return {};
+            default:
+                return '';
         }
     };
 
     const validateField = (field, value) => {
         const errors = [];
-        
+
         // Required validation
         if (field.required && (value === undefined || value === null || value === '')) {
             errors.push("This field is required");
         }
-        
+
         // Type validation
         if (value !== undefined && value !== null && value !== '') {
             if (field.type === "number" && isNaN(Number(value))) {
@@ -157,7 +163,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                 errors.push("Must be a valid date");
             }
         }
-        
+
         // Min/Max length validation
         if (field.minLength && value && value.length < field.minLength) {
             errors.push(`Minimum length is ${field.minLength} characters`);
@@ -165,7 +171,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
         if (field.maxLength && value && value.length > field.maxLength) {
             errors.push(`Maximum length is ${field.maxLength} characters`);
         }
-        
+
         // Min/Max value validation for numbers
         if (field.min !== undefined && value && Number(value) < field.min) {
             errors.push(`Minimum value is ${field.min}`);
@@ -173,37 +179,37 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
         if (field.max !== undefined && value && Number(value) > field.max) {
             errors.push(`Maximum value is ${field.max}`);
         }
-        
+
         // Pattern validation
         if (field.regex && value && !new RegExp(field.regex).test(value)) {
             errors.push(field.patternMessage || "Invalid format");
         }
-        
+
         return errors;
     };
 
     const handleFieldChange = (fieldName, newValue, parentPath = '') => {
         const fullFieldName = parentPath ? `${parentPath}.${fieldName}` : fieldName;
-        const newData = { ...value };
-        
+        const newData = {...value};
+
         // Handle nested object updates
         if (parentPath) {
             const pathParts = parentPath.split('.');
             let current = newData;
             for (let i = 0; i < pathParts.length; i++) {
                 if (i === pathParts.length - 1) {
-                    current[pathParts[i]] = { ...current[pathParts[i]], [fieldName]: newValue };
+                    current[pathParts[i]] = {...current[pathParts[i]], [fieldName]: newValue};
                 } else {
-                    current[pathParts[i]] = { ...current[pathParts[i]] };
+                    current[pathParts[i]] = {...current[pathParts[i]]};
                     current = current[pathParts[i]];
                 }
             }
         } else {
             newData[fieldName] = newValue;
         }
-        
+
         onChange(newData);
-        
+
         // Validate the field
         const field = findFieldByName(fieldName, parentPath);
         if (field) {
@@ -219,11 +225,11 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
         if (!parentPath) {
             return schemaFields.find(f => f.name === fieldName);
         }
-        
+
         // Navigate to the nested field
         const pathParts = parentPath.split('.');
         let currentFields = schemaFields;
-        
+
         for (const part of pathParts) {
             const parentField = currentFields.find(f => f.name === part);
             if (parentField && parentField.fields) {
@@ -232,7 +238,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                 return null;
             }
         }
-        
+
         return currentFields.find(f => f.name === fieldName);
     };
 
@@ -248,9 +254,9 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
         const fieldValue = getNestedValue(value, fullFieldName);
         const errors = validationErrors[fullFieldName] || [];
         const isExpanded = expandedFields[fullFieldName];
-        
+
         return (
-            <div key={fullFieldName} className="mb-4" style={{ marginLeft: `${level * 20}px` }}>
+            <div key={fullFieldName} className="mb-4" style={{marginLeft: `${level * 20}px`}}>
                 <div className="flex items-center mb-2">
                     <button
                         type="button"
@@ -264,7 +270,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                         {field.required && <span className="text-red-400 ml-1">*</span>}
                     </label>
                 </div>
-                
+
                 {isExpanded && (
                     <div className="ml-6">
                         {field.type === 'textarea' ? (
@@ -345,7 +351,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                         ) : field.type === 'object' ? (
                             <div className="border border-gray-600 rounded p-3 bg-gray-800">
                                 <div className="text-sm text-gray-400 mb-2">Object: {field.label || field.name}</div>
-                                {field.fields && field.fields.map(subField => 
+                                {field.fields && field.fields.map(subField =>
                                     renderField(subField, level + 1, fullFieldName)
                                 )}
                             </div>
@@ -360,7 +366,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                                 placeholder={field.placeholder || `Enter ${field.label || field.name}`}
                             />
                         )}
-                        
+
                         {errors.length > 0 && (
                             <div className="text-red-400 text-sm mt-1">
                                 {errors.map((error, index) => (
@@ -368,7 +374,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                                 ))}
                             </div>
                         )}
-                        
+
                         {field.description && (
                             <div className="text-gray-400 text-sm mt-1">{field.description}</div>
                         )}
@@ -381,7 +387,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
     const getNestedValue = (obj, path) => {
         const pathParts = path.split('.');
         let current = obj;
-        
+
         for (const part of pathParts) {
             if (current && typeof current === 'object' && part in current) {
                 current = current[part];
@@ -389,7 +395,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                 return undefined;
             }
         }
-        
+
         return current;
     };
 
@@ -403,7 +409,7 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                 <h3 className="text-lg font-semibold text-white mb-2">Data Builder</h3>
                 <p className="text-gray-400 text-sm">Build data records based on your schema definition.</p>
             </div>
-            
+
             <div className="space-y-2">
                 {schemaFields.map(field => renderField(field))}
             </div>

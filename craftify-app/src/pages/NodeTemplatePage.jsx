@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { createNodeTemplate, updateNodeTemplate, getNodeTemplateById } from '../services/API';
+import {useEffect, useState} from 'react';
+import {useAuth0} from '@auth0/auth0-react';
+import {useNavigate, useParams, useSearchParams} from 'react-router-dom';
+import {createNodeTemplate, getNodeTemplateById, updateNodeTemplate} from '../services/API';
 
 export const NodeTemplatePage = () => {
-    const { getAccessTokenSilently } = useAuth0();
-    const { id } = useParams();
+    const {getAccessTokenSilently} = useAuth0();
+    const {id} = useParams();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    
+
     const [name, setName] = useState('');
     const [dockerImage, setDockerImage] = useState('');
     const [command, setCommand] = useState('');
@@ -35,7 +35,7 @@ export const NodeTemplatePage = () => {
             const token = await getAccessTokenSilently();
             const template = await getNodeTemplateById(token, id);
             setName(template.name);
-            
+
             // Parse configuration to get container definition
             if (template.configuration) {
                 try {
@@ -75,11 +75,11 @@ export const NodeTemplatePage = () => {
             setSaving(true);
             setError('');
             const token = await getAccessTokenSilently();
-            
+
             const templateData = {
                 name: name.trim(),
                 description: `Container template: ${name.trim()}`,
-                configuration: JSON.stringify({ 
+                configuration: JSON.stringify({
                     type: 'action',
                     label: name.trim(),
                     dockerImage: dockerImage.trim(),
@@ -94,7 +94,7 @@ export const NodeTemplatePage = () => {
             } else {
                 await createNodeTemplate(token, templateData);
             }
-            
+
             navigate(returnUrl);
         } catch (err) {
             console.error('Failed to save template:', err);
@@ -122,13 +122,13 @@ export const NodeTemplatePage = () => {
                 <h1 className="text-2xl font-bold text-white mb-6">
                     {isEditing ? 'Edit Node Template' : 'Create Node Template'}
                 </h1>
-                
+
                 {error && (
                     <div className="mb-4 p-3 bg-red-600 text-white text-sm rounded">
                         {error}
                     </div>
                 )}
-                
+
                 <div className="space-y-4">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
@@ -208,7 +208,7 @@ export const NodeTemplatePage = () => {
                             Default: 300 seconds (5 minutes)
                         </p>
                     </div>
-                    
+
                     <div className="flex space-x-3 pt-4">
                         <button
                             onClick={handleSave}

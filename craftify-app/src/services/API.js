@@ -17,7 +17,15 @@ const fetchWithAuth = async (accessToken, url, options = {}) => {
     return response;
 };
 
-export const getProductsPageable = async (accessToken, { page = 0, size = 10, id, name = "", categories = [], attributes = [], tags = [] }) => {
+export const getProductsPageable = async (accessToken, {
+    page = 0,
+    size = 10,
+    id,
+    name = "",
+    categories = [],
+    attributes = [],
+    tags = []
+}) => {
     const queryParams = [`page=${page}`, `size=${size}`];
 
     if (id) {
@@ -28,14 +36,14 @@ export const getProductsPageable = async (accessToken, { page = 0, size = 10, id
         queryParams.push(`name=${encodeURIComponent(name)}`);
     }
 
-    if(attributes && attributes.length > 0){
+    if (attributes && attributes.length > 0) {
         console.log(attributes)
         attributes.forEach(attribute => {
             if (attribute) queryParams.push(`attributes${encodeURIComponent(`[${attribute.key}]`)}=${encodeURIComponent(attribute.value)}`);
         });
     }
 
-    if(tags && tags.length > 0){
+    if (tags && tags.length > 0) {
         tags.forEach(tag => {
             if (tag) queryParams.push(`tags${encodeURIComponent(`[${tag.key}]`)}=${encodeURIComponent(tag.value)}`);
         });
@@ -120,7 +128,7 @@ export const getRecipeYield = async (accessToken, recipeId) => {
 export const applyRecipe = async (accessToken, recipeId, amount) => {
     const response = await fetchWithAuth(accessToken, `/recipes/${recipeId}/apply`, {
         method: "POST",
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({amount}),
     });
     if (!response.ok) {
         const body = await response.json();
@@ -293,10 +301,10 @@ export const listFolders = async (accessToken, parentId = null) => {
     return response.json();
 };
 
-export const createFolder = async (accessToken, { name, parentId }) => {
+export const createFolder = async (accessToken, {name, parentId}) => {
     const response = await fetchWithAuth(accessToken, "/files", {
         method: "POST",
-        body: JSON.stringify({ name, type: "folder", parentId })
+        body: JSON.stringify({name, type: "folder", parentId})
     });
     if (!response.ok) throw new Error(await response.text());
     return response.json();
@@ -313,7 +321,7 @@ export const deleteFolder = async (accessToken, id) => {
 export const renameFolder = async (accessToken, id, newName) => {
     const response = await fetchWithAuth(accessToken, `/files/${id}/rename`, {
         method: "PATCH",
-        body: JSON.stringify({ name: newName })
+        body: JSON.stringify({name: newName})
     });
     if (!response.ok) throw new Error(await response.text());
     return response.json();
@@ -322,7 +330,7 @@ export const renameFolder = async (accessToken, id, newName) => {
 export const moveFolder = async (accessToken, id, newParentId) => {
     const response = await fetchWithAuth(accessToken, `/files/${id}/move`, {
         method: "PATCH",
-        body: JSON.stringify({ parentId: newParentId })
+        body: JSON.stringify({parentId: newParentId})
     });
     if (!response.ok) throw new Error(await response.text());
     return response.json();
@@ -388,12 +396,12 @@ export const createSchemaDataRecord = async (accessToken, schemaId, data) => {
         method: 'POST',
         body: JSON.stringify(data)
     });
-    
+
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to create data record: ${errorText}`);
     }
-    
+
     return response.json();
 };
 
@@ -404,7 +412,7 @@ export const getSchemaDataRecords = async (accessToken, schemaId, page = 0, size
         throw new Error(`Failed to fetch schema data records: ${errorText}`);
     }
     const records = await response.json();
-    
+
     // Convert to table format with system properties and name/description
     const tableData = records.map(record => ({
         id: record.id,
@@ -413,14 +421,14 @@ export const getSchemaDataRecords = async (accessToken, schemaId, page = 0, size
         name: record.data?.name || null,
         description: record.data?.description || null
     }));
-    
+
     // Implement client-side pagination
     const startIndex = page * size;
     const endIndex = startIndex + size;
     const content = tableData.slice(startIndex, endIndex);
     const totalElements = tableData.length;
     const totalPages = Math.ceil(totalElements / size);
-    
+
     return {
         content,
         totalElements,
@@ -432,12 +440,12 @@ export const getSchemaDataRecords = async (accessToken, schemaId, page = 0, size
 
 export const getSchemaDataRecordsForTable = async (accessToken, schemaId) => {
     const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}/table`);
-    
+
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to fetch table data: ${errorText}`);
     }
-    
+
     return response.json();
 };
 
@@ -466,7 +474,7 @@ export const deleteSchemaDataRecord = async (accessToken, recordId) => {
     const response = await fetchWithAuth(accessToken, `/schema-data/record/${recordId}`, {
         method: 'DELETE'
     });
-    
+
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to delete data record: ${errorText}`);
@@ -475,12 +483,12 @@ export const deleteSchemaDataRecord = async (accessToken, recordId) => {
 
 export const getSchemaDataRecordCount = async (accessToken, schemaId) => {
     const response = await fetchWithAuth(accessToken, `/schema-data/${schemaId}/count`);
-    
+
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to fetch record count: ${errorText}`);
     }
-    
+
     return response.json();
 };
 

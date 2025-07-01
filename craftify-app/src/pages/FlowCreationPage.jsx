@@ -1,30 +1,25 @@
-import {useState, useCallback, useRef, useEffect, useMemo} from 'react';
-import {useParams, useNavigate} from 'react-router-dom';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
 import {useAuth0} from '@auth0/auth0-react';
-import ReactFlow, {
-    addEdge,
-    Background,
-    useNodesState,
-    useEdgesState,
-} from 'reactflow';
+import ReactFlow, {addEdge, Background, useEdgesState, useNodesState,} from 'reactflow';
 import 'reactflow/dist/style.css';
-import {createFlow, updateFlow, executeFlow} from '../services/API';
-import { Client } from '@stomp/stompjs';
-import { useDebouncedCallback } from 'use-debounce';
+import {createFlow, executeFlow, updateFlow} from '../services/API';
+import {Client} from '@stomp/stompjs';
+import {useDebouncedCallback} from 'use-debounce';
 
 import {
-    PlaceholderNode,
-    ManualTriggerNode,
     CronTriggerNode,
-    LeftPanel,
-    TriggerSelectionPanel,
     EdgeOptionsPanel,
+    LeftPanel,
+    ManualTriggerNode,
+    PlaceholderNode,
+    TriggerSelectionPanel,
     useFlowCreation
 } from '../components/flow';
 import GenericNode from '../components/flow/GenericNode';
 
 // Helper components
-const BottomBarTabs = ({ tabs, activeTab, setActiveTab }) => (
+const BottomBarTabs = ({tabs, activeTab, setActiveTab}) => (
     <div className="flex border-b border-gray-700 bg-gray-800">
         {tabs.map((tab) => (
             <button
@@ -39,10 +34,12 @@ const BottomBarTabs = ({ tabs, activeTab, setActiveTab }) => (
 );
 
 // Inline editable config row
-const EditableConfigRow = ({ label, value, onChange }) => {
+const EditableConfigRow = ({label, value, onChange}) => {
     const [editing, setEditing] = useState(false);
     const [editValue, setEditValue] = useState(value);
-    useEffect(() => { setEditValue(value); }, [value]);
+    useEffect(() => {
+        setEditValue(value);
+    }, [value]);
     return (
         <div className="flex items-center py-1">
             <div className="w-40 text-gray-400">{label}</div>
@@ -52,8 +49,16 @@ const EditableConfigRow = ({ label, value, onChange }) => {
                     value={editValue}
                     autoFocus
                     onChange={e => setEditValue(e.target.value)}
-                    onBlur={() => { setEditing(false); onChange(editValue); }}
-                    onKeyDown={e => { if (e.key === 'Enter') { setEditing(false); onChange(editValue); } }}
+                    onBlur={() => {
+                        setEditing(false);
+                        onChange(editValue);
+                    }}
+                    onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                            setEditing(false);
+                            onChange(editValue);
+                        }
+                    }}
                 />
             ) : (
                 <div
@@ -69,23 +74,24 @@ const EditableConfigRow = ({ label, value, onChange }) => {
 };
 
 // Variables/Secrets management section
-const VariableManager = ({ items, setItems, type }) => {
+const VariableManager = ({items, setItems, type}) => {
     const [newKey, setNewKey] = useState('');
     const [newValue, setNewValue] = useState('');
     const handleAdd = () => {
         if (!newKey) return;
         if (type === 'secrets') {
-            setItems([...items, { key: newKey }]);
+            setItems([...items, {key: newKey}]);
         } else {
-            setItems([...items, { key: newKey, value: newValue }]);
+            setItems([...items, {key: newKey, value: newValue}]);
         }
-        setNewKey(''); setNewValue('');
+        setNewKey('');
+        setNewValue('');
     };
     const handleEdit = (idx, key, value) => {
         if (type === 'secrets') {
-            setItems(items.map((item, i) => i === idx ? { key } : item));
+            setItems(items.map((item, i) => i === idx ? {key} : item));
         } else {
-            setItems(items.map((item, i) => i === idx ? { key, value } : item));
+            setItems(items.map((item, i) => i === idx ? {key, value} : item));
         }
     };
     const handleDelete = (idx) => {
@@ -94,18 +100,22 @@ const VariableManager = ({ items, setItems, type }) => {
     return (
         <div className="space-y-2">
             <div className="flex gap-2 mb-2">
-                <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600" placeholder="Key" value={newKey} onChange={e => setNewKey(e.target.value)} />
+                <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600" placeholder="Key"
+                       value={newKey} onChange={e => setNewKey(e.target.value)}/>
                 {type !== 'secrets' && (
-                    <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600" placeholder="Value" value={newValue} onChange={e => setNewValue(e.target.value)} />
+                    <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600"
+                           placeholder="Value" value={newValue} onChange={e => setNewValue(e.target.value)}/>
                 )}
                 <button className="bg-blue-600 px-3 py-1 rounded text-white" onClick={handleAdd}>Add</button>
             </div>
             {items.length === 0 && <div className="text-gray-400">No {type} defined.</div>}
             {items.map((item, idx) => (
                 <div key={idx} className="flex gap-2 items-center">
-                    <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 w-32" value={item.key} onChange={e => handleEdit(idx, e.target.value, item.value)} />
+                    <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 w-32"
+                           value={item.key} onChange={e => handleEdit(idx, e.target.value, item.value)}/>
                     {type !== 'secrets' && (
-                        <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 flex-1" value={item.value} onChange={e => handleEdit(idx, item.key, e.target.value)} />
+                        <input className="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 flex-1"
+                               value={item.value} onChange={e => handleEdit(idx, item.key, e.target.value)}/>
                     )}
                     <button className="text-red-400 px-2" onClick={() => handleDelete(idx)}>Delete</button>
                 </div>
@@ -171,7 +181,7 @@ export const FlowCreationPage = () => {
         placeholder: PlaceholderNode,
         manualTrigger: ManualTriggerNode,
         cronTrigger: CronTriggerNode,
-        action: (props) => <GenericNode {...props} executing={props.id === executingNodeId} />,
+        action: (props) => <GenericNode {...props} executing={props.id === executingNodeId}/>,
     }), [executingNodeId]);
 
     // Sync config state with selectedActionNode
@@ -355,11 +365,11 @@ export const FlowCreationPage = () => {
             ...params,
             id: `e${params.source}-${params.sourceHandle || 'default'}-${params.target}`,
             // Preserve sourceHandle if it exists (for success/failure paths)
-            ...(params.sourceHandle && { sourceHandle: params.sourceHandle })
+            ...(params.sourceHandle && {sourceHandle: params.sourceHandle})
         };
         setEdges((eds) => addEdge(edge, eds));
     }, [setEdges]);
-    
+
     const onDrop = useCallback((event) => {
         event.preventDefault();
         const bounds = reactFlowWrapper.current.getBoundingClientRect();
@@ -403,7 +413,7 @@ export const FlowCreationPage = () => {
 
     const handleNodeTemplateSelect = useCallback((template) => {
         if (!reactFlowInstance) return;
-        
+
         // Get the center of the viewport
         const center = reactFlowInstance.getViewport();
         const position = reactFlowInstance.project({
@@ -611,7 +621,7 @@ export const FlowCreationPage = () => {
             const flowData = {
                 name: flowName,
                 description: flowDescription,
-                configuration: JSON.stringify({ nodes, edges }),
+                configuration: JSON.stringify({nodes, edges}),
                 active: flowActive,
             };
             if (flowId) {
@@ -690,15 +700,15 @@ export const FlowCreationPage = () => {
                 {bottomBarOpen && selectedActionNode && (
                     <div
                         className="absolute left-0 right-0 bottom-0 bg-gray-900 text-white border-t border-gray-700 z-50 flex flex-col"
-                        style={{ minHeight: '100px', maxHeight: '400px', height: bottomBarHeight }}
+                        style={{minHeight: '100px', maxHeight: '400px', height: bottomBarHeight}}
                     >
                         {/* Drag handle */}
                         <div
                             className="w-full h-3 cursor-ns-resize flex items-center justify-center bg-gray-800 border-b border-gray-700"
                             onMouseDown={handleBarMouseDown}
-                            style={{ userSelect: 'none' }}
+                            style={{userSelect: 'none'}}
                         >
-                            <div className="w-12 h-1 rounded bg-gray-600" />
+                            <div className="w-12 h-1 rounded bg-gray-600"/>
                         </div>
                         {/* Tabs */}
                         <BottomBarTabs
@@ -711,19 +721,20 @@ export const FlowCreationPage = () => {
                                 <div>
                                     <div className="font-bold text-lg mb-2">Config</div>
                                     <div className="space-y-2">
-                                        {Object.entries(config).length === 0 && <div className="text-gray-400">No config available.</div>}
+                                        {Object.entries(config).length === 0 &&
+                                            <div className="text-gray-400">No config available.</div>}
                                         {Object.entries(config).map(([key, value]) => (
                                             <EditableConfigRow
                                                 key={key}
                                                 label={key}
                                                 value={value}
                                                 onChange={val => {
-                                                    setConfig(cfg => ({ ...cfg, [key]: val }));
+                                                    setConfig(cfg => ({...cfg, [key]: val}));
                                                     if (selectedActionNode) {
                                                         setNodes(nds =>
                                                             nds.map(node =>
                                                                 node.id === selectedActionNode.id
-                                                                    ? { ...node, data: { ...node.data, [key]: val } }
+                                                                    ? {...node, data: {...node.data, [key]: val}}
                                                                     : node
                                                             )
                                                         );
@@ -738,9 +749,11 @@ export const FlowCreationPage = () => {
                             {bottomBarTab === 'Logs' && (
                                 <div>
                                     <div className="font-bold text-lg mb-2">
-                                        Node Logs: {selectedActionNode?.data?.label || selectedActionNode?.data?.templateName || selectedActionNode?.id}
+                                        Node
+                                        Logs: {selectedActionNode?.data?.label || selectedActionNode?.data?.templateName || selectedActionNode?.id}
                                     </div>
-                                    <div className="mt-3 font-mono text-base text-gray-200" style={{whiteSpace: 'pre-wrap'}}>
+                                    <div className="mt-3 font-mono text-base text-gray-200"
+                                         style={{whiteSpace: 'pre-wrap'}}>
                                         {(selectedActionNode && nodeLogs[selectedActionNode.id]) ?
                                             nodeLogs[selectedActionNode.id].join('\n') :
                                             <div className="text-gray-400">No logs yet.</div>
@@ -751,13 +764,13 @@ export const FlowCreationPage = () => {
                             {bottomBarTab === 'Variables' && (
                                 <div>
                                     <div className="font-bold text-lg mb-2">System Variables</div>
-                                    <VariableManager items={variables} setItems={setVariables} type="variables" />
+                                    <VariableManager items={variables} setItems={setVariables} type="variables"/>
                                 </div>
                             )}
                             {bottomBarTab === 'Secrets' && (
                                 <div>
                                     <div className="font-bold text-lg mb-2">Secrets</div>
-                                    <VariableManager items={secrets} setItems={setSecrets} type="secrets" />
+                                    <VariableManager items={secrets} setItems={setSecrets} type="secrets"/>
                                 </div>
                             )}
                         </div>

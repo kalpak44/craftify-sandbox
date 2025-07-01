@@ -1,5 +1,4 @@
-import React from "react";
-import { PageFooterHyperlink } from "../page-footer-hyperlink/PageFooterHyperlink.jsx";
+import {PageFooterHyperlink} from "../page-footer-hyperlink/PageFooterHyperlink.jsx";
 import "./PageFooter.css";
 
 export const PageFooter = () => {
@@ -31,7 +30,7 @@ export const PageFooter = () => {
                             <span>Craftify - Craft Data Your Way&nbsp;</span>
                         </p>
                         <p className="page-footer-message__description">
-                            Simplify data creation and analysis with powerful, user-friendly notebooks.
+                            Lorem ipsum is a dummy or placeholder text commonly used in graphic design.
                         </p>
                     </div>
                     <div className="page-footer-info__resource-list">

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { Link, useNavigate } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
+import {Link, useNavigate} from "react-router-dom";
 
 export const NotebooksPage = () => {
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
 
     const [notebooks, setNotebooks] = useState([]);
@@ -118,7 +118,7 @@ export const NotebooksPage = () => {
                         >
                             Prev
                         </button>
-                        {Array.from({ length: totalPages }, (_, i) => (
+                        {Array.from({length: totalPages}, (_, i) => (
                             <button
                                 key={i}
                                 onClick={() => setPage(i)}

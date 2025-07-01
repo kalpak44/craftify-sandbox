@@ -1,21 +1,25 @@
-import React from "react";
 import PropTypes from "prop-types";
 
-export default function FolderItem({ item, openFolder, handleFolderContextMenu }) {
+export default function FolderItem({item, openFolder, handleFolderContextMenu}) {
     const isUpFolder = item.id === "..";
     return (
         <div
             className="flex flex-col items-center justify-center bg-gray-700 rounded-lg p-6 cursor-pointer hover:bg-gray-600 relative group shadow-lg transition-all text-center"
-            style={{ fontSize: '2rem', minHeight: '120px' }}
+            style={{fontSize: '2rem', minHeight: '120px'}}
             onClick={() => openFolder(item)}
-            onContextMenu={e => { e.preventDefault(); handleFolderContextMenu(e, item); }}
+            onContextMenu={e => {
+                e.preventDefault();
+                handleFolderContextMenu(e, item);
+            }}
             role="button"
             tabIndex={0}
             aria-label={`Open folder ${item.name}`}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openFolder(item); }}
+            onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') openFolder(item);
+            }}
         >
             {!isUpFolder && (
-                <span style={{ fontSize: '2.5rem', position: 'relative', display: 'inline-block' }}>
+                <span style={{fontSize: '2.5rem', position: 'relative', display: 'inline-block'}}>
                     📁
                     {item.isFavorite && (
                         <span style={{
@@ -30,7 +34,8 @@ export default function FolderItem({ item, openFolder, handleFolderContextMenu }
                     )}
                 </span>
             )}
-            <span className={isUpFolder ? "mt-2 font-semibold text-lg text-yellow-400 break-all" : "mt-2 font-semibold text-lg text-blue-200 break-all"}>{item.name}</span>
+            <span
+                className={isUpFolder ? "mt-2 font-semibold text-lg text-yellow-400 break-all" : "mt-2 font-semibold text-lg text-blue-200 break-all"}>{item.name}</span>
         </div>
     );
 }

@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
-import { getSchemaFile, getSchemaDataRecordsForTable, deleteSchemaDataRecord } from "../services/API";
+import React, {useEffect, useState} from "react";
+import {useNavigate, useParams} from "react-router-dom";
+import {useAuth0} from "@auth0/auth0-react";
+import {deleteSchemaDataRecord, getSchemaDataRecordsForTable, getSchemaFile} from "../services/API";
 
 const PAGE_SIZE = 10;
 
 const SchemaTablePage = () => {
-    const { schemaId } = useParams();
+    const {schemaId} = useParams();
     const navigate = useNavigate();
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const [schema, setSchema] = useState(null);
     const [data, setData] = useState([]);
     const [fields, setFields] = useState([]);
@@ -18,6 +18,7 @@ const SchemaTablePage = () => {
 
     useEffect(() => {
         let isMounted = true;
+
         async function fetchSchemaAndData() {
             setLoading(true);
             setError("");
@@ -36,11 +37,11 @@ const SchemaTablePage = () => {
                     setSchema(parsed);
                     // Define system properties and common fields to display in table
                     const systemFields = [
-                        { name: 'id', label: 'ID', type: 'string' },
-                        { name: 'name', label: 'Name', type: 'string' },
-                        { name: 'description', label: 'Description', type: 'string' },
-                        { name: 'createdAt', label: 'Created At', type: 'date' },
-                        { name: 'updatedAt', label: 'Updated At', type: 'date' }
+                        {name: 'id', label: 'ID', type: 'string'},
+                        {name: 'name', label: 'Name', type: 'string'},
+                        {name: 'description', label: 'Description', type: 'string'},
+                        {name: 'createdAt', label: 'Created At', type: 'date'},
+                        {name: 'updatedAt', label: 'Updated At', type: 'date'}
                     ];
                     setFields(systemFields);
                     // Fetch table data (system properties only) for this schema
@@ -53,8 +54,11 @@ const SchemaTablePage = () => {
                 setLoading(false);
             }
         }
+
         fetchSchemaAndData();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [schemaId, getAccessTokenSilently]);
 
     const totalPages = Math.ceil(data.length / PAGE_SIZE);
@@ -103,45 +107,46 @@ const SchemaTablePage = () => {
             <div className="overflow-x-auto">
                 <table className="min-w-full bg-gray-800 border border-gray-700 rounded-lg">
                     <thead className="bg-gray-900">
-                        <tr>
-                            {fields.map(field => (
-                                <th key={field.name} className="py-3 px-4 text-left text-gray-300">{field.label || field.name}</th>
-                            ))}
-                            <th className="py-3 px-4 text-left text-gray-300">Actions</th>
-                        </tr>
+                    <tr>
+                        {fields.map(field => (
+                            <th key={field.name}
+                                className="py-3 px-4 text-left text-gray-300">{field.label || field.name}</th>
+                        ))}
+                        <th className="py-3 px-4 text-left text-gray-300">Actions</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {pagedData.length === 0 ? (
-                            <tr>
-                                <td colSpan={fields.length + 1} className="py-4 px-4 text-center text-gray-400">
-                                    No data
+                    {pagedData.length === 0 ? (
+                        <tr>
+                            <td colSpan={fields.length + 1} className="py-4 px-4 text-center text-gray-400">
+                                No data
+                            </td>
+                        </tr>
+                    ) : (
+                        pagedData.map((row, i) => (
+                            <tr key={row.id} className="border-t border-gray-700 hover:bg-gray-700 text-gray-300">
+                                {fields.map(field => (
+                                    <td key={field.name} className="py-3 px-4">{row[field.name]}</td>
+                                ))}
+                                <td className="py-3 px-4">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleEdit(row)}
+                                            className="px-3 py-1 bg-gray-900 rounded hover:bg-gray-600 text-sm text-white"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(row)}
+                                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
-                        ) : (
-                            pagedData.map((row, i) => (
-                                <tr key={row.id} className="border-t border-gray-700 hover:bg-gray-700 text-gray-300">
-                                    {fields.map(field => (
-                                        <td key={field.name} className="py-3 px-4">{row[field.name]}</td>
-                                    ))}
-                                    <td className="py-3 px-4">
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleEdit(row)}
-                                                className="px-3 py-1 bg-gray-900 rounded hover:bg-gray-600 text-sm text-white"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(row)}
-                                                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                        ))
+                    )}
                     </tbody>
                 </table>
             </div>
@@ -153,7 +158,7 @@ const SchemaTablePage = () => {
                 >
                     Prev
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => (
+                {Array.from({length: totalPages}, (_, i) => (
                     <button
                         key={i}
                         onClick={() => setPage(i)}

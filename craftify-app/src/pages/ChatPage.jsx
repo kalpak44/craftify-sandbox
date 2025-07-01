@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import {useEffect} from "react";
+import {useAuth0} from "@auth0/auth0-react";
 import "./ChatPage.css";
 
 // Components
@@ -11,13 +11,13 @@ import LoadingIndicator from "../components/chat/LoadingIndicator";
 import useWebSocket from "../components/chat/useWebSocket";
 
 export const ChatPage = () => {
-    const { getAccessTokenSilently, isAuthenticated } = useAuth0();
-    const { 
-        isConnected, 
-        messages, 
+    const {getAccessTokenSilently, isAuthenticated} = useAuth0();
+    const {
+        isConnected,
+        messages,
         isLoading,
-        connectWebSocket, 
-        sendMessage 
+        connectWebSocket,
+        sendMessage
     } = useWebSocket(getAccessTokenSilently);
 
     useEffect(() => {
@@ -29,11 +29,11 @@ export const ChatPage = () => {
     return (
         <div className="chat-container">
             <div className="chat-window">
-                <MessageList messages={messages} />
-                {isLoading && <LoadingIndicator />}
-                <ChatInput 
-                    onSendMessage={sendMessage} 
-                    isConnected={isConnected} 
+                <MessageList messages={messages}/>
+                {isLoading && <LoadingIndicator/>}
+                <ChatInput
+                    onSendMessage={sendMessage}
+                    isConnected={isConnected}
                 />
             </div>
         </div>

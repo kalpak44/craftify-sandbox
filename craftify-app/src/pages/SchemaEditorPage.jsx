@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
-import { saveSchemaFile, listSchemaFiles } from "../services/API";
+import {useEffect, useState} from "react";
+import {useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {useAuth0} from "@auth0/auth0-react";
 import JsonBuilder from "../components/json-builder/JsonBuilder";
 
 const SchemaEditorPage = () => {
-    const { folderId } = useParams();
+    const {folderId} = useParams();
     const [searchParams] = useSearchParams();
     const schemaIdParam = searchParams.get('schemaId');
     const navigate = useNavigate();
-    const { user, getAccessTokenSilently } = useAuth0();
+    const {user, getAccessTokenSilently} = useAuth0();
     const [schemaObject, setSchemaObject] = useState({});
     const [schemaId, setSchemaId] = useState(schemaIdParam || null);
     const [fileBaseName, setFileBaseName] = useState("Schema");
@@ -23,13 +22,14 @@ const SchemaEditorPage = () => {
 
     useEffect(() => {
         let isMounted = true;
+
         async function fetchSchema() {
             setLoading(true);
             setError("");
             try {
                 const accessToken = await getAccessTokenSilently();
                 if (schemaIdParam) {
-                    const { getSchemaFile, listSchemaFiles } = await import("../services/API");
+                    const {getSchemaFile, listSchemaFiles} = await import("../services/API");
                     const schema = await getSchemaFile(accessToken, schemaIdParam);
                     if (isMounted) {
                         let parsed = {};
@@ -38,19 +38,25 @@ const SchemaEditorPage = () => {
                         } catch (e) {
                             setError("Invalid JSON in schema file.");
                         }
-                        setSchemaObject({ ...parsed });
+                        setSchemaObject({...parsed});
                         setSchemaId(schema.id);
                         const name = schema.name || "Schema.json";
                         setFileBaseName(name.endsWith('.json') ? name.slice(0, -5) : name);
                         const schemas = await listSchemaFiles(accessToken, folderId);
-                        setAllSchemaNames(schemas.map(s => ({ id: s.id, name: (s.name || "Schema.json").toLowerCase() })));
+                        setAllSchemaNames(schemas.map(s => ({
+                            id: s.id,
+                            name: (s.name || "Schema.json").toLowerCase()
+                        })));
                         setSchemaInitialized(true);
                     }
                 } else {
-                    const { listSchemaFiles } = await import("../services/API");
+                    const {listSchemaFiles} = await import("../services/API");
                     const schemas = await listSchemaFiles(accessToken, folderId);
                     if (isMounted) {
-                        setAllSchemaNames(schemas.map(s => ({ id: s.id, name: (s.name || "Schema.json").toLowerCase() })));
+                        setAllSchemaNames(schemas.map(s => ({
+                            id: s.id,
+                            name: (s.name || "Schema.json").toLowerCase()
+                        })));
                         setSchemaObject({});
                         setSchemaId(null);
                         setFileBaseName("Schema");
@@ -63,8 +69,11 @@ const SchemaEditorPage = () => {
                 setLoading(false);
             }
         }
+
         fetchSchema();
-        return () => { isMounted = false; };
+        return () => {
+            isMounted = false;
+        };
     }, [folderId, getAccessTokenSilently, schemaIdParam]);
 
     useEffect(() => {
@@ -104,7 +113,7 @@ const SchemaEditorPage = () => {
                 folderId: folderId,
                 userId: user?.sub,
             };
-            const { saveSchemaFile } = await import("../services/API");
+            const {saveSchemaFile} = await import("../services/API");
             const savedSchema = await saveSchemaFile(accessToken, schemaFile);
             setSchemaId(savedSchema.id);
             setSaving(false);
@@ -124,12 +133,17 @@ const SchemaEditorPage = () => {
         <div className="w-full h-full min-h-screen bg-gray-800 flex flex-col">
             <div className="flex items-center justify-between px-8 py-6 border-b border-gray-700">
                 <div className="flex items-center gap-4">
-                    <button className="px-3 py-1 rounded bg-gray-700 text-white hover:bg-gray-600" onClick={handleGoBack}>← Go Back</button>
+                    <button className="px-3 py-1 rounded bg-gray-700 text-white hover:bg-gray-600"
+                            onClick={handleGoBack}>← Go Back
+                    </button>
                     <h1 className="text-2xl text-white font-semibold">Schema Editor</h1>
-                    <div className="text-gray-400 text-sm mt-1">Folder: <span className="font-mono">{folderId}</span></div>
+                    <div className="text-gray-400 text-sm mt-1">Folder: <span className="font-mono">{folderId}</span>
+                    </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600 disabled:opacity-50" onClick={handleSave} disabled={saving || !fileBaseName.trim() || fileBaseName.includes('.') || !!nameError}>
+                    <button className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                            onClick={handleSave}
+                            disabled={saving || !fileBaseName.trim() || fileBaseName.includes('.') || !!nameError}>
                         {saving ? "Saving..." : "Save"}
                     </button>
                     <div className="text-sm min-w-[80px] text-right">
@@ -138,7 +152,8 @@ const SchemaEditorPage = () => {
                 </div>
             </div>
             <div className="flex flex-col px-8 pt-6 gap-2">
-                <label className="text-white text-sm font-semibold" htmlFor="schema-file-name">File Name <span className="text-red-400">*</span></label>
+                <label className="text-white text-sm font-semibold" htmlFor="schema-file-name">File Name <span
+                    className="text-red-400">*</span></label>
                 <div className="flex items-center gap-2">
                     <input
                         id="schema-file-name"

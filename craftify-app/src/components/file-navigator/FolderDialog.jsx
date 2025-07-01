@@ -1,7 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import PropTypes from "prop-types";
 
-export default function FolderDialog({ open, title, defaultValue = "", onConfirm, onCancel, confirmLabel = "OK", loading = false }) {
+export default function FolderDialog({
+                                         open,
+                                         title,
+                                         defaultValue = "",
+                                         onConfirm,
+                                         onCancel,
+                                         confirmLabel = "OK",
+                                         loading = false
+                                     }) {
     const [value, setValue] = useState(defaultValue);
     const inputRef = useRef();
 
@@ -17,7 +25,8 @@ export default function FolderDialog({ open, title, defaultValue = "", onConfirm
 
     if (!open) return null;
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40" role="dialog"
+             aria-modal="true">
             <div className="bg-gray-800 rounded-lg p-6 min-w-[320px] shadow-lg">
                 <h2 className="text-lg font-semibold text-white mb-4">{title}</h2>
                 <input
@@ -28,7 +37,9 @@ export default function FolderDialog({ open, title, defaultValue = "", onConfirm
                     autoFocus
                 />
                 <div className="flex justify-end gap-2">
-                    <button className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-500" onClick={onCancel} disabled={loading}>Cancel</button>
+                    <button className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-500" onClick={onCancel}
+                            disabled={loading}>Cancel
+                    </button>
                     <button
                         className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-500"
                         onClick={() => onConfirm(value)}

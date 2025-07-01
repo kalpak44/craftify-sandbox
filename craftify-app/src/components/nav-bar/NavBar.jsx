@@ -1,4 +1,3 @@
-import React from "react";
 import {NavBarTabs} from "./NavBarTabs.jsx";
 import {NavBarButtons} from "./NavBarButtons.jsx";
 import {NavBarBrand} from "./NavBarBrand.jsx";

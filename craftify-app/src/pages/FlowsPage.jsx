@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useNavigate } from "react-router-dom";
-import { getFlowsPageable, deleteFlow, createFlow, updateFlow } from "../services/API";
+import {useEffect, useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
+import {useNavigate} from "react-router-dom";
+import {createFlow, deleteFlow, getFlowsPageable, updateFlow} from "../services/API";
 
 export const FlowsPage = () => {
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const navigate = useNavigate();
 
     const [flows, setFlows] = useState([]);
@@ -13,14 +13,14 @@ export const FlowsPage = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [currentFlow, setCurrentFlow] = useState({ name: "", description: "", configuration: "", active: false });
+    const [currentFlow, setCurrentFlow] = useState({name: "", description: "", configuration: "", active: false});
     const [isEditing, setIsEditing] = useState(false);
 
     const fetchFlows = async () => {
         setLoading(true);
         try {
             const token = await getAccessTokenSilently();
-            const data = await getFlowsPageable(token, { page, size });
+            const data = await getFlowsPageable(token, {page, size});
             setFlows(data.content || []);
             setTotalPages(data.totalPages);
         } catch (err) {
@@ -53,7 +53,7 @@ export const FlowsPage = () => {
             }
 
             setShowModal(false);
-            setCurrentFlow({ name: "", description: "", configuration: "", active: false });
+            setCurrentFlow({name: "", description: "", configuration: "", active: false});
             setIsEditing(false);
             fetchFlows();
         } catch (err) {
@@ -89,51 +89,53 @@ export const FlowsPage = () => {
                     <div className="overflow-x-auto">
                         <table className="min-w-full bg-gray-800 border border-gray-700 rounded-lg">
                             <thead className="bg-gray-900">
-                                <tr>
-                                    <th className="py-3 px-4 text-left text-gray-300">Name</th>
-                                    <th className="py-3 px-4 text-left text-gray-300">Description</th>
-                                    <th className="py-3 px-4 text-left text-gray-300">Status</th>
-                                    <th className="py-3 px-4 text-left text-gray-300">Created</th>
-                                    <th className="py-3 px-4 text-left text-gray-300">Actions</th>
-                                </tr>
+                            <tr>
+                                <th className="py-3 px-4 text-left text-gray-300">Name</th>
+                                <th className="py-3 px-4 text-left text-gray-300">Description</th>
+                                <th className="py-3 px-4 text-left text-gray-300">Status</th>
+                                <th className="py-3 px-4 text-left text-gray-300">Created</th>
+                                <th className="py-3 px-4 text-left text-gray-300">Actions</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {flows.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" className="py-4 px-4 text-center text-gray-400">
-                                            No flows found. Create your first flow!
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    flows.map((flow) => (
-                                        <tr key={flow.id} className="border-t border-gray-700 hover:bg-gray-700 text-gray-300">
-                                            <td className="py-3 px-4">{flow.name}</td>
-                                            <td className="py-3 px-4">{flow.description}</td>
-                                            <td className="py-3 px-4">
-                                                <span className={`px-2 py-1 rounded text-xs ${flow.active ? 'bg-green-800 text-green-100' : 'bg-gray-700 text-gray-300'}`}>
+                            {flows.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="py-4 px-4 text-center text-gray-400">
+                                        No flows found. Create your first flow!
+                                    </td>
+                                </tr>
+                            ) : (
+                                flows.map((flow) => (
+                                    <tr key={flow.id}
+                                        className="border-t border-gray-700 hover:bg-gray-700 text-gray-300">
+                                        <td className="py-3 px-4">{flow.name}</td>
+                                        <td className="py-3 px-4">{flow.description}</td>
+                                        <td className="py-3 px-4">
+                                                <span
+                                                    className={`px-2 py-1 rounded text-xs ${flow.active ? 'bg-green-800 text-green-100' : 'bg-gray-700 text-gray-300'}`}>
                                                     {flow.active ? 'Active' : 'Inactive'}
                                                 </span>
-                                            </td>
-                                            <td className="py-3 px-4">{new Date(flow.createdAt).toLocaleString()}</td>
-                                            <td className="py-3 px-4">
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handleEditFlow(flow)}
-                                                        className="px-3 py-1 bg-gray-900 rounded hover:bg-gray-600 text-sm text-white"
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteFlow(flow.id)}
-                                                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                        </td>
+                                        <td className="py-3 px-4">{new Date(flow.createdAt).toLocaleString()}</td>
+                                        <td className="py-3 px-4">
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEditFlow(flow)}
+                                                    className="px-3 py-1 bg-gray-900 rounded hover:bg-gray-600 text-sm text-white"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteFlow(flow.id)}
+                                                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                             </tbody>
                         </table>
                     </div>
@@ -146,7 +148,7 @@ export const FlowsPage = () => {
                         >
                             Prev
                         </button>
-                        {Array.from({ length: totalPages }, (_, i) => (
+                        {Array.from({length: totalPages}, (_, i) => (
                             <button
                                 key={i}
                                 onClick={() => setPage(i)}
