@@ -61,11 +61,11 @@ const SchemaTablePage = () => {
     const pagedData = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
     const handleAdd = () => {
-        navigate(`/schemas/${schemaId}/add`);
+        navigate(`/data/${schemaId}/edit`);
     };
 
     const handleEdit = (row) => {
-        navigate(`/schemas/${schemaId}/add?recordId=${row.id}`);
+        navigate(`/data/${schemaId}/edit?recordId=${row.id}`);
     };
 
     const handleDelete = async (row) => {
@@ -92,7 +92,7 @@ const SchemaTablePage = () => {
     return (
         <div className="mt-5">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-white">{schema.title || "Schema Table"}</h1>
+                <h1 className="text-3xl font-bold text-white">{schema.title || ""}</h1>
                 <button
                     className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600 transition"
                     onClick={handleAdd}

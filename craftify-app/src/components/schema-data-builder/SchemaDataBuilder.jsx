@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onValidateAll }) => {
     const [validationErrors, setValidationErrors] = useState({});
@@ -19,7 +19,6 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                     const fullFieldName = parentPath ? `${parentPath}.${field.name}` : field.name;
                     // Expand all fields by default
                     initialExpanded[fullFieldName] = true;
-                    console.log(`Expanding field: ${fullFieldName}`);
                     
                     // Also expand nested fields recursively
                     if (field.type === 'object' && field.fields) {
@@ -29,7 +28,6 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
             };
             
             expandFieldsRecursively(fields);
-            console.log('All expanded fields:', initialExpanded);
             setExpandedFields(initialExpanded);
         }
     }, [schema]);
@@ -37,7 +35,6 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
     // Separate useEffect to handle initial value setting
     useEffect(() => {
         if (schemaFields.length > 0) {
-            console.log('Setting initial values for fields:', schemaFields);
             const initialValue = {};
             schemaFields.forEach(field => {
                 if (value[field.name] === undefined) {
@@ -46,7 +43,6 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
                     initialValue[field.name] = value[field.name];
                 }
             });
-            console.log('Initial value object:', initialValue);
             onChange(initialValue);
         }
     }, [schemaFields, onChange]);
@@ -94,13 +90,8 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
 
     // Store the validation function in ref and notify parent
     useEffect(() => {
-        console.log("SchemaDataBuilder: Setting validation function");
-        console.log("validateAllFields:", validateAllFields);
-        console.log("onValidateAll:", onValidateAll);
-        
         validationFunctionRef.current = validateAllFields;
         if (onValidateAll) {
-            console.log("Calling onValidateAll with function");
             onValidateAll(validateAllFields);
         }
     }, [validateAllFields, onValidateAll]);
@@ -257,9 +248,6 @@ const SchemaDataBuilder = ({ schema, value, onChange, onValidationChange, onVali
         const fieldValue = getNestedValue(value, fullFieldName);
         const errors = validationErrors[fullFieldName] || [];
         const isExpanded = expandedFields[fullFieldName];
-        
-        // Debug logging
-        console.log(`Rendering field: ${fullFieldName}, isExpanded: ${isExpanded}, expandedFields:`, expandedFields);
         
         return (
             <div key={fullFieldName} className="mb-4" style={{ marginLeft: `${level * 20}px` }}>

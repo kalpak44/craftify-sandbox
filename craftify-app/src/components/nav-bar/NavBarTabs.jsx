@@ -60,7 +60,7 @@ export const NavBarTabs = () => {
                                     onClick={e => {
                                         e.preventDefault();
                                         setDataMenuOpen(false);
-                                        navigate(`/schemas/${node.id}/table`);
+                                        navigate(`/data/${node.id}/list`);
                                     }}
                                     className="nav-bar__dropdown-link"
                                 >

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { getSchemaFile, createSchemaDataRecord, getSchemaDataRecord, updateSchemaDataRecord } from "../services/API";
 import SchemaDataBuilder from "../components/schema-data-builder/SchemaDataBuilder";
 
-const SchemaAddDataPage = () => {
+const DataEditorPage = () => {
     const { schemaId } = useParams();
     const [searchParams] = useSearchParams();
     const recordId = searchParams.get('recordId');
@@ -29,6 +29,7 @@ const SchemaAddDataPage = () => {
                 const schemaFile = await getSchemaFile(accessToken, schemaId);
                 let parsed = {};
                 try {
+                    console.log(schemaFile)
                     parsed = JSON.parse(schemaFile.content);
                 } catch (e) {
                     setError("Invalid JSON in schema file.");
@@ -70,12 +71,6 @@ const SchemaAddDataPage = () => {
         fetchSchemaAndData();
         return () => { isMounted = false; };
     }, [schemaId, recordId, getAccessTokenSilently]);
-
-    // Debug validation function
-    useEffect(() => {
-        console.log("Validation function changed:", validationFunction);
-        console.log("Type of validationFunction:", typeof validationFunction);
-    }, [validationFunction]);
 
     // Fallback validation function
     const fallbackValidation = () => {
@@ -124,7 +119,7 @@ const SchemaAddDataPage = () => {
             }
             
             // Navigate back to the table with success indication
-            navigate(`/schemas/${schemaId}/table?updated=true`);
+            navigate(`/data/${schemaId}/list`);
         } catch (e) {
             console.error("Error saving data:", e);
             setError("Failed to save data: " + e.message);
@@ -134,7 +129,7 @@ const SchemaAddDataPage = () => {
     };
 
     const handleCancel = () => {
-        navigate(`/schemas/${schemaId}/table`);
+        navigate(`/data/${schemaId}/list`);
     };
 
     if (loading) return <div className="p-8 text-white">Loading...</div>;
@@ -145,9 +140,6 @@ const SchemaAddDataPage = () => {
         <div className="w-full h-full min-h-screen bg-gray-800 flex flex-col">
             <div className="flex items-center justify-between px-8 py-6 border-b border-gray-700">
                 <div className="flex items-center gap-4">
-                    <button className="px-3 py-1 rounded bg-gray-700 text-white hover:bg-gray-600" onClick={handleCancel}>
-                        ← Go Back
-                    </button>
                     <h1 className="text-2xl text-white font-semibold">{isEditing ? "Edit" : "Add"} Data - {schema.title || "Schema"}</h1>
                 </div>
                 <div className="flex gap-2">
@@ -184,4 +176,4 @@ const SchemaAddDataPage = () => {
     );
 };
 
-export default SchemaAddDataPage; 
+export default DataEditorPage;

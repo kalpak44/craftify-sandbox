@@ -15,12 +15,11 @@ import {FlowsPage} from "./pages/FlowsPage.jsx";
 import {FlowCreationPage} from "./pages/FlowCreationPage.jsx";
 import {NodeTemplatePage} from "./pages/NodeTemplatePage.jsx";
 import {PageFullLayout} from "./components/page-layout/PageFullLayout.jsx";
-import {CreateObjectPage} from "./pages/CreateObjectPage.jsx";
-import SchemaEditor from "./pages/SchemaEditor.jsx";
+import {SchemaNavigationPage} from "./pages/SchemaNavigationPage.jsx";
+import SchemaEditorPage from "./pages/SchemaEditorPage.jsx";
 import SchemaTablePage from "./pages/SchemaTablePage.jsx";
 import { FileStructureProvider } from "./components/file-navigator/FileStructureContext";
-import SchemaAddDataPage from "./pages/SchemaAddDataPage.jsx";
-import FileNavigator from "./pages/FileNavigator.jsx";
+import DataEditorPage from "./pages/DataEditorPage.jsx";
 
 
 export default function App() {
@@ -80,23 +79,23 @@ export default function App() {
                 />
                 <Route
                     path="/data-modeler"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><CreateObjectPage/></PageFullLayout>}/>}
+                    element={<AuthenticationGuard component={() => <PageFullLayout><SchemaNavigationPage/></PageFullLayout>}/>}
                 />
                 <Route
                     path="/schemas/:folderId/edit"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><SchemaEditor /></PageFullLayout>} />}
+                    element={<AuthenticationGuard component={() => <PageFullLayout><SchemaEditorPage /></PageFullLayout>} />}
                 />
                 <Route
                     path="/schemas/:schemaId"
                     element={<AuthenticationGuard component={() => <PageFullLayout><SchemaTablePage /></PageFullLayout>} />}
                 />
                 <Route
-                    path="/schemas/:schemaId/table"
+                    path="/data/:schemaId/list"
                     element={<AuthenticationGuard component={() => <PageLayout><SchemaTablePage /></PageLayout>} />}
                 />
                 <Route
-                    path="/schemas/:schemaId/add"
-                    element={<AuthenticationGuard component={() => <PageFullLayout><SchemaAddDataPage /></PageFullLayout>} />}
+                    path="/data/:schemaId/edit"
+                    element={<AuthenticationGuard component={() => <PageFullLayout><DataEditorPage /></PageFullLayout>} />}
                 />
                 <Route path="/callback" element={<PageLayout><CallbackPage/></PageLayout>}/>
                 <Route path="*" element={<PageLayout><NotFoundPage/></PageLayout>}/>

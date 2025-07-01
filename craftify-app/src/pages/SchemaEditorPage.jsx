@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { saveSchemaFile, listSchemaFiles } from "../services/API";
 import JsonBuilder from "../components/json-builder/JsonBuilder";
 
-const AUTO_SAVE_DELAY = 1000; // ms
-
-const SchemaEditor = () => {
+const SchemaEditorPage = () => {
     const { folderId } = useParams();
     const [searchParams] = useSearchParams();
     const schemaIdParam = searchParams.get('schemaId');
@@ -19,11 +17,10 @@ const SchemaEditor = () => {
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState("");
     const [nameError, setNameError] = useState("");
-    const saveTimeout = useRef(null);
     const [loading, setLoading] = useState(true);
     const [allSchemaNames, setAllSchemaNames] = useState([]);
+    const [schemaInitialized, setSchemaInitialized] = useState(false);
 
-    // Fetch existing schema for this folder/user on mount
     useEffect(() => {
         let isMounted = true;
         async function fetchSchema() {
@@ -32,27 +29,24 @@ const SchemaEditor = () => {
             try {
                 const accessToken = await getAccessTokenSilently();
                 if (schemaIdParam) {
-                    // Editing existing schema
                     const { getSchemaFile, listSchemaFiles } = await import("../services/API");
                     const schema = await getSchemaFile(accessToken, schemaIdParam);
                     if (isMounted) {
-                        let parsed = { title: "New Schema" };
+                        let parsed = {};
                         try {
                             parsed = JSON.parse(schema.content);
-                            if (parsed.title) delete parsed.title;
                         } catch (e) {
                             setError("Invalid JSON in schema file.");
                         }
-                        setSchemaObject(parsed);
+                        setSchemaObject({ ...parsed });
                         setSchemaId(schema.id);
                         const name = schema.name || "Schema.json";
                         setFileBaseName(name.endsWith('.json') ? name.slice(0, -5) : name);
-                        // For name validation
                         const schemas = await listSchemaFiles(accessToken, folderId);
                         setAllSchemaNames(schemas.map(s => ({ id: s.id, name: (s.name || "Schema.json").toLowerCase() })));
+                        setSchemaInitialized(true);
                     }
                 } else {
-                    // Creating new schema
                     const { listSchemaFiles } = await import("../services/API");
                     const schemas = await listSchemaFiles(accessToken, folderId);
                     if (isMounted) {
@@ -60,6 +54,7 @@ const SchemaEditor = () => {
                         setSchemaObject({});
                         setSchemaId(null);
                         setFileBaseName("Schema");
+                        setSchemaInitialized(true);
                     }
                 }
             } catch (e) {
@@ -72,7 +67,6 @@ const SchemaEditor = () => {
         return () => { isMounted = false; };
     }, [folderId, getAccessTokenSilently, schemaIdParam]);
 
-    // Check for duplicate name
     useEffect(() => {
         if (!fileBaseName.trim()) return;
         const fullName = fileBaseName.trim().toLowerCase() + ".json";
@@ -84,7 +78,6 @@ const SchemaEditor = () => {
         }
     }, [fileBaseName, allSchemaNames, schemaId]);
 
-    // Add a manual save handler
     const handleSave = async () => {
         if (!fileBaseName.trim()) {
             setNameError("File name is required");
@@ -93,18 +86,13 @@ const SchemaEditor = () => {
             setNameError("File name cannot contain '.'");
             return;
         }
-        // Check for duplicate name in the same folder
         const fullName = fileBaseName.trim().toLowerCase() + ".json";
         const duplicate = allSchemaNames.find(s => s.name === fullName && s.id !== schemaId);
         if (duplicate) {
             setNameError("A schema with this name already exists in this folder.");
             return;
         }
-        if (nameError) {
-            return;
-        } else {
-            setNameError("");
-        }
+        if (nameError) return;
         setSaving(true);
         setSaved(false);
         try {
@@ -129,8 +117,6 @@ const SchemaEditor = () => {
     };
 
     const handleGoBack = () => {
-        // navigate('/data-modeler', { state: { folderId } });
-        // todo: fix navigator to works with url
         navigate('/data-modeler');
     };
 
@@ -138,18 +124,12 @@ const SchemaEditor = () => {
         <div className="w-full h-full min-h-screen bg-gray-800 flex flex-col">
             <div className="flex items-center justify-between px-8 py-6 border-b border-gray-700">
                 <div className="flex items-center gap-4">
-                    <button className="px-3 py-1 rounded bg-gray-700 text-white hover:bg-gray-600" onClick={handleGoBack}>
-                        ← Go Back
-                    </button>
+                    <button className="px-3 py-1 rounded bg-gray-700 text-white hover:bg-gray-600" onClick={handleGoBack}>← Go Back</button>
                     <h1 className="text-2xl text-white font-semibold">Schema Editor</h1>
                     <div className="text-gray-400 text-sm mt-1">Folder: <span className="font-mono">{folderId}</span></div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button
-                        className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-                        onClick={handleSave}
-                        disabled={saving || !fileBaseName.trim() || fileBaseName.includes('.') || !!nameError}
-                    >
+                    <button className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600 disabled:opacity-50" onClick={handleSave} disabled={saving || !fileBaseName.trim() || fileBaseName.includes('.') || !!nameError}>
                         {saving ? "Saving..." : "Save"}
                     </button>
                     <div className="text-sm min-w-[80px] text-right">
@@ -175,10 +155,17 @@ const SchemaEditor = () => {
             </div>
             {error && <div className="text-red-400 px-8 py-2">{error}</div>}
             <div className="flex-1 flex flex-col">
-                <JsonBuilder value={schemaObject} onChange={setSchemaObject} />
+                {schemaInitialized && (
+                    <JsonBuilder
+                        value={schemaObject}
+                        onChange={(newSchema) => setSchemaObject(newSchema)}
+                    />
+                )}
             </div>
         </div>
     );
 };
 
-export default SchemaEditor; 
+export default SchemaEditorPage;
+
+

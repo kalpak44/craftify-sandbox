@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import FileNavigator from "./FileNavigator.jsx";
-import { toggleFavorite, listFolders } from "../services/API";
+import { listFolders } from "../services/API";
 
 const AccordionSection = ({ title, expanded, onClick, children }) => (
     <div className="mb-2">
@@ -20,25 +20,6 @@ const MinimalLeftPanel = ({ leftPanelOpen, setLeftPanelOpen, favorites, onFavori
     const [favExpanded, setFavExpanded] = useState(true);
     const [viewExpanded, setViewExpanded] = useState(false);
     const [viewMode, setViewMode] = useState('list');
-
-    function renderFavoriteTree(favs, onFavoriteClick, level = 0) {
-        return favs.map(fav => (
-            <li key={fav.id} style={{ marginLeft: level * 16 }}>
-                <button
-                    className="text-blue-300 hover:underline w-full text-left px-2 py-1 flex items-center gap-2"
-                    onClick={() => onFavoriteClick(fav)}
-                >
-                    <span>📁</span>
-                    <span>{fav.name}</span>
-                </button>
-                {fav.children && fav.children.length > 0 && (
-                    <ul>
-                        {renderFavoriteTree(fav.children, onFavoriteClick, level + 1)}
-                    </ul>
-                )}
-            </li>
-        ));
-    }
 
     return (
         <div className={`transition-all bg-gray-900 text-white p-4 ${leftPanelOpen ? 'w-80' : 'w-12'} flex flex-col`}>
@@ -100,7 +81,7 @@ const MinimalLeftPanel = ({ leftPanelOpen, setLeftPanelOpen, favorites, onFavori
     );
 };
 
-export const CreateObjectPage = () => {
+export const SchemaNavigationPage = () => {
     const [leftPanelOpen, setLeftPanelOpen] = useState(true);
     const { user, getAccessTokenSilently } = useAuth0();
     const [favorites, setFavorites] = useState([]);
@@ -156,4 +137,4 @@ export const CreateObjectPage = () => {
 };
 
 // This is the Data Modeler page
-export default CreateObjectPage; 
+export default SchemaNavigationPage;
