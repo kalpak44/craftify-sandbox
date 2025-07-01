@@ -84,49 +84,49 @@ const SchemaEditor = () => {
         }
     }, [fileBaseName, allSchemaNames, schemaId]);
 
-    // Auto-save effect
-    useEffect(() => {
-        if (loading) return;
+    // Add a manual save handler
+    const handleSave = async () => {
         if (!fileBaseName.trim()) {
             setNameError("File name is required");
-            setSaving(false);
             return;
         } else if (fileBaseName.includes('.')) {
             setNameError("File name cannot contain '.'");
-            setSaving(false);
             return;
-        } else if (nameError) {
-            setSaving(false);
+        }
+        // Check for duplicate name in the same folder
+        const fullName = fileBaseName.trim().toLowerCase() + ".json";
+        const duplicate = allSchemaNames.find(s => s.name === fullName && s.id !== schemaId);
+        if (duplicate) {
+            setNameError("A schema with this name already exists in this folder.");
+            return;
+        }
+        if (nameError) {
             return;
         } else {
             setNameError("");
         }
-        if (saveTimeout.current) clearTimeout(saveTimeout.current);
         setSaving(true);
         setSaved(false);
-        saveTimeout.current = setTimeout(async () => {
-            try {
-                const accessToken = await getAccessTokenSilently();
-                const schemaFile = {
-                    id: schemaIdParam || schemaId,
-                    name: fileBaseName.trim() + ".json",
-                    content: JSON.stringify(schemaObject, null, 2),
-                    folderId: folderId,
-                    userId: user?.sub,
-                };
-                const { saveSchemaFile } = await import("../services/API");
-                const savedSchema = await saveSchemaFile(accessToken, schemaFile);
-                setSchemaId(savedSchema.id);
-                setSaving(false);
-                setSaved(true);
-                setTimeout(() => setSaved(false), 1500);
-            } catch (e) {
-                setError("Failed to save schema: " + e.message);
-                setSaving(false);
-            }
-        }, AUTO_SAVE_DELAY);
-        return () => clearTimeout(saveTimeout.current);
-    }, [schemaObject, fileBaseName, folderId, nameError, schemaIdParam]);
+        try {
+            const accessToken = await getAccessTokenSilently();
+            const schemaFile = {
+                id: schemaIdParam || schemaId,
+                name: fileBaseName.trim() + ".json",
+                content: JSON.stringify(schemaObject, null, 2),
+                folderId: folderId,
+                userId: user?.sub,
+            };
+            const { saveSchemaFile } = await import("../services/API");
+            const savedSchema = await saveSchemaFile(accessToken, schemaFile);
+            setSchemaId(savedSchema.id);
+            setSaving(false);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 1500);
+        } catch (e) {
+            setError("Failed to save schema: " + e.message);
+            setSaving(false);
+        }
+    };
 
     const handleGoBack = () => {
         navigate('/data-modeler', { state: { folderId } });
@@ -142,9 +142,17 @@ const SchemaEditor = () => {
                     <h1 className="text-2xl text-white font-semibold">Schema Editor</h1>
                     <div className="text-gray-400 text-sm mt-1">Folder: <span className="font-mono">{folderId}</span></div>
                 </div>
-                <div className="text-sm min-w-[80px] text-right">
-                    {saving && <span className="text-yellow-400">Saving...</span>}
-                    {!saving && saved && <span className="text-green-400">Saved</span>}
+                <div className="flex items-center gap-4">
+                    <button
+                        className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                        onClick={handleSave}
+                        disabled={saving || !fileBaseName.trim() || fileBaseName.includes('.') || !!nameError}
+                    >
+                        {saving ? "Saving..." : "Save"}
+                    </button>
+                    <div className="text-sm min-w-[80px] text-right">
+                        {!saving && saved && <span className="text-green-400">Saved</span>}
+                    </div>
                 </div>
             </div>
             <div className="flex flex-col px-8 pt-6 gap-2">
