@@ -121,7 +121,7 @@ public class SchemaDataRecordController {
             @RequestBody Map<String, Object> data) {
         String userId = authUtil.getCurrentUserId();
         try {
-            SchemaDataRecord record = schemaDataRecordService.updateRecord(userId, recordId, data);
+            SchemaDataRecord record = schemaDataRecordService.updateRecord(recordId, userId, data);
             return ResponseEntity.ok(record);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
