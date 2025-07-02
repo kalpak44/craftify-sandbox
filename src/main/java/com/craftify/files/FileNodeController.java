@@ -143,12 +143,16 @@ public class FileNodeController {
   }
 
   @GetMapping("/overview")
-  public ResponseEntity<Map<String, Object>> getFolderOverview(@RequestParam(required = false) String folderId) {
+  public ResponseEntity<Map<String, Object>> getFolderOverview(
+      @RequestParam(required = false) String folderId) {
     String userId = authUtil.getCurrentUserId();
     // Folders in this folder
-    List<FileNode> folders = fileNodeService.listByParent(userId, (folderId == null || folderId.equals("root")) ? null : folderId);
+    List<FileNode> folders =
+        fileNodeService.listByParent(
+            userId, (folderId == null || folderId.equals("root")) ? null : folderId);
     // Schemas in this folder
-    List<SchemaFile> schemas = schemaFileService.listSchemasByFolder(userId, folderId == null ? "root" : folderId);
+    List<SchemaFile> schemas =
+        schemaFileService.listSchemasByFolder(userId, folderId == null ? "root" : folderId);
     // Breadcrumbs
     List<Map<String, String>> breadcrumbs = new ArrayList<>();
     if (folderId != null && !folderId.equals("root")) {

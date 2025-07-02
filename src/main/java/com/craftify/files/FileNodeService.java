@@ -81,8 +81,6 @@ public class FileNodeService {
 
   public FileNode getFolderById(String userId, String id) {
     if (id == null) return null;
-    return fileNodeRepository.findById(id)
-        .filter(f -> f.getUserId().equals(userId))
-        .orElse(null);
+    return fileNodeRepository.findById(id).filter(f -> f.getUserId().equals(userId)).orElse(null);
   }
 }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.time.Duration;
 import java.time.Instant;
@@ -432,10 +433,11 @@ public class FlowExecutionService {
   private String createCommandJob(String jobName, String dockerImage, String command, int timeout) {
     try {
       // Parse command into array (handle simple commands for now)
+      // todo: make builder
       String[] commandArray = parseCommand(command);
 
       var job =
-          new io.fabric8.kubernetes.api.model.batch.v1.JobBuilder()
+          new JobBuilder()
               .withNewMetadata()
               .withName(jobName)
               .endMetadata()
@@ -494,7 +496,7 @@ public class FlowExecutionService {
         inQuotes = false;
         quoteChar = 0;
       } else if (c == ' ' && !inQuotes) {
-        if (current.length() > 0) {
+        if (!current.isEmpty()) {
           parts.add(current.toString());
           current.setLength(0);
         }
@@ -503,7 +505,7 @@ public class FlowExecutionService {
       }
     }
 
-    if (current.length() > 0) {
+    if (!current.isEmpty()) {
       parts.add(current.toString());
     }
 
