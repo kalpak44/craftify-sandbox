@@ -1,7 +1,10 @@
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import ReactFlow, { Background, useNodesState, useEdgesState, addEdge, Handle, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { LeftPanel, EdgeOptionsPanel, TriggerSelectionPanel } from '../components/flow';
+import FileNavigator from './FileNavigator.jsx';
+import { useAuth0 } from '@auth0/auth0-react';
+import { getFolderSchemaTree } from '../services/API';
 
 function InputNode({ id, data }) {
     const isInternal = data.inputType === 'internal';
@@ -30,6 +33,9 @@ function InputNode({ id, data }) {
                     {isExternal && 'External Input'}
                     {!isInternal && !isExternal && 'Input Node'}
                 </div>
+                {isInternal && data.schemaName && (
+                    <div className="text-blue-200 text-xs mb-2">Schema: {data.schemaName}</div>
+                )}
                 <Handle type="output" position={Position.Bottom} className={isInternal ? "w-3 h-3 bg-blue-400" : isExternal ? "w-3 h-3 bg-green-400" : "w-3 h-3 bg-gray-400"} />
                 {isInternal && (
                     <button
@@ -82,7 +88,11 @@ export function TemplatesEditorPage() {
     const [bottomBarOpen, setBottomBarOpen] = useState(false);
     const [bottomBarHeight, setBottomBarHeight] = useState(180);
     const reactFlowWrapper = useRef(null);
+    const { getAccessTokenSilently } = useAuth0();
     const [showSchemaModal, setShowSchemaModal] = useState(false);
+    const [selectedSchema, setSelectedSchema] = useState(null);
+    const [schemaTree, setSchemaTree] = useState([]);
+    const [loadingTree, setLoadingTree] = useState(false);
 
     // State for nodes and edges
     const [nodes, setNodes, onNodesChange] = useNodesState([
@@ -104,6 +114,17 @@ export function TemplatesEditorPage() {
         }),
         []
     );
+
+    // Fetch schema tree when modal opens
+    useEffect(() => {
+        if (showSchemaModal) {
+            setLoadingTree(true);
+            getAccessTokenSilently()
+                .then(token => getFolderSchemaTree(token))
+                .then(data => setSchemaTree(data))
+                .finally(() => setLoadingTree(false));
+        }
+    }, [showSchemaModal, getAccessTokenSilently]);
 
     // Add InputNode (internal/external) and remove placeholder
     const handleNodeTemplateSelect = useCallback((type) => {
@@ -167,6 +188,56 @@ export function TemplatesEditorPage() {
         ]
         : nodes;
 
+    // Handler for schema selection from tree
+    const handleSchemaSelect = (schema) => {
+        setSelectedSchema(schema);
+        setShowSchemaModal(false);
+        // Update the input node with the selected schema name
+        setNodes(nds => nds.map(node =>
+            node.type === 'inputNode'
+                ? {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        schemaName: schema.name,
+                    },
+                }
+                : node
+        ));
+    };
+
+    // Recursive tree renderer
+    const renderSchemaTree = (nodes) => (
+        <ul className="nav-bar__dropdown-list">
+            {nodes.map(node => {
+                if (node.type === 'folder') {
+                    return (
+                        <li key={node.id} className="nav-bar__dropdown-folder">
+                            <span className="nav-bar__dropdown-folder-label">
+                                <span className="nav-bar__dropdown-icon" role="img" aria-label="folder">📁</span>
+                                {node.name}
+                            </span>
+                            {node.children && node.children.length > 0 && renderSchemaTree(node.children)}
+                        </li>
+                    );
+                } else if (node.type === 'schema') {
+                    return (
+                        <li key={node.id} className="nav-bar__dropdown-schema">
+                            <button
+                                onClick={() => handleSchemaSelect(node)}
+                                className="nav-bar__dropdown-link w-full text-left"
+                            >
+                                <span className="nav-bar__dropdown-icon" role="img" aria-label="schema">📄</span>
+                                {node.name}
+                            </button>
+                        </li>
+                    );
+                }
+                return null;
+            })}
+        </ul>
+    );
+
     return (
         <div className="h-screen flex overflow-hidden overflow-x-hidden">
             <LeftPanel
@@ -185,21 +256,21 @@ export function TemplatesEditorPage() {
                 {showSchemaModal && (
                     <div className="absolute inset-0 flex items-center justify-center z-50" style={{ pointerEvents: 'auto' }}>
                         <div className="bg-black bg-opacity-70 absolute inset-0" />
-                        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700 z-10">
+                        <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl border border-gray-700 z-10 flex flex-col">
                             <h2 className="text-xl font-bold mb-4 text-gray-200">Select Schema</h2>
-                            <div className="mb-4 text-gray-300">Schema selection UI goes here...</div>
+                            <div className="mb-4 text-gray-300" style={{height: 400, overflowY: 'auto'}}>
+                                {loadingTree ? (
+                                    <div className="text-gray-400">Loading...</div>
+                                ) : (
+                                    renderSchemaTree(schemaTree)
+                                )}
+                            </div>
                             <div className="flex justify-end gap-2 mt-6">
                                 <button
                                     onClick={() => setShowSchemaModal(false)}
                                     className="px-4 py-2 border border-gray-600 rounded text-gray-300 hover:bg-gray-700"
                                 >
                                     Cancel
-                                </button>
-                                <button
-                                    onClick={() => setShowSchemaModal(false)}
-                                    className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600"
-                                >
-                                    Select
                                 </button>
                             </div>
                         </div>
