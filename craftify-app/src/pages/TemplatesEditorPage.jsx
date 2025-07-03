@@ -9,6 +9,18 @@ import TemplateEdgePanel from '../components/flow/TemplateEdgePanel';
 function InputNode({ id, data }) {
     const isInternal = data.inputType === 'internal';
     const isExternal = data.inputType === 'external';
+    const [fetchMethod, setFetchMethod] = useState('fetchById');
+    const [fetchId, setFetchId] = useState('');
+
+    const handleApplyFetch = () => {
+        if (fetchMethod === 'fetchById') {
+            console.log(`Applied fetch method: ${fetchMethod}, id: ${fetchId}`);
+        } else {
+            console.log(`Applied fetch method: ${fetchMethod}`);
+        }
+        // Optionally, you can call a callback here
+    };
+
     return (
         <>
             <div
@@ -38,12 +50,38 @@ function InputNode({ id, data }) {
                 )}
                 <Handle type="output" position={Position.Bottom} className={isInternal ? "w-3 h-3 bg-blue-400" : isExternal ? "w-3 h-3 bg-green-400" : "w-3 h-3 bg-gray-400"} />
                 {isInternal && (
-                    <button
-                        className="mt-3 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600"
-                        onClick={data.onSelectSchema}
-                    >
-                        Select Schema
-                    </button>
+                    <>
+                        <div className="mt-3 flex flex-col items-center gap-2 w-full min-w-[180px] max-w-xs">
+                            <button
+                                className="w-full px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600"
+                                onClick={data.onSelectSchema}
+                            >
+                                Select Schema
+                            </button>
+                            <select
+                                className="w-full px-2 py-1 rounded bg-gray-800 text-white border border-gray-600"
+                                value={fetchMethod}
+                                onChange={e => setFetchMethod(e.target.value)}
+                            >
+                                <option value="fetchById">fetchById</option>
+                                <option value="fetchAll">fetchAll</option>
+                            </select>
+                            <input
+                                type="text"
+                                className="w-full px-2 py-1 rounded bg-gray-800 text-white border border-gray-600"
+                                placeholder="Enter id"
+                                value={fetchId}
+                                onChange={e => setFetchId(e.target.value)}
+                                style={{ visibility: fetchMethod === 'fetchById' ? 'visible' : 'hidden' }}
+                            />
+                            <button
+                                className="w-full px-4 py-1 bg-green-700 text-white rounded hover:bg-green-600 text-xs"
+                                onClick={handleApplyFetch}
+                            >
+                                Apply
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </>
