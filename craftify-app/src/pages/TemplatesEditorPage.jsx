@@ -4,6 +4,7 @@ import 'reactflow/dist/style.css';
 import { LeftPanel, EdgeOptionsPanel, TriggerSelectionPanel } from '../components/flow';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getFolderSchemaTree } from '../services/API';
+import TemplateEdgePanel from '../components/flow/TemplateEdgePanel';
 
 function InputNode({ id, data }) {
     const isInternal = data.inputType === 'internal';
@@ -287,7 +288,7 @@ export function TemplatesEditorPage() {
                     <Background variant="dots" gap={12} size={1} />
                 </ReactFlow>
 
-                <EdgeOptionsPanel
+                <TemplateEdgePanel
                     rightDragPanelOpen={rightDragPanelOpen}
                     setRightDragPanelOpen={setRightDragPanelOpen}
                     onNodeTemplateSelect={handleNodeTemplateSelect}
