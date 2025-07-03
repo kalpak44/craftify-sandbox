@@ -91,7 +91,7 @@ function OutputNode({ id, data }) {
             {data.schemaName && (
                 <div className="text-yellow-200 text-xs mb-2">Schema: {data.schemaName}</div>
             )}
-            <Handle type="input" position={Position.Bottom} className="w-3 h-3 bg-yellow-400" />
+            <Handle type="input" position={Position.Top} className="w-3 h-3 bg-yellow-400" />
             <div className="mt-3 flex flex-col items-center gap-2 w-full min-w-[180px] max-w-xs">
                 <button
                     className="w-full px-4 py-2 bg-yellow-700 text-white rounded hover:bg-yellow-600"
