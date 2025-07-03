@@ -20,6 +20,7 @@ import SchemaEditorPage from "./pages/SchemaEditorPage.jsx";
 import SchemaTablePage from "./pages/SchemaTablePage.jsx";
 import {FileStructureProvider} from "./components/file-navigator/FileStructureContext";
 import DataEditorPage from "./pages/DataEditorPage.jsx";
+import {TemplatesEditorPage} from "./pages/TemplatesEditorPage.jsx";
 
 
 export default function App() {
@@ -58,6 +59,10 @@ export default function App() {
                 <Route
                     path="/chat"
                     element={<AuthenticationGuard component={() => <PageLayout><ChatPage/></PageLayout>}/>}
+                />
+                <Route
+                    path="/templates-editor/:id?"
+                    element={<AuthenticationGuard component={() => <PageFullLayout><TemplatesEditorPage/></PageFullLayout>}/>}
                 />
                 {/* End playground */}
                 <Route
