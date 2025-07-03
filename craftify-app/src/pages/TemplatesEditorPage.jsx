@@ -88,11 +88,48 @@ function InputNode({ id, data }) {
     );
 }
 
-function OutputNode({ data }) {
+function OutputNode({ id, data }) {
+    const isInternal = data.outputType === 'internal';
+    const isExternal = data.outputType === 'external';
     return (
-        <div className="border border-green-500 rounded-lg p-4 bg-green-900 relative">
-            <div className="text-white font-medium">Output Node</div>
-            <Handle type="input" position={Position.Left} className="w-3 h-3 bg-green-400" />
+        <div
+            className={
+                `rounded-lg p-4 relative flex flex-col items-center ` +
+                (isInternal
+                    ? 'border-2 border-yellow-500 bg-yellow-900'
+                    : isExternal
+                    ? 'border-2 border-pink-500 bg-pink-900'
+                    : 'border border-gray-500 bg-gray-800')
+            }
+        >
+            <button
+                className="absolute top-1 right-1 text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-500"
+                onClick={data.onRemove}
+                style={{lineHeight: 1}}
+            >
+                ✕
+            </button>
+            <div className="text-white font-medium mb-2">
+                {isInternal && 'Internal Output'}
+                {isExternal && 'External Output'}
+                {!isInternal && !isExternal && 'Output Node'}
+            </div>
+            {isInternal && data.schemaName && (
+                <div className="text-yellow-200 text-xs mb-2">Schema: {data.schemaName}</div>
+            )}
+            <Handle type="input" position={Position.Bottom} className={isInternal ? "w-3 h-3 bg-yellow-400" : isExternal ? "w-3 h-3 bg-pink-400" : "w-3 h-3 bg-gray-400"} />
+            {isInternal && (
+                <>
+                    <div className="mt-3 flex flex-col items-center gap-2 w-full min-w-[180px] max-w-xs">
+                        <button
+                            className="w-full px-4 py-2 bg-yellow-700 text-white rounded hover:bg-yellow-600"
+                            onClick={data.onSelectSchema}
+                        >
+                            Select Schema
+                        </button>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -113,8 +150,20 @@ function PlaceholderNode({ data }) {
             className="border-2 border-dashed border-gray-400 rounded-lg p-4 bg-gray-800 text-center cursor-pointer hover:bg-gray-700 transition"
             onClick={data.onClick}
         >
-            <div className="text-gray-300 font-medium text-lg">+ Add First Node</div>
+            <div className="text-gray-300 font-medium text-lg">+ Add Input Node</div>
             <div className="text-gray-500 text-xs mt-1">Click to create an input node</div>
+        </div>
+    );
+}
+
+function OutputPlaceholderNode({ data }) {
+    return (
+        <div
+            className="border-2 border-dashed border-gray-400 rounded-lg p-4 bg-gray-800 text-center cursor-pointer hover:bg-gray-700 transition"
+            onClick={data.onClick}
+        >
+            <div className="text-gray-300 font-medium text-lg">+ Add Output Node</div>
+            <div className="text-gray-500 text-xs mt-1">Click to create an output node</div>
         </div>
     );
 }
@@ -128,6 +177,7 @@ export function TemplatesEditorPage() {
     const reactFlowWrapper = useRef(null);
     const { getAccessTokenSilently } = useAuth0();
     const [showSchemaModal, setShowSchemaModal] = useState(false);
+    const [schemaModalTarget, setSchemaModalTarget] = useState(null); // 'input' or 'output'
     const [selectedSchema, setSelectedSchema] = useState(null);
     const [schemaTree, setSchemaTree] = useState([]);
     const [loadingTree, setLoadingTree] = useState(false);
@@ -135,10 +185,16 @@ export function TemplatesEditorPage() {
     // State for nodes and edges
     const [nodes, setNodes, onNodesChange] = useNodesState([
         {
-            id: '1',
+            id: 'input-placeholder',
             type: 'placeholder',
-            position: { x: 250, y: 150 },
-            data: { onClick: () => setRightDragPanelOpen(true) },
+            position: { x: 150, y: 150 },
+            data: { onClick: () => setRightDragPanelOpen('input') },
+        },
+        {
+            id: 'output-placeholder',
+            type: 'outputPlaceholder',
+            position: { x: 550, y: 150 },
+            data: { onClick: () => setRightDragPanelOpen('output') },
         },
     ]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -149,6 +205,7 @@ export function TemplatesEditorPage() {
             outputNode: OutputNode,
             functionalNode: FunctionalNode,
             placeholder: PlaceholderNode,
+            outputPlaceholder: OutputPlaceholderNode,
         }),
         []
     );
@@ -165,48 +222,91 @@ export function TemplatesEditorPage() {
     }, [showSchemaModal, getAccessTokenSilently]);
 
     // Add InputNode (internal/external) and remove placeholder
-    const handleNodeTemplateSelect = useCallback((type) => {
-        setNodes([
-            {
-                id: `input-1`,
-                type: 'inputNode',
-                position: { x: 250, y: 150 },
-                data: {
-                    onRemove: () => {
-                        setNodes([
-                            {
-                                id: '1',
-                                type: 'placeholder',
-                                position: { x: 250, y: 150 },
-                                data: { onClick: () => setRightDragPanelOpen(true) },
-                            },
-                        ]);
-                        setEdges([]);
+    const handleNodeTemplateSelect = useCallback((type, target) => {
+        if (target === 'input') {
+            setNodes(nds => [
+                ...nds.filter(n => n.type !== 'placeholder' && n.type !== 'inputNode'),
+                {
+                    id: `input-1`,
+                    type: 'inputNode',
+                    position: { x: 150, y: 150 },
+                    data: {
+                        onRemove: () => {
+                            setNodes(nds2 => [
+                                ...nds2.filter(n => n.type !== 'inputNode'),
+                                {
+                                    id: 'input-placeholder',
+                                    type: 'placeholder',
+                                    position: { x: 150, y: 150 },
+                                    data: { onClick: () => setRightDragPanelOpen('input') },
+                                },
+                            ]);
+                        },
+                        inputType: type, // 'internal' or 'external'
+                        onSelectSchema: () => { setSchemaModalTarget('input'); setShowSchemaModal(true); },
                     },
-                    inputType: type, // 'internal' or 'external'
-                    onSelectSchema: () => setShowSchemaModal(true),
                 },
-            },
-        ]);
-        setEdges([]);
+            ]);
+        } else if (target === 'output') {
+            setNodes(nds => [
+                ...nds.filter(n => n.type !== 'outputPlaceholder' && n.type !== 'outputNode'),
+                {
+                    id: `output-1`,
+                    type: 'outputNode',
+                    position: { x: 550, y: 150 },
+                    data: {
+                        onRemove: () => {
+                            setNodes(nds2 => [
+                                ...nds2.filter(n => n.type !== 'outputNode'),
+                                {
+                                    id: 'output-placeholder',
+                                    type: 'outputPlaceholder',
+                                    position: { x: 550, y: 150 },
+                                    data: { onClick: () => setRightDragPanelOpen('output') },
+                                },
+                            ]);
+                        },
+                        outputType: type, // 'internal' or 'external'
+                        onSelectSchema: () => { setSchemaModalTarget('output'); setShowSchemaModal(true); },
+                    },
+                },
+            ]);
+        }
         setRightDragPanelOpen(false);
-    }, [setNodes, setEdges]);
+    }, [setNodes]);
 
-    // Custom selector for input type
+    // Custom selector for input/output type
     const customInputSelector = ({ onSelect, onClose }) => (
         <div className="p-4 space-y-4 flex flex-col h-full">
             <h3 className="text-lg font-semibold text-white">Add Input Node</h3>
             <button
                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                onClick={() => { onSelect('internal'); onClose(); }}
+                onClick={() => { onSelect('internal', 'input'); onClose(); }}
             >
                 Internal Input
             </button>
             <button
                 className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                onClick={() => { onSelect('external'); onClose(); }}
+                onClick={() => { onSelect('external', 'input'); onClose(); }}
             >
                 External Input
+            </button>
+        </div>
+    );
+    const customOutputSelector = ({ onSelect, onClose }) => (
+        <div className="p-4 space-y-4 flex flex-col h-full">
+            <h3 className="text-lg font-semibold text-white">Add Output Node</h3>
+            <button
+                className="w-full px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
+                onClick={() => { onSelect('internal', 'output'); onClose(); }}
+            >
+                Internal Output
+            </button>
+            <button
+                className="w-full px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700"
+                onClick={() => { onSelect('external', 'output'); onClose(); }}
+            >
+                External Output
             </button>
         </div>
     );
@@ -215,33 +315,37 @@ export function TemplatesEditorPage() {
     const handleBarMouseDown = () => {};
 
     // Only show placeholder if there are no nodes except placeholder
-    const displayNodes = nodes.length === 0
-        ? [
-            {
-                id: '1',
-                type: 'placeholder',
-                position: { x: 250, y: 150 },
-                data: { onClick: () => setRightDragPanelOpen(true) },
-            },
-        ]
-        : nodes;
+    const displayNodes = nodes;
 
     // Handler for schema selection from tree
     const handleSchemaSelect = (schema) => {
         setSelectedSchema(schema);
         setShowSchemaModal(false);
-        // Update the input node with the selected schema name
-        setNodes(nds => nds.map(node =>
-            node.type === 'inputNode'
-                ? {
-                    ...node,
-                    data: {
-                        ...node.data,
-                        schemaName: schema.name,
-                    },
-                }
-                : node
-        ));
+        if (schemaModalTarget === 'input') {
+            setNodes(nds => nds.map(node =>
+                node.type === 'inputNode'
+                    ? {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            schemaName: schema.name,
+                        },
+                    }
+                    : node
+            ));
+        } else if (schemaModalTarget === 'output') {
+            setNodes(nds => nds.map(node =>
+                node.type === 'outputNode'
+                    ? {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            schemaName: schema.name,
+                        },
+                    }
+                    : node
+            ));
+        }
     };
 
     // Recursive tree renderer
@@ -326,12 +430,23 @@ export function TemplatesEditorPage() {
                     <Background variant="dots" gap={12} size={1} />
                 </ReactFlow>
 
-                <TemplateEdgePanel
-                    rightDragPanelOpen={rightDragPanelOpen}
-                    setRightDragPanelOpen={setRightDragPanelOpen}
-                    onNodeTemplateSelect={handleNodeTemplateSelect}
-                    customInputSelector={customInputSelector}
-                />
+                {/* Show the correct selector panel based on which placeholder was clicked */}
+                {rightDragPanelOpen === 'input' && (
+                    <TemplateEdgePanel
+                        rightDragPanelOpen={!!rightDragPanelOpen}
+                        setRightDragPanelOpen={setRightDragPanelOpen}
+                        onNodeTemplateSelect={(type) => handleNodeTemplateSelect(type, 'input')}
+                        customInputSelector={customInputSelector}
+                    />
+                )}
+                {rightDragPanelOpen === 'output' && (
+                    <TemplateEdgePanel
+                        rightDragPanelOpen={!!rightDragPanelOpen}
+                        setRightDragPanelOpen={setRightDragPanelOpen}
+                        onNodeTemplateSelect={(type) => handleNodeTemplateSelect(type, 'output')}
+                        customInputSelector={customOutputSelector}
+                    />
+                )}
 
                 {bottomBarOpen && (
                     <div
