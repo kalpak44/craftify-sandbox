@@ -7,8 +7,7 @@ import { getFolderSchemaTree } from '../services/API';
 import TemplateEdgePanel from '../components/flow/TemplateEdgePanel';
 
 function InputNode({ id, data }) {
-    const isInternal = data.inputType === 'internal';
-    const isExternal = data.inputType === 'external';
+    // Only one type: Internal Input
     const [fetchMethod, setFetchMethod] = useState('fetchById');
     const [fetchId, setFetchId] = useState('');
 
@@ -25,12 +24,7 @@ function InputNode({ id, data }) {
         <>
             <div
                 className={
-                    `rounded-lg p-4 relative flex flex-col items-center ` +
-                    (isInternal
-                        ? 'border-2 border-blue-500 bg-blue-900'
-                        : isExternal
-                        ? 'border-2 border-green-500 bg-green-900'
-                        : 'border border-gray-500 bg-gray-800')
+                    `rounded-lg p-4 relative flex flex-col items-center border-2 border-blue-500 bg-blue-900`
                 }
             >
                 <button
@@ -41,65 +35,47 @@ function InputNode({ id, data }) {
                     ✕
                 </button>
                 <div className="text-white font-medium mb-2">
-                    {isInternal && 'Internal Input'}
-                    {isExternal && 'External Input'}
-                    {!isInternal && !isExternal && 'Input Node'}
+                    Internal Input
                 </div>
-                {isInternal && data.schemaName && (
+                {data.schemaName && (
                     <div className="text-blue-200 text-xs mb-2">Schema: {data.schemaName}</div>
                 )}
-                <Handle type="output" position={Position.Bottom} className={isInternal ? "w-3 h-3 bg-blue-400" : isExternal ? "w-3 h-3 bg-green-400" : "w-3 h-3 bg-gray-400"} />
-                {isInternal && (
-                    <>
-                        <div className="mt-3 flex flex-col items-center gap-2 w-full min-w-[180px] max-w-xs">
-                            <button
-                                className="w-full px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600"
-                                onClick={data.onSelectSchema}
-                            >
-                                Select Schema
-                            </button>
-                            <select
-                                className="w-full px-2 py-1 rounded bg-gray-800 text-white border border-gray-600"
-                                value={fetchMethod}
-                                onChange={e => setFetchMethod(e.target.value)}
-                            >
-                                <option value="fetchById">fetchById</option>
-                                <option value="fetchAll">fetchAll</option>
-                            </select>
-                            <input
-                                type="text"
-                                className="w-full px-2 py-1 rounded bg-gray-800 text-white border border-gray-600"
-                                placeholder="Enter id"
-                                value={fetchId}
-                                onChange={e => setFetchId(e.target.value)}
-                                style={{ visibility: fetchMethod === 'fetchById' ? 'visible' : 'hidden' }}
-                            />
-                            <button
-                                className="w-full px-4 py-1 bg-green-700 text-white rounded hover:bg-green-600 text-xs"
-                                onClick={handleApplyFetch}
-                            >
-                                Apply
-                            </button>
-                        </div>
-                    </>
-                )}
+                <Handle type="output" position={Position.Bottom} className="w-3 h-3 bg-blue-400" />
+                <div className="mt-3 flex flex-col items-center gap-2 w-full min-w-[180px] max-w-xs">
+                    <button
+                        className="w-full px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600"
+                        onClick={data.onSelectSchema}
+                    >
+                        Select Schema
+                    </button>
+                    <select
+                        className="w-full px-2 py-1 rounded bg-gray-800 text-white border border-gray-600"
+                        value={fetchMethod}
+                        onChange={e => setFetchMethod(e.target.value)}
+                    >
+                        <option value="fetchById">fetchById</option>
+                        <option value="fetchAll">fetchAll</option>
+                    </select>
+                    <input
+                        type="text"
+                        className="w-full px-2 py-1 rounded bg-gray-800 text-white border border-gray-600"
+                        placeholder="Enter id"
+                        value={fetchId}
+                        onChange={e => setFetchId(e.target.value)}
+                        style={{ visibility: fetchMethod === 'fetchById' ? 'visible' : 'hidden' }}
+                    />
+                </div>
             </div>
         </>
     );
 }
 
 function OutputNode({ id, data }) {
-    const isInternal = data.outputType === 'internal';
-    const isExternal = data.outputType === 'external';
+    // Only one type: Logical Node
     return (
         <div
             className={
-                `rounded-lg p-4 relative flex flex-col items-center ` +
-                (isInternal
-                    ? 'border-2 border-yellow-500 bg-yellow-900'
-                    : isExternal
-                    ? 'border-2 border-pink-500 bg-pink-900'
-                    : 'border border-gray-500 bg-gray-800')
+                `rounded-lg p-4 relative flex flex-col items-center border-2 border-yellow-500 bg-yellow-900`
             }
         >
             <button
@@ -110,26 +86,20 @@ function OutputNode({ id, data }) {
                 ✕
             </button>
             <div className="text-white font-medium mb-2">
-                {isInternal && 'Internal Output'}
-                {isExternal && 'External Output'}
-                {!isInternal && !isExternal && 'Output Node'}
+                Logical Node
             </div>
-            {isInternal && data.schemaName && (
+            {data.schemaName && (
                 <div className="text-yellow-200 text-xs mb-2">Schema: {data.schemaName}</div>
             )}
-            <Handle type="input" position={Position.Bottom} className={isInternal ? "w-3 h-3 bg-yellow-400" : isExternal ? "w-3 h-3 bg-pink-400" : "w-3 h-3 bg-gray-400"} />
-            {isInternal && (
-                <>
-                    <div className="mt-3 flex flex-col items-center gap-2 w-full min-w-[180px] max-w-xs">
-                        <button
-                            className="w-full px-4 py-2 bg-yellow-700 text-white rounded hover:bg-yellow-600"
-                            onClick={data.onSelectSchema}
-                        >
-                            Select Schema
-                        </button>
-                    </div>
-                </>
-            )}
+            <Handle type="input" position={Position.Bottom} className="w-3 h-3 bg-yellow-400" />
+            <div className="mt-3 flex flex-col items-center gap-2 w-full min-w-[180px] max-w-xs">
+                <button
+                    className="w-full px-4 py-2 bg-yellow-700 text-white rounded hover:bg-yellow-600"
+                    onClick={data.onSelectSchema}
+                >
+                    Select Schema
+                </button>
+            </div>
         </div>
     );
 }
@@ -242,7 +212,8 @@ export function TemplatesEditorPage() {
                                 },
                             ]);
                         },
-                        inputType: type, // 'internal' or 'external'
+                        // Only one type: internal
+                        inputType: 'internal',
                         onSelectSchema: () => { setSchemaModalTarget('input'); setShowSchemaModal(true); },
                     },
                 },
@@ -266,7 +237,8 @@ export function TemplatesEditorPage() {
                                 },
                             ]);
                         },
-                        outputType: type, // 'internal' or 'external'
+                        // Only one type: logical
+                        outputType: 'logical',
                         onSelectSchema: () => { setSchemaModalTarget('output'); setShowSchemaModal(true); },
                     },
                 },
@@ -285,28 +257,16 @@ export function TemplatesEditorPage() {
             >
                 Internal Input
             </button>
-            <button
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                onClick={() => { onSelect('external', 'input'); onClose(); }}
-            >
-                External Input
-            </button>
         </div>
     );
     const customOutputSelector = ({ onSelect, onClose }) => (
         <div className="p-4 space-y-4 flex flex-col h-full">
-            <h3 className="text-lg font-semibold text-white">Add Output Node</h3>
+            <h3 className="text-lg font-semibold text-white">Add Logical Node</h3>
             <button
                 className="w-full px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
-                onClick={() => { onSelect('internal', 'output'); onClose(); }}
+                onClick={() => { onSelect('logical', 'output'); onClose(); }}
             >
-                Internal Output
-            </button>
-            <button
-                className="w-full px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700"
-                onClick={() => { onSelect('external', 'output'); onClose(); }}
-            >
-                External Output
+                Logical Node
             </button>
         </div>
     );
