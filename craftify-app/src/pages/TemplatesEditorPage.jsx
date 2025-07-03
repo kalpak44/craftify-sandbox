@@ -2,7 +2,6 @@ import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import ReactFlow, { Background, useNodesState, useEdgesState, addEdge, Handle, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { LeftPanel, EdgeOptionsPanel, TriggerSelectionPanel } from '../components/flow';
-import FileNavigator from './FileNavigator.jsx';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getFolderSchemaTree } from '../services/API';
 
