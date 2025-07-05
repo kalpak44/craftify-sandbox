@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const FlowsPage = () => {
     const [flows, setFlows] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [flowName, setFlowName] = useState("");
     const [flowDescription, setFlowDescription] = useState("");
-    const [parameters, setParameters] = useState([{ key: "", value: "" }]);
+    const [parameters, setParameters] = useState([]);
+
+    // Simulate fetching flows
+    useEffect(() => {
+        setTimeout(() => {
+            setFlows([]); // Simulate API returning empty list
+            setLoading(false);
+        }, 1500);
+    }, []);
 
     const openModal = () => {
         setFlowName("");
@@ -36,13 +45,23 @@ export const FlowsPage = () => {
         const newFlow = {
             name: flowName,
             description: flowDescription,
-            parameters: parameters.filter(p => p.key.trim() !== "")
+            parameters: parameters.filter((p) => p.key.trim() !== "")
         };
         alert(`Flow Created:\n${JSON.stringify(newFlow, null, 2)}`);
         setFlows([...flows, newFlow]);
         closeModal();
     };
 
+    // Loading state
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-full text-white text-lg">
+                Loading flows...
+            </div>
+        );
+    }
+
+    // Empty state
     if (flows.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-white">
@@ -136,10 +155,19 @@ export const FlowsPage = () => {
         );
     }
 
-    // (future: render flows list)
+    // Flow list view
     return (
         <div className="p-10 text-white">
-            <h1 className="text-2xl font-semibold mb-4">Your Flows</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-semibold">Your Flows</h1>
+                <button
+                    onClick={openModal}
+                    className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-sm"
+                >
+                    + New Flow
+                </button>
+            </div>
+
             {flows.map((flow, idx) => (
                 <div key={idx} className="bg-gray-800 p-4 rounded mb-4 border border-gray-700">
                     <h2 className="text-lg font-bold">{flow.name}</h2>
