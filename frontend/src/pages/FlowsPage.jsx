@@ -1,19 +1,88 @@
 import { useEffect, useState } from "react";
 
+// Simulated Spring Boot-style pageable response
+const mockFetchFlows = (page, size) => {
+    const allFlows = [
+        {
+            id: "flow-373e",
+            name: "Flow 3731",
+            description: "Arguments as parameters",
+            createdAt: "2024-04-23 15:23",
+            updatedAt: "2024-04-23 18:45"
+        },
+        {
+            id: "flow-a1b2",
+            name: "Sample flow",
+            description: "Sample flow",
+            createdAt: "2024-04-22 10:10",
+            updatedAt: "2024-04-22 10:10"
+        },
+        {
+            id: "flow-8f04",
+            name: "Test Flow",
+            description: "Test Flow",
+            createdAt: "2024-04-20 09:05",
+            updatedAt: "2024-04-21 11:30"
+        },
+        {
+            id: "flow-6c7d",
+            name: "ETL Job",
+            description: "ETL Job",
+            createdAt: "2024-04-19 14:45",
+            updatedAt: "2024-04-19 14:45"
+        },
+        {
+            id: "flow-52e8",
+            name: "Batch processing",
+            description: "Batch processing flow",
+            createdAt: "2024-04-18 08:00",
+            updatedAt: "2024-04-18 12:20"
+        },
+        {
+            id: "flow-3f1a",
+            name: "Streaming data pipeline",
+            description: "Streaming data pipeline",
+            createdAt: "2024-04-17 13:15",
+            updatedAt: "2024-04-17 13:13"
+        }
+    ];
+
+    const start = page * size;
+    const end = start + size;
+    const content = allFlows.slice(start, end);
+
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({
+                content,
+                page,
+                size,
+                totalPages: Math.ceil(allFlows.length / size),
+                totalElements: allFlows.length
+            });
+        }, 500);
+    });
+};
+
 export const FlowsPage = () => {
-    const [flows, setFlows] = useState([]);
+    const [data, setData] = useState({ content: [], page: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [flowName, setFlowName] = useState("");
     const [flowDescription, setFlowDescription] = useState("");
     const [parameters, setParameters] = useState([]);
 
-    // Simulate fetching flows
+    const PAGE_SIZE = 5;
+
+    const fetchPage = async (pageIndex) => {
+        setLoading(true);
+        const result = await mockFetchFlows(pageIndex, PAGE_SIZE);
+        setData(result);
+        setLoading(false);
+    };
+
     useEffect(() => {
-        setTimeout(() => {
-            setFlows([]); // Simulate API returning empty list
-            setLoading(false);
-        }, 1500);
+        fetchPage(0);
     }, []);
 
     const openModal = () => {
@@ -25,6 +94,11 @@ export const FlowsPage = () => {
 
     const closeModal = () => {
         setShowModal(false);
+    };
+
+    const handleCreateFlow = () => {
+        alert("New flow created:\n" + JSON.stringify({ flowName, flowDescription, parameters }, null, 2));
+        closeModal();
     };
 
     const handleAddParameter = () => {
@@ -41,146 +115,174 @@ export const FlowsPage = () => {
         setParameters(updated);
     };
 
-    const handleCreateFlow = () => {
-        const newFlow = {
-            name: flowName,
-            description: flowDescription,
-            parameters: parameters.filter((p) => p.key.trim() !== "")
-        };
-        alert(`Flow Created:\n${JSON.stringify(newFlow, null, 2)}`);
-        setFlows([...flows, newFlow]);
-        closeModal();
+    const handleDelete = (id) => {
+        alert("Deleted flow: " + id);
     };
 
-    // Loading state
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full text-white text-lg">
-                Loading flows...
-            </div>
-        );
-    }
+    const handleOpen = (flow) => {
+        alert("Navigating to " + flow.name);
+    };
 
-    // Empty state
-    if (flows.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full text-white">
-                <h1 className="text-4xl font-semibold mb-2">Flows</h1>
-                <p className="text-gray-400 mb-1 text-lg">No flows created</p>
-                <p className="text-gray-500 mb-6">Get started by creating a new flow.</p>
+    return (
+        <div className="p-8 text-white">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-4xl font-semibold">Flows</h1>
                 <button
                     onClick={openModal}
-                    className="px-5 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium"
                 >
                     Create Flow
                 </button>
+            </div>
 
-                {/* Modal */}
-                {showModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-lg border border-gray-600">
-                            <h2 className="text-lg font-semibold mb-4">Create New Flow</h2>
-
-                            <input
-                                type="text"
-                                value={flowName}
-                                onChange={(e) => setFlowName(e.target.value)}
-                                placeholder="Flow name"
-                                className="w-full mb-3 px-3 py-2 bg-gray-700 text-white rounded outline-none"
-                            />
-
-                            <textarea
-                                value={flowDescription}
-                                onChange={(e) => setFlowDescription(e.target.value)}
-                                placeholder="Flow description"
-                                rows={3}
-                                className="w-full mb-4 px-3 py-2 bg-gray-700 text-white rounded outline-none resize-none"
-                            />
-
-                            <div className="mb-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm font-medium text-gray-300">Parameters</span>
+            {loading ? (
+                <div className="text-gray-400">Loading flows...</div>
+            ) : data.content.length === 0 ? (
+                <div className="text-gray-400">No flows available.</div>
+            ) : (
+                <>
+                    <table className="w-full text-sm border-collapse mb-6">
+                        <thead>
+                        <tr className="text-gray-400 border-b border-gray-700">
+                            <th className="text-left px-3 py-2 font-medium">ID</th>
+                            <th className="text-left px-3 py-2 font-medium">Name</th>
+                            <th className="text-left px-3 py-2 font-medium">Description</th>
+                            <th className="text-left px-3 py-2 font-medium">Created At</th>
+                            <th className="text-left px-3 py-2 font-medium">Updated At</th>
+                            <th className="text-right px-3 py-2 font-medium">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {data.content.map((flow) => (
+                            <tr
+                                key={flow.id}
+                                className="hover:bg-gray-800 border-b border-gray-800"
+                            >
+                                <td className="px-3 py-2">{flow.id}</td>
+                                <td className="px-3 py-2">{flow.name}</td>
+                                <td className="px-3 py-2">{flow.description}</td>
+                                <td className="px-3 py-2">{flow.createdAt}</td>
+                                <td className="px-3 py-2">{flow.updatedAt}</td>
+                                <td className="px-3 py-2 text-right space-x-3">
                                     <button
-                                        onClick={handleAddParameter}
-                                        className="text-blue-400 text-sm hover:underline"
+                                        onClick={() => handleOpen(flow)}
+                                        className="text-blue-400 hover:underline"
                                     >
-                                        + Add
+                                        Open
                                     </button>
-                                </div>
+                                    <button
+                                        onClick={() => handleDelete(flow.id)}
+                                        className="text-red-400 hover:underline"
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
 
-                                {parameters.map((param, index) => (
-                                    <div key={index} className="flex space-x-2 mb-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Key"
-                                            value={param.key}
-                                            onChange={(e) => handleChangeParameter(index, "key", e.target.value)}
-                                            className="flex-1 px-2 py-1 bg-gray-700 text-white rounded"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Value"
-                                            value={param.value}
-                                            onChange={(e) => handleChangeParameter(index, "value", e.target.value)}
-                                            className="flex-1 px-2 py-1 bg-gray-700 text-white rounded"
-                                        />
-                                        <button
-                                            onClick={() => handleRemoveParameter(index)}
-                                            className="text-red-400 text-sm hover:underline"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex justify-end space-x-2">
+                    {/* Pagination Controls */}
+                    <div className="flex justify-end mt-4">
+                        <div className="inline-flex rounded overflow-hidden border border-gray-700 bg-gray-800 text-sm">
+                            {Array.from({ length: data.totalPages }, (_, i) => (
                                 <button
-                                    onClick={closeModal}
-                                    className="px-4 py-1 bg-gray-600 hover:bg-gray-500 rounded"
+                                    key={i}
+                                    onClick={() => fetchPage(i)}
+                                    className={`px-4 py-2 border-r border-gray-700 last:border-r-0 transition ${
+                                        data.page === i
+                                            ? "bg-blue-600 text-white"
+                                            : "text-gray-300 hover:bg-gray-700"
+                                    }`}
                                 >
-                                    Cancel
+                                    {i + 1}
                                 </button>
-                                <button
-                                    onClick={handleCreateFlow}
-                                    className="px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
-                                >
-                                    Create
-                                </button>
-                            </div>
+                            ))}
                         </div>
                     </div>
-                )}
-            </div>
-        );
-    }
+                </>
+            )}
 
-    // Flow list view
-    return (
-        <div className="p-10 text-white">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-semibold">Your Flows</h1>
-                <button
-                    onClick={openModal}
-                    className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-sm"
-                >
-                    + New Flow
-                </button>
-            </div>
+            {/* Modal */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-lg border border-gray-600">
+                        <h2 className="text-lg font-semibold mb-4">Create New Flow</h2>
 
-            {flows.map((flow, idx) => (
-                <div key={idx} className="bg-gray-800 p-4 rounded mb-4 border border-gray-700">
-                    <h2 className="text-lg font-bold">{flow.name}</h2>
-                    <p className="text-sm text-gray-400 mb-2">{flow.description}</p>
-                    <ul className="text-sm text-gray-300">
-                        {flow.parameters.map((param, i) => (
-                            <li key={i}>
-                                <span className="text-blue-300">{param.key}</span>: {param.value}
-                            </li>
-                        ))}
-                    </ul>
+                        <input
+                            type="text"
+                            value={flowName}
+                            onChange={(e) => setFlowName(e.target.value)}
+                            placeholder="Flow name"
+                            className="w-full mb-3 px-3 py-2 bg-gray-700 text-white rounded outline-none"
+                        />
+
+                        <textarea
+                            value={flowDescription}
+                            onChange={(e) => setFlowDescription(e.target.value)}
+                            placeholder="Flow description"
+                            rows={3}
+                            className="w-full mb-4 px-3 py-2 bg-gray-700 text-white rounded outline-none resize-none"
+                        />
+
+                        <div className="mb-4">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-medium text-gray-300">Parameters</span>
+                                <button
+                                    onClick={handleAddParameter}
+                                    className="text-blue-400 text-sm hover:underline"
+                                >
+                                    + Add
+                                </button>
+                            </div>
+
+                            {parameters.map((param, index) => (
+                                <div key={index} className="flex space-x-2 mb-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Key"
+                                        value={param.key}
+                                        onChange={(e) =>
+                                            handleChangeParameter(index, "key", e.target.value)
+                                        }
+                                        className="flex-1 px-2 py-1 bg-gray-700 text-white rounded"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Value"
+                                        value={param.value}
+                                        onChange={(e) =>
+                                            handleChangeParameter(index, "value", e.target.value)
+                                        }
+                                        className="flex-1 px-2 py-1 bg-gray-700 text-white rounded"
+                                    />
+                                    <button
+                                        onClick={() => handleRemoveParameter(index)}
+                                        className="text-red-400 text-sm hover:underline"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                onClick={closeModal}
+                                className="px-4 py-1 bg-gray-600 hover:bg-gray-500 rounded"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateFlow}
+                                className="px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                            >
+                                Create
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            ))}
+            )}
         </div>
     );
 };
