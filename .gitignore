@@ -15,7 +15,7 @@ HELP.md
 # VS Code
 .vscode/
 
-# Eclipse / STS
+# Eclipse / STScd
 .apt_generated/
 .classpath
 .factorypath
