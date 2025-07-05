@@ -86,3 +86,7 @@ This platform lives in a monorepo with three main modules:
 - Git-integrated flow versioning.
 - Webhook receivers for third-party triggers.
 - Test environments with mock data.
+
+## Architecture
+
+![Architecture Diagram](./assets/architecture.png)
