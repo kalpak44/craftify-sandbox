@@ -19,7 +19,7 @@ craftify-sandbox/
 
 ## Frontend Setup
 
-For frontend setup instructions, see the [craftify-app](./craftify-app/README.md).
+For frontend setup instructions, see the [craftify-app](frontend/README.md).
 
 ## Backend Setup
 
