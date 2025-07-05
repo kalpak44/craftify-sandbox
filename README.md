@@ -77,7 +77,6 @@ This platform lives in a monorepo with three main modules:
 
 - `frontend/` – React UI for flow creation & data management.
 - `backend/` – Spring Boot app exposing APIs and deploying executions.
-- `doc/` – Documentation (including this file).
 
 ---
 
