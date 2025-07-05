@@ -30,6 +30,19 @@ export const FullWidthLayout = ({ children }) => {
         };
     }, []);
 
+    // Handle signup redirect
+    const handleSignUp = async () => {
+        await loginWithRedirect({
+            appState: {
+                returnTo: "/files",
+            },
+            authorizationParams: {
+                prompt: "login",
+                screen_hint: "signup",
+            },
+        });
+    };
+
     return (
         <div className="flex flex-col h-screen w-full overflow-hidden bg-gray-900 text-white">
             {/* Navigation Bar */}
@@ -69,7 +82,6 @@ export const FullWidthLayout = ({ children }) => {
                                         >
                                             Log Out
                                         </button>
-
                                     </div>
                                 )}
                             </div>
@@ -79,11 +91,18 @@ export const FullWidthLayout = ({ children }) => {
                             <NavLink to="/" className={({ isActive }) => isActive ? "text-white" : "hover:text-white"}>Home</NavLink>
                             <NavLink to="/terms" className={({ isActive }) => isActive ? "text-white" : "hover:text-white"}>Terms</NavLink>
                             <NavLink to="/privacy" className={({ isActive }) => isActive ? "text-white" : "hover:text-white"}>Privacy</NavLink>
+
                             <button
                                 onClick={() => loginWithRedirect()}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-sm"
                             >
                                 Log In
+                            </button>
+                            <button
+                                onClick={handleSignUp}
+                                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-1 rounded text-sm"
+                            >
+                                Sign Up
                             </button>
                         </>
                     )}
