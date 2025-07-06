@@ -193,4 +193,67 @@ public class UserStorageService {
         }
     }
 
+    /**
+     * Deletes a file or folder (recursively) in the authenticated user's namespace.
+     *
+     * @param fullPath the relative or absolute path to the file or folder.
+     */
+    public void deleteUserPath(String fullPath) {
+        var userId = authentificationService.getCurrentUserId();
+        var userRoot = Paths.get(userId);
+        var resolvedPath = Paths.get(fullPath).isAbsolute()
+                ? userRoot.resolve(fullPath.substring(1))
+                : userRoot.resolve(fullPath);
+
+        var objectPrefix = resolvedPath.toString().replace("\\", "/");
+
+        // Ensure folders end with a slash to delete all nested objects
+        boolean isFolder = objectPrefix.endsWith("/") || fullPath.endsWith("/");
+        if (isFolder && !objectPrefix.endsWith("/")) {
+            objectPrefix += "/";
+        }
+
+        try {
+            var results = minioClient.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket(bucketName)
+                            .prefix(objectPrefix)
+                            .recursive(true)
+                            .build()
+            );
+
+            var objectsToDelete = StreamSupport.stream(results.spliterator(), false)
+                    .map(result -> {
+                        try {
+                            return result.get().objectName();
+                        } catch (Exception e) {
+                            throw new RuntimeException("Failed to resolve object for deletion", e);
+                        }
+                    })
+                    .toList();
+
+            for (var objectName : objectsToDelete) {
+                minioClient.removeObject(
+                        io.minio.RemoveObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(objectName)
+                                .build()
+                );
+            }
+
+            // If it's a file and no children were found, try deleting it directly
+            if (!isFolder && objectsToDelete.isEmpty()) {
+                minioClient.removeObject(
+                        io.minio.RemoveObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(objectPrefix)
+                                .build()
+                );
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete path: " + fullPath, e);
+        }
+    }
+
 }

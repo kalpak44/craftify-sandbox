@@ -5,10 +5,16 @@ import com.craftify.service.UserStorageService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -66,7 +72,7 @@ public class UserStorageController {
      *
      * @param fullPath the relative or absolute path of the file within the user's namespace.
      * @return a {@link ResponseEntity} containing the file as an attachment if found,
-     *         or a 404 response if the file does not exist.
+     * or a 404 response if the file does not exist.
      */
     @GetMapping("/download")
     public ResponseEntity<?> downloadFile(@RequestParam String fullPath) {
@@ -86,5 +92,17 @@ public class UserStorageController {
                     .body("File not found: " + e.getMessage());
         }
     }
+
+
+    /**
+     * Deletes a file or folder (recursively) for the current user.
+     * Example: DELETE /files/delete?path=subfolder/myfile.txt
+     */
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deletePath(@RequestParam String path) {
+        userStorageService.deleteUserPath(path);
+        return ResponseEntity.ok("Deleted successfully: " + path);
+    }
+
 
 }
