@@ -8,48 +8,45 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "minio")
 public class MinioClientConfig {
-    private String url;
-    private String accessKey;
-    private String secretKey;
-    private String bucket;
+  private String url;
+  private String accessKey;
+  private String secretKey;
+  private String bucket;
 
-    public String getUrl() {
-        return url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 
-    public String getAccessKey() {
-        return accessKey;
-    }
+  public String getAccessKey() {
+    return accessKey;
+  }
 
-    public void setAccessKey(String accessKey) {
-        this.accessKey = accessKey;
-    }
+  public void setAccessKey(String accessKey) {
+    this.accessKey = accessKey;
+  }
 
-    public String getSecretKey() {
-        return secretKey;
-    }
+  public String getSecretKey() {
+    return secretKey;
+  }
 
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
-    }
+  public void setSecretKey(String secretKey) {
+    this.secretKey = secretKey;
+  }
 
-    public String getBucket() {
-        return bucket;
-    }
+  public String getBucket() {
+    return bucket;
+  }
 
-    public void setBucket(String bucket) {
-        this.bucket = bucket;
-    }
+  public void setBucket(String bucket) {
+    this.bucket = bucket;
+  }
 
-    @Bean
-    public MinioClient minioClient() {
-        return MinioClient.builder()
-                .endpoint(url)
-                .credentials(accessKey, secretKey)
-                .build();
-    }
+  @Bean
+  public MinioClient minioClient() {
+    return MinioClient.builder().endpoint(url).credentials(accessKey, secretKey).build();
+  }
 }
