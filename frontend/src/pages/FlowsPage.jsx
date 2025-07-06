@@ -1,6 +1,6 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
+import { Modal } from "../components/common/Modal";
 
-// Simulated Spring Boot-style pageable response
 const mockFetchFlows = (page, size) => {
     const allFlows = [
         {
@@ -65,12 +65,14 @@ const mockFetchFlows = (page, size) => {
 };
 
 export const FlowsPage = () => {
-    const [data, setData] = useState({content: [], page: 0, totalPages: 0});
+    const [data, setData] = useState({ content: [], page: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [flowName, setFlowName] = useState("");
     const [flowDescription, setFlowDescription] = useState("");
     const [parameters, setParameters] = useState([]);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [flowToDelete, setFlowToDelete] = useState(null);
 
     const PAGE_SIZE = 5;
 
@@ -97,12 +99,12 @@ export const FlowsPage = () => {
     };
 
     const handleCreateFlow = () => {
-        alert("New flow created:\n" + JSON.stringify({flowName, flowDescription, parameters}, null, 2));
+        alert("New flow created:\n" + JSON.stringify({ flowName, flowDescription, parameters }, null, 2));
         closeModal();
     };
 
     const handleAddParameter = () => {
-        setParameters([...parameters, {key: ""}]);
+        setParameters([...parameters, { key: "" }]);
     };
 
     const handleRemoveParameter = (index) => {
@@ -115,12 +117,23 @@ export const FlowsPage = () => {
         setParameters(updated);
     };
 
-    const handleDelete = (id) => {
-        alert("Deleted flow: " + id);
-    };
-
     const handleOpen = (flow) => {
         alert("Navigating to " + flow.name);
+    };
+
+    const handleViewHistory = (flow) => {
+        alert("Viewing execution history for: " + flow.name);
+    };
+
+    const handleDelete = (flow) => {
+        setFlowToDelete(flow);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = () => {
+        alert("Deleted flow: " + flowToDelete?.id);
+        setFlowToDelete(null);
+        setShowDeleteModal(false);
     };
 
     return (
@@ -154,25 +167,28 @@ export const FlowsPage = () => {
                         </thead>
                         <tbody>
                         {data.content.map((flow) => (
-                            <tr
-                                key={flow.id}
-                                className="hover:bg-gray-800 border-b border-gray-800"
-                            >
+                            <tr key={flow.id} className="hover:bg-gray-800 border-b border-gray-800">
                                 <td className="px-3 py-2">{flow.id}</td>
                                 <td className="px-3 py-2">{flow.name}</td>
                                 <td className="px-3 py-2">{flow.description}</td>
                                 <td className="px-3 py-2">{flow.createdAt}</td>
                                 <td className="px-3 py-2">{flow.updatedAt}</td>
-                                <td className="px-3 py-2 text-right space-x-3">
+                                <td className="px-3 py-2 text-right space-x-2">
                                     <button
                                         onClick={() => handleOpen(flow)}
-                                        className="text-blue-400 hover:underline"
+                                        className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded"
                                     >
                                         Open
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(flow.id)}
-                                        className="text-red-400 hover:underline"
+                                        onClick={() => handleViewHistory(flow)}
+                                        className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-3 py-1 rounded"
+                                    >
+                                        History
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(flow)}
+                                        className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded"
                                     >
                                         Delete
                                     </button>
@@ -182,10 +198,9 @@ export const FlowsPage = () => {
                         </tbody>
                     </table>
 
-                    {/* Pagination Controls */}
                     <div className="flex justify-end mt-4">
                         <div className="inline-flex rounded overflow-hidden border border-gray-700 bg-gray-800 text-sm">
-                            {Array.from({length: data.totalPages}, (_, i) => (
+                            {Array.from({ length: data.totalPages }, (_, i) => (
                                 <button
                                     key={i}
                                     onClick={() => fetchPage(i)}
@@ -203,7 +218,7 @@ export const FlowsPage = () => {
                 </>
             )}
 
-            {/* Modal */}
+            {/* Create Flow Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-lg border border-gray-600">
@@ -273,6 +288,21 @@ export const FlowsPage = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <Modal
+                    title="Delete Flow"
+                    onCancel={() => {
+                        setShowDeleteModal(false);
+                        setFlowToDelete(null);
+                    }}
+                    onConfirm={confirmDelete}
+                    confirmText="Delete"
+                >
+                    Are you sure you want to delete <strong>{flowToDelete?.name}</strong>?
+                </Modal>
             )}
         </div>
     );
