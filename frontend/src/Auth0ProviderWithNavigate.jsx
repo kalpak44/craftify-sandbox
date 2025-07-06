@@ -1,8 +1,17 @@
-import {Auth0Provider} from "@auth0/auth0-react";
+import PropTypes from 'prop-types';
+import { Auth0Provider } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 
-import {useNavigate} from "react-router-dom";
-
-export const Auth0ProviderWithNavigate = ({children}) => {
+/**
+ * Wraps Auth0Provider and synchronizes navigation on callback
+ *
+ * Reads configuration from environment variables:
+ *  - VITE_AUTH0_DOMAIN
+ *  - VITE_AUTH0_CLIENT_ID
+ *  - VITE_AUTH0_REDIRECT_URL
+ *  - VITE_AUTH0_AUDIENCE
+ */
+export const Auth0ProviderWithNavigate = ({ children }) => {
     const navigate = useNavigate();
 
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -15,6 +24,7 @@ export const Auth0ProviderWithNavigate = ({children}) => {
     };
 
     if (!(domain && clientId && redirectUri && audience)) {
+        console.warn('Auth0 configuration is missing');
         return null;
     }
 
@@ -23,12 +33,16 @@ export const Auth0ProviderWithNavigate = ({children}) => {
             domain={domain}
             clientId={clientId}
             authorizationParams={{
-                audience: audience,
-                redirect_uri: redirectUri,
+                audience,
+                redirect_uri: redirectUri
             }}
             onRedirectCallback={onRedirectCallback}
         >
             {children}
         </Auth0Provider>
     );
+};
+
+Auth0ProviderWithNavigate.propTypes = {
+    children: PropTypes.node.isRequired,
 };

@@ -1,8 +1,8 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect } from "react";
+import {useAuth0} from "@auth0/auth0-react";
+import {useEffect} from "react";
 
 export const CallbackPage = () => {
-    const { error, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+    const {error, isAuthenticated, isLoading, getAccessTokenSilently} = useAuth0();
 
     useEffect(() => {
         const storeTokenAndRedirect = async () => {
@@ -35,7 +35,7 @@ export const CallbackPage = () => {
 
     return (
         <div className="page-layout">
-            <div className="page-layout__content" />
+            <div className="page-layout__content"/>
         </div>
     );
 };

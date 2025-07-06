@@ -42,9 +42,6 @@ To access MinIO from localhost, run the below commands:
 
 ```shell
 export POD_NAME=$(kubectl get pods --namespace minio -l "release=minio" -o jsonpath="{.items[0].metadata.name}")
-```
-
-```shell
 kubectl port-forward $POD_NAME 9000:9000 9001:9001 --namespace minio
 ```
 

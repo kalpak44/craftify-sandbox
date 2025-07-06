@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 
 // Simulated Spring Boot-style pageable response
 const mockFetchFlows = (page, size) => {
@@ -65,7 +65,7 @@ const mockFetchFlows = (page, size) => {
 };
 
 export const FlowsPage = () => {
-    const [data, setData] = useState({ content: [], page: 0, totalPages: 0 });
+    const [data, setData] = useState({content: [], page: 0, totalPages: 0});
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [flowName, setFlowName] = useState("");
@@ -97,12 +97,12 @@ export const FlowsPage = () => {
     };
 
     const handleCreateFlow = () => {
-        alert("New flow created:\n" + JSON.stringify({ flowName, flowDescription, parameters }, null, 2));
+        alert("New flow created:\n" + JSON.stringify({flowName, flowDescription, parameters}, null, 2));
         closeModal();
     };
 
     const handleAddParameter = () => {
-        setParameters([...parameters, { key: ""}]);
+        setParameters([...parameters, {key: ""}]);
     };
 
     const handleRemoveParameter = (index) => {
@@ -185,7 +185,7 @@ export const FlowsPage = () => {
                     {/* Pagination Controls */}
                     <div className="flex justify-end mt-4">
                         <div className="inline-flex rounded overflow-hidden border border-gray-700 bg-gray-800 text-sm">
-                            {Array.from({ length: data.totalPages }, (_, i) => (
+                            {Array.from({length: data.totalPages}, (_, i) => (
                                 <button
                                     key={i}
                                     onClick={() => fetchPage(i)}

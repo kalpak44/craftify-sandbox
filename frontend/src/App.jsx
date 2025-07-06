@@ -1,26 +1,25 @@
-import {useAuth0} from "@auth0/auth0-react";
-import {PageLoader} from "./components/page-loader/PageLoader.jsx";
-import {AuthenticationGuard} from "./components/authentication-guard/AuthenticationGuard.jsx";
-import {Route, Routes} from "react-router-dom";
-import {NotFoundPage} from "./pages/NotFoundPage.jsx";
-import {CallbackPage} from "./pages/CallbackPage.jsx";
-import {HomePage} from "./pages/HomePage.jsx";
-import {FullWidthLayout} from "./components/page-layout/PageFullLayout.jsx";
-import {PrivacyPage} from "./pages/PrivacyPage.jsx";
-import {TermsPage} from "./pages/TermsPage.jsx";
-import {FilesPage} from "./pages/FilesPage.jsx";
-import {FlowsPage} from "./pages/FlowsPage.jsx";
-import {DataPage} from "./pages/DataPage.jsx";
-
+import {useAuth0} from '@auth0/auth0-react';
+import {Loader} from './components/common/Loader';
+import {AuthenticationGuard} from './components/authentication-guard/AuthenticationGuard';
+import {Route, Routes} from 'react-router-dom';
+import {FullWidthLayout} from './components/page-layout/PageFullLayout';
+import {HomePage} from './pages/HomePage';
+import {FilesPage} from './pages/FilesPage';
+import {FlowsPage} from './pages/FlowsPage';
+import {DataPage} from './pages/DataPage';
+import {TermsPage} from './pages/TermsPage';
+import {PrivacyPage} from './pages/PrivacyPage';
+import {CallbackPage} from './pages/CallbackPage';
+import {NotFoundPage} from './pages/NotFoundPage';
 
 export default function App() {
     const {isLoading} = useAuth0();
 
-    // Show a loading spinner while authentication state is being determined
+    // Show a loading spinner while Auth0 finishes initialization
     if (isLoading) {
         return (
             <div className="page-layout">
-                <PageLoader/>
+                <Loader/>
             </div>
         );
     }
@@ -30,21 +29,33 @@ export default function App() {
             <Route path="/" element={<FullWidthLayout><HomePage/></FullWidthLayout>}/>
             <Route
                 path="/files"
-                element={<AuthenticationGuard component={() => <FullWidthLayout><FilesPage/></FullWidthLayout>}/>}
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><FilesPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
             />
             <Route
                 path="/flows"
-                element={<AuthenticationGuard component={() => <FullWidthLayout><FlowsPage/></FullWidthLayout>}/>}
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><FlowsPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
             />
             <Route
                 path="/data"
-                element={<AuthenticationGuard component={() => <FullWidthLayout><DataPage/></FullWidthLayout>}/>}
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><DataPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
             />
 
-            <Route path="/terms" element={<FullWidthLayout><TermsPage /></FullWidthLayout>} />
-            <Route path="/privacy" element={<FullWidthLayout><PrivacyPage /></FullWidthLayout>} />
+            <Route path="/terms" element={<FullWidthLayout><TermsPage/></FullWidthLayout>}/>
+            <Route path="/privacy" element={<FullWidthLayout><PrivacyPage/></FullWidthLayout>}/>
 
-            <Route path="/callback" element={<FullWidthLayout><CallbackPage/></FullWidthLayout>}/>
+            <Route path="/callback" element={<CallbackPage/>}/>
             <Route path="*" element={<FullWidthLayout><NotFoundPage/></FullWidthLayout>}/>
         </Routes>
     );
