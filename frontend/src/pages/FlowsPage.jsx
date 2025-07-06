@@ -1,68 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal } from "../components/common/Modal";
-
-const mockFetchFlows = (page, size) => {
-    const allFlows = [
-        {
-            id: "flow-373e",
-            name: "Flow 3731",
-            description: "Arguments as parameters",
-            createdAt: "2024-04-23 15:23",
-            updatedAt: "2024-04-23 18:45"
-        },
-        {
-            id: "flow-a1b2",
-            name: "Sample flow",
-            description: "Sample flow",
-            createdAt: "2024-04-22 10:10",
-            updatedAt: "2024-04-22 10:10"
-        },
-        {
-            id: "flow-8f04",
-            name: "Test Flow",
-            description: "Test Flow",
-            createdAt: "2024-04-20 09:05",
-            updatedAt: "2024-04-21 11:30"
-        },
-        {
-            id: "flow-6c7d",
-            name: "ETL Job",
-            description: "ETL Job",
-            createdAt: "2024-04-19 14:45",
-            updatedAt: "2024-04-19 14:45"
-        },
-        {
-            id: "flow-52e8",
-            name: "Batch processing",
-            description: "Batch processing flow",
-            createdAt: "2024-04-18 08:00",
-            updatedAt: "2024-04-18 12:20"
-        },
-        {
-            id: "flow-3f1a",
-            name: "Streaming data pipeline",
-            description: "Streaming data pipeline",
-            createdAt: "2024-04-17 13:15",
-            updatedAt: "2024-04-17 13:13"
-        }
-    ];
-
-    const start = page * size;
-    const end = start + size;
-    const content = allFlows.slice(start, end);
-
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve({
-                content,
-                page,
-                size,
-                totalPages: Math.ceil(allFlows.length / size),
-                totalElements: allFlows.length
-            });
-        }, 500);
-    });
-};
+import { listFlows, createFlow, deleteFlow } from "../api/flows";
 
 export const FlowsPage = () => {
     const [data, setData] = useState({ content: [], page: 0, totalPages: 0 });
@@ -78,8 +16,12 @@ export const FlowsPage = () => {
 
     const fetchPage = async (pageIndex) => {
         setLoading(true);
-        const result = await mockFetchFlows(pageIndex, PAGE_SIZE);
-        setData(result);
+        try {
+            const result = await listFlows(pageIndex, PAGE_SIZE);
+            setData(result);
+        } catch (error) {
+            alert("Failed to load flows: " + error.message);
+        }
         setLoading(false);
     };
 
@@ -98,9 +40,19 @@ export const FlowsPage = () => {
         setShowModal(false);
     };
 
-    const handleCreateFlow = () => {
-        alert("New flow created:\n" + JSON.stringify({ flowName, flowDescription, parameters }, null, 2));
-        closeModal();
+    const handleCreateFlow = async () => {
+        try {
+            const newFlow = {
+                flowName,
+                flowDescription,
+                parameters
+            };
+            await createFlow(newFlow);
+            await fetchPage(0);
+            closeModal();
+        } catch (e) {
+            alert("Failed to create flow: " + e.message);
+        }
     };
 
     const handleAddParameter = () => {
@@ -118,11 +70,11 @@ export const FlowsPage = () => {
     };
 
     const handleOpen = (flow) => {
-        alert("Navigating to " + flow.name);
+        alert("Navigating to " + flow.flowName);
     };
 
     const handleViewHistory = (flow) => {
-        alert("Viewing execution history for: " + flow.name);
+        alert("Viewing execution history for: " + flow.flowName);
     };
 
     const handleDelete = (flow) => {
@@ -130,8 +82,13 @@ export const FlowsPage = () => {
         setShowDeleteModal(true);
     };
 
-    const confirmDelete = () => {
-        alert("Deleted flow: " + flowToDelete?.id);
+    const confirmDelete = async () => {
+        try {
+            await deleteFlow(flowToDelete.id);
+            await fetchPage(data.page);
+        } catch (e) {
+            alert("Failed to delete flow: " + e.message);
+        }
         setFlowToDelete(null);
         setShowDeleteModal(false);
     };
@@ -160,8 +117,6 @@ export const FlowsPage = () => {
                             <th className="text-left px-3 py-2 font-medium">ID</th>
                             <th className="text-left px-3 py-2 font-medium">Name</th>
                             <th className="text-left px-3 py-2 font-medium">Description</th>
-                            <th className="text-left px-3 py-2 font-medium">Created At</th>
-                            <th className="text-left px-3 py-2 font-medium">Updated At</th>
                             <th className="text-right px-3 py-2 font-medium">Actions</th>
                         </tr>
                         </thead>
@@ -169,10 +124,8 @@ export const FlowsPage = () => {
                         {data.content.map((flow) => (
                             <tr key={flow.id} className="hover:bg-gray-800 border-b border-gray-800">
                                 <td className="px-3 py-2">{flow.id}</td>
-                                <td className="px-3 py-2">{flow.name}</td>
-                                <td className="px-3 py-2">{flow.description}</td>
-                                <td className="px-3 py-2">{flow.createdAt}</td>
-                                <td className="px-3 py-2">{flow.updatedAt}</td>
+                                <td className="px-3 py-2">{flow.flowName}</td>
+                                <td className="px-3 py-2">{flow.flowDescription}</td>
                                 <td className="px-3 py-2 text-right space-x-2">
                                     <button
                                         onClick={() => handleOpen(flow)}
@@ -301,7 +254,7 @@ export const FlowsPage = () => {
                     onConfirm={confirmDelete}
                     confirmText="Delete"
                 >
-                    Are you sure you want to delete <strong>{flowToDelete?.name}</strong>?
+                    Are you sure you want to delete <strong>{flowToDelete?.flowName}</strong>?
                 </Modal>
             )}
         </div>
