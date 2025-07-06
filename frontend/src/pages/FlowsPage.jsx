@@ -102,7 +102,7 @@ export const FlowsPage = () => {
     };
 
     const handleAddParameter = () => {
-        setParameters([...parameters, { key: "", value: "" }]);
+        setParameters([...parameters, { key: ""}]);
     };
 
     const handleRemoveParameter = (index) => {
@@ -244,15 +244,6 @@ export const FlowsPage = () => {
                                         value={param.key}
                                         onChange={(e) =>
                                             handleChangeParameter(index, "key", e.target.value)
-                                        }
-                                        className="flex-1 px-2 py-1 bg-gray-700 text-white rounded"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Value"
-                                        value={param.value}
-                                        onChange={(e) =>
-                                            handleChangeParameter(index, "value", e.target.value)
                                         }
                                         className="flex-1 px-2 py-1 bg-gray-700 text-white rounded"
                                     />

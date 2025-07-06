@@ -267,8 +267,7 @@ public class UserStorageService {
             io.minio.GetObjectArgs.builder().bucket(bucketName).object(fromObject).build())) {
 
       minioClient.putObject(
-          PutObjectArgs.builder().bucket(bucketName).object(toObject).stream(
-                  stream, -1, 10485760) // 10MB buffer if size is unknown
+          PutObjectArgs.builder().bucket(bucketName).object(toObject).stream(stream, -1, 10485760)
               .contentType("application/octet-stream")
               .build());
 
