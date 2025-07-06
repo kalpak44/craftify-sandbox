@@ -6,7 +6,7 @@ const TOKEN = localStorage.getItem("access_token");
 export const FilesPage = () => {
     const [loading, setLoading] = useState(true);
     const [files, setFiles] = useState([]);
-    const [currentFolder, setCurrentFolder] = useState("");
+    const [currentFolder, setCurrentFolder] = useState("/");
     const [folderStack, setFolderStack] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null);
     const [showRenameModal, setShowRenameModal] = useState(false);
