@@ -11,7 +11,7 @@ export const CallbackPage = () => {
             try {
                 const token = await getAccessTokenSilently();
                 localStorage.setItem("access_token", token);
-                navigate("/files", { replace: true });
+                navigate("/", { replace: true });
             } catch (err) {
                 console.error("Error fetching access token:", err);
             }
