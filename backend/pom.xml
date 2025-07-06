@@ -42,6 +42,7 @@
             <spring-boot.version>3.5.3</spring-boot.version>
             <okta-spring-boot-starter.version>3.0.7</okta-spring-boot-starter.version>
             <io-fabric8.kubernetes-client.version>7.3.1</io-fabric8.kubernetes-client.version>
+            <io-minio.minio.version>8.5.17</io-minio.minio.version>
         </properties>
 
 
@@ -95,10 +96,10 @@
                 <artifactId>spring-boot-starter-websocket</artifactId>
             </dependency>
             <dependency>
-                <groupId>org.springframework.ai</groupId>
-                <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${io-minio.minio.version}</version>
             </dependency>
-
         </dependencies>
         <build>
             <plugins>
