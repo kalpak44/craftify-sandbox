@@ -165,4 +165,32 @@ public class UserStorageService {
             throw new RuntimeException("Failed to upload file: " + originalFilename, e);
         }
     }
+
+    /**
+     * Downloads a file from the authenticated user's namespace using the provided full path.
+     *
+     * @param fullPath the full relative or absolute path of the file within the user's namespace.
+     * @return an {@link InputStream} of the file contents to be streamed to the client.
+     * @throws RuntimeException if the file does not exist or cannot be downloaded.
+     */
+    public InputStream downloadUserFile(String fullPath) {
+        var userId = authentificationService.getCurrentUserId();
+        var userRoot = Paths.get(userId);
+        var resolvedPath = Paths.get(fullPath).isAbsolute()
+                ? userRoot.resolve(fullPath.substring(1))
+                : userRoot.resolve(fullPath);
+        var objectName = resolvedPath.toString().replace("\\", "/");
+
+        try {
+            return minioClient.getObject(
+                    io.minio.GetObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("File not found or could not be downloaded: " + fullPath, e);
+        }
+    }
+
 }

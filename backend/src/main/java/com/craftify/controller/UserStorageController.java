@@ -2,11 +2,14 @@ package com.craftify.controller;
 
 import com.craftify.dto.FileItemDto;
 import com.craftify.service.UserStorageService;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -57,4 +60,31 @@ public class UserStorageController {
         userStorageService.uploadUserFile(folder, file);
         return ResponseEntity.ok("File uploaded successfully: " + file.getOriginalFilename());
     }
+
+    /**
+     * Downloads a file for the current user by its full path.
+     *
+     * @param fullPath the relative or absolute path of the file within the user's namespace.
+     * @return a {@link ResponseEntity} containing the file as an attachment if found,
+     *         or a 404 response if the file does not exist.
+     */
+    @GetMapping("/download")
+    public ResponseEntity<?> downloadFile(@RequestParam String fullPath) {
+        try {
+            var fileStream = userStorageService.downloadUserFile(fullPath);
+            var resource = new InputStreamResource(fileStream);
+            var filename = Paths.get(fullPath).getFileName().toString();
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(404)
+                    .body("File not found: " + e.getMessage());
+        }
+    }
+
 }
