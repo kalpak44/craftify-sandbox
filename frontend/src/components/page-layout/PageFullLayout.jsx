@@ -34,7 +34,7 @@ export const FullWidthLayout = ({ children }) => {
     const handleSignUp = async () => {
         await loginWithRedirect({
             appState: {
-                returnTo: "/files",
+                returnTo: "/",
             },
             authorizationParams: {
                 prompt: "login",
@@ -52,6 +52,7 @@ export const FullWidthLayout = ({ children }) => {
                 <div className="flex items-center space-x-6 text-gray-400 text-sm relative">
                     {isAuthenticated ? (
                         <>
+                            <NavLink to="/" className={({ isActive }) => isActive ? "text-white" : "hover:text-white"}>Home</NavLink>
                             <NavLink to="/files" className={({ isActive }) => isActive ? "text-white" : "hover:text-white"}>Files</NavLink>
                             <NavLink to="/flows" className={({ isActive }) => isActive ? "text-white" : "hover:text-white"}>Flows</NavLink>
                             <NavLink to="/data" className={({ isActive }) => isActive ? "text-white" : "hover:text-white"}>Data</NavLink>
