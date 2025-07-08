@@ -70,6 +70,7 @@ public class DataSchemaController {
         responseCode = "200",
         description = "Schema updated",
         content = @Content(schema = @Schema(implementation = DataSchemaDto.class))),
+    @ApiResponse(responseCode = "409", description = "Cannot update schema due to restrictions"),
     @ApiResponse(responseCode = "404", description = "Schema not found")
   })
   @PutMapping("/{id}")

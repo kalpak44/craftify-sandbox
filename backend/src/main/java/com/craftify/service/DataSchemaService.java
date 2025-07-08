@@ -62,6 +62,7 @@ public class DataSchemaService {
    * @return an Optional containing the updated schema if the original was found
    */
   public Optional<DataSchema> update(String id, DataSchema updatedSchema) {
+
     return repository
         .findById(id)
         .map(
@@ -84,6 +85,17 @@ public class DataSchemaService {
    */
   public boolean canDelete(String id) {
     // TODO: Replace with actual logic for checking record references
+    return true;
+  }
+
+  /**
+   * Checks whether a schema can be updated. For now, always returns true (placeholder).
+   *
+   * @param id the ID of the schema
+   * @return true if the schema is allowed to be updated
+   */
+  public boolean canUpdate(String id) {
+    // TODO: Add logic for locking immutable schemas
     return true;
   }
 
