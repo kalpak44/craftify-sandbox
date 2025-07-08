@@ -8,7 +8,7 @@ const JSONPreview = ({ data }) => (
                 defaultLanguage="json"
                 value={JSON.stringify(data, null, 2)}
                 theme="vs-dark"
-                options={{ readOnly: true }}
+                options={{ readOnly: true, minimap: { enabled: false } }}
                 className="w-full h-full"
             />
         </div>

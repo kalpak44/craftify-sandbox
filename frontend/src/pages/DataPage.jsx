@@ -128,7 +128,7 @@ export const DataPage = () => {
                                                 onClick={() => handleView(schema)}
                                                 className="text-blue-400 hover:underline"
                                             >
-                                                View
+                                                Data Management
                                             </button>
                                             {schema.recordCount === 0 && (
                                                 <button
@@ -254,7 +254,7 @@ export const DataPage = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-1 gap-6">
+                    <div className="flex flex-1 gap-6 min-h-96">
                         <div className="flex-1 overflow-auto bg-gray-900 p-4 rounded border border-gray-700">
                             <FieldEditor schema={editorSchema} onSchemaChange={setEditorSchema} />
                         </div>
