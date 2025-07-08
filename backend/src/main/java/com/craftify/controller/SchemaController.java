@@ -27,7 +27,10 @@ public class SchemaController {
   @ApiResponse(
       responseCode = "200",
       description = "Schema created",
-      content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = SchemaDto.class)))
+      content =
+          @Content(
+              schema =
+                  @io.swagger.v3.oas.annotations.media.Schema(implementation = SchemaDto.class)))
   @PostMapping
   public ResponseEntity<SchemaDto> create(@RequestBody SchemaDto dto) {
     var created = service.create(toEntity(dto));
@@ -38,7 +41,10 @@ public class SchemaController {
   @ApiResponse(
       responseCode = "200",
       description = "List of schemas",
-      content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = SchemaDto.class)))
+      content =
+          @Content(
+              schema =
+                  @io.swagger.v3.oas.annotations.media.Schema(implementation = SchemaDto.class)))
   @GetMapping
   public ResponseEntity<Page<SchemaDto>> list(
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
@@ -51,7 +57,10 @@ public class SchemaController {
     @ApiResponse(
         responseCode = "200",
         description = "Schema found",
-        content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = SchemaDto.class))),
+        content =
+            @Content(
+                schema =
+                    @io.swagger.v3.oas.annotations.media.Schema(implementation = SchemaDto.class))),
     @ApiResponse(responseCode = "404", description = "Schema not found")
   })
   @GetMapping("/{id}")
@@ -68,13 +77,15 @@ public class SchemaController {
     @ApiResponse(
         responseCode = "200",
         description = "Schema updated",
-        content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = SchemaDto.class))),
+        content =
+            @Content(
+                schema =
+                    @io.swagger.v3.oas.annotations.media.Schema(implementation = SchemaDto.class))),
     @ApiResponse(responseCode = "409", description = "Cannot update schema due to restrictions"),
     @ApiResponse(responseCode = "404", description = "Schema not found")
   })
   @PutMapping("/{id}")
-  public ResponseEntity<SchemaDto> update(
-      @PathVariable String id, @RequestBody SchemaDto dto) {
+  public ResponseEntity<SchemaDto> update(@PathVariable String id, @RequestBody SchemaDto dto) {
     return service
         .update(id, toEntity(dto))
         .map(this::toDtoWithPlaceholderCount)
