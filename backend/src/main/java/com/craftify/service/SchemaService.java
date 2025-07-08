@@ -1,7 +1,7 @@
 package com.craftify.service;
 
-import com.craftify.model.DataSchema;
-import com.craftify.repository.DataSchemaRepository;
+import com.craftify.model.Schema;
+import com.craftify.repository.SchemaRepository;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 
 /** Service layer for managing DataSchema entities. */
 @Service
-public class DataSchemaService {
+public class SchemaService {
 
-  private final DataSchemaRepository repository;
+  private final SchemaRepository repository;
   private final AuthentificationService auth;
 
   /**
@@ -19,7 +19,7 @@ public class DataSchemaService {
    *
    * @param repository the repository used for DataSchema persistence
    */
-  public DataSchemaService(DataSchemaRepository repository, AuthentificationService auth) {
+  public SchemaService(SchemaRepository repository, AuthentificationService auth) {
     this.repository = repository;
     this.auth = auth;
   }
@@ -30,9 +30,9 @@ public class DataSchemaService {
    * @param schema the schema to create
    * @return the saved DataSchema
    */
-  public DataSchema create(DataSchema schema) {
+  public Schema create(Schema schema) {
     return repository.save(
-        new DataSchema(
+        new Schema(
             schema.id(),
             schema.name(),
             schema.description(),
@@ -47,7 +47,7 @@ public class DataSchemaService {
    * @param size the number of items per page
    * @return a page of DataSchema entities
    */
-  public Page<DataSchema> list(int page, int size) {
+  public Page<Schema> list(int page, int size) {
     return repository.findAllByUserId(auth.getCurrentUserId(), PageRequest.of(page, size));
   }
 
@@ -57,7 +57,7 @@ public class DataSchemaService {
    * @param id the ID of the schema
    * @return an Optional containing the DataSchema if found
    */
-  public Optional<DataSchema> getById(String id) {
+  public Optional<Schema> getById(String id) {
     return repository.findByIdAndUserId(id, auth.getCurrentUserId());
   }
 
@@ -68,13 +68,13 @@ public class DataSchemaService {
    * @param updatedSchema the new schema data
    * @return an Optional containing the updated schema if the original was found
    */
-  public Optional<DataSchema> update(String id, DataSchema updatedSchema) {
+  public Optional<Schema> update(String id, Schema updatedSchema) {
     return repository
         .findByIdAndUserId(id, auth.getCurrentUserId())
         .map(
             existing ->
                 repository.save(
-                    new DataSchema(
+                    new Schema(
                         existing.id(),
                         updatedSchema.name(),
                         updatedSchema.description(),
