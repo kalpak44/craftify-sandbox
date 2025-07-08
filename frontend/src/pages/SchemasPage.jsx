@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { listSchemas, deleteSchema, createSchema } from "../api/dataSchema";
+import { listSchemas, deleteSchema, createSchema } from "../api/schemas.js";
 import FieldEditor from "../components/schema-editor/FieldEditor";
 import JSONPreview from "../components/schema-editor/JSONPreview";
-export const DataSchemasPage = () => {
+export const SchemasPage = () => {
     const PAGE_SIZE = 5;
 
     const [data, setData] = useState({ content: [], page: 0, totalPages: 0 });

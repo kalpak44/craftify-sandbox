@@ -6,7 +6,7 @@ import {FullWidthLayout} from './components/page-layout/PageFullLayout';
 import {HomePage} from './pages/HomePage';
 import {FilesPage} from './pages/FilesPage';
 import {FlowsPage} from './pages/FlowsPage';
-import {DataSchemasPage} from './pages/DataSchemasPage.jsx';
+import {SchemasPage} from './pages/SchemasPage.jsx';
 import {TermsPage} from './pages/TermsPage';
 import {PrivacyPage} from './pages/PrivacyPage';
 import {CallbackPage} from './pages/CallbackPage';
@@ -48,7 +48,7 @@ export default function App() {
                 path="/schemas"
                 element={
                     <AuthenticationGuard>
-                        <FullWidthLayout><DataSchemasPage/></FullWidthLayout>
+                        <FullWidthLayout><SchemasPage/></FullWidthLayout>
                     </AuthenticationGuard>
                 }
             />
