@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getRecord, createRecord, updateRecord } from "../api/records";
+import { getSchema } from "../api/schemas";
 import { Modal } from "../components/common/Modal";
 
 export const RecordEditPage = () => {
@@ -15,28 +16,31 @@ export const RecordEditPage = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const [schema, setSchema] = useState(null);
+    const [formData, setFormData] = useState({});
+
     const isEdit = !!recordId;
 
     useEffect(() => {
         const fetch = async () => {
-            if (!isEdit) {
-                setLoading(false);
-                return;
-            }
-
             try {
-                const record = await getRecord(schemaId, recordId);
-                setName(record.name || "");
-                setDescription(record.description || "");
-                setCreatedAt(record.createdAt);
-                setUpdatedAt(record.updatedAt);
+                const schemaResponse = await getSchema(schemaId);
+                setSchema(schemaResponse.schema);
+
+                if (isEdit) {
+                    const record = await getRecord(schemaId, recordId);
+                    setName(record.name || "");
+                    setDescription(record.description || "");
+                    setCreatedAt(record.createdAt);
+                    setUpdatedAt(record.updatedAt);
+                    setFormData(record.data || {});
+                }
             } catch (err) {
-                setError("Failed to load record: " + err.message);
+                setError("Failed to load data: " + err.message);
             } finally {
                 setLoading(false);
             }
         };
-
         fetch();
     }, [schemaId, recordId]);
 
@@ -45,7 +49,7 @@ export const RecordEditPage = () => {
             const payload = {
                 name,
                 description,
-                data: {}, // Ignored for now
+                data: formData
             };
 
             if (isEdit) {
@@ -62,7 +66,6 @@ export const RecordEditPage = () => {
             setError("Failed to save record: " + err.message);
         }
     };
-
 
     const handleCancel = () => {
         navigate(`/schemas/${schemaId}/records`);
@@ -87,7 +90,6 @@ export const RecordEditPage = () => {
                     >
                         Save
                     </button>
-
                 </div>
             </div>
 
@@ -116,18 +118,26 @@ export const RecordEditPage = () => {
                                 rows={4}
                             />
                         </div>
+
+                        {schema && (
+                            <div>
+                                <h2 className="text-md font-medium text-gray-300 mb-2">Schema Fields</h2>
+                                <DynamicForm schema={schema} data={formData} onChange={setFormData} />
+                            </div>
+                        )}
                     </div>
 
                     {/* Info Section */}
                     <div className="bg-gray-900 p-4 rounded border border-gray-700">
                         <h2 className="text-lg font-semibold mb-4 text-white">Record Info</h2>
                         <pre className="text-sm text-gray-300 whitespace-pre-wrap">
-{`{
-  "name": "${name}",
-  "description": "${description}",${createdAt ? `
-  "createdAt": "${createdAt}",` : ""}${updatedAt ? `
-  "updatedAt": "${updatedAt}"` : ""}
-}`}
+{JSON.stringify({
+    name,
+    description,
+    ...(createdAt && { createdAt }),
+    ...(updatedAt && { updatedAt }),
+    data: formData
+}, null, 2)}
                         </pre>
                         {saved && (
                             <p className="text-green-400 mt-4 text-sm">✔ Saved successfully</p>
@@ -146,6 +156,85 @@ export const RecordEditPage = () => {
                     <p className="text-red-400 whitespace-pre-line">{error}</p>
                 </Modal>
             )}
+        </div>
+    );
+};
+
+// Inline DynamicForm component
+const DynamicForm = ({ schema, data, onChange }) => {
+    const renderField = (key, fieldSchema) => {
+        const value = data[key] ?? "";
+
+        const update = (newVal) => {
+            onChange({ ...data, [key]: newVal });
+        };
+
+        switch (fieldSchema.type) {
+            case "string":
+                return (
+                    <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => update(e.target.value)}
+                        className="w-full p-2 bg-gray-800 text-white border border-gray-600 rounded"
+                    />
+                );
+            case "number":
+                return (
+                    <input
+                        type="number"
+                        value={value}
+                        onChange={(e) => update(Number(e.target.value))}
+                        className="w-full p-2 bg-gray-800 text-white border border-gray-600 rounded"
+                    />
+                );
+            case "boolean":
+                return (
+                    <label className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            checked={value}
+                            onChange={(e) => update(e.target.checked)}
+                        />
+                        <span>True / False</span>
+                    </label>
+                );
+            case "array":
+                return (
+                    <textarea
+                        value={JSON.stringify(value || [], null, 2)}
+                        onChange={(e) => {
+                            try {
+                                update(JSON.parse(e.target.value));
+                            } catch (_) {}
+                        }}
+                        className="w-full p-2 bg-gray-800 text-white border border-gray-600 rounded"
+                        rows={3}
+                    />
+                );
+            case "object":
+                return (
+                    <div className="ml-4 border-l border-gray-600 pl-4">
+                        <DynamicForm
+                            schema={fieldSchema}
+                            data={value || {}}
+                            onChange={(val) => update(val)}
+                        />
+                    </div>
+                );
+            default:
+                return <div>Unsupported field type: {fieldSchema.type}</div>;
+        }
+    };
+
+    return (
+        <div className="space-y-4">
+            {Object.entries(schema.properties || {}).map(([key, fieldSchema]) => (
+                <div key={key}>
+                    <label className="block text-sm text-gray-300 mb-1">{key}</label>
+                    {renderField(key, fieldSchema)}
+                </div>
+            ))}
         </div>
     );
 };
