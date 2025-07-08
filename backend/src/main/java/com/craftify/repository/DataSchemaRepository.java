@@ -1,8 +1,8 @@
 package com.craftify.repository;
 
-import com.craftify.model.Flow;
+import com.craftify.model.DataSchema;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface FlowRepository extends MongoRepository<Flow, String> {}
+public interface DataSchemaRepository extends MongoRepository<DataSchema, String> {}
