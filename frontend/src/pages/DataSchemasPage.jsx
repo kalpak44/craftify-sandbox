@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { listSchemas, deleteSchema, createSchema } from "../api/dataSchema";
 import FieldEditor from "../components/schema-editor/FieldEditor";
 import JSONPreview from "../components/schema-editor/JSONPreview";
-
-export const DataPage = () => {
+export const DataSchemasPage = () => {
     const PAGE_SIZE = 5;
 
     const [data, setData] = useState({ content: [], page: 0, totalPages: 0 });
@@ -19,6 +19,8 @@ export const DataPage = () => {
 
     const [editorVisible, setEditorVisible] = useState(false);
     const [editorSchema, setEditorSchema] = useState({ type: "object", properties: {} });
+
+    const navigate = useNavigate();
 
     const fetchPage = async (pageIndex) => {
         setLoading(true);
@@ -37,7 +39,7 @@ export const DataPage = () => {
     }, []);
 
     const handleView = (schema) => {
-        alert(`Viewing schema: ${schema.name}`);
+        navigate(`/schemas/${schema.id}/records`);
     };
 
     const handleDeleteClick = (schema) => {

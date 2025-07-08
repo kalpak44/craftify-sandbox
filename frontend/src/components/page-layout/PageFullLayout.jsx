@@ -56,7 +56,7 @@ export const FullWidthLayout = ({ children }) => {
                             <NavLink to="/" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Home</NavLink>
                             <NavLink to="/files" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Files</NavLink>
                             <NavLink to="/flows" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Flows</NavLink>
-                            <NavLink to="/data" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Data</NavLink>
+                            <NavLink to="/schemas" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Data</NavLink>
                             <div className="relative" ref={profileMenuRef}>
                                 <img
                                     src={user.picture}
