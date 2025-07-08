@@ -40,10 +40,10 @@ export const getRecord = async (schemaId, recordId) => {
 };
 
 /**
- * Create a new record under a schema
- * @param {string} schemaId
- * @param {Object} record - RecordDto { data: Object }
- * @returns {Promise<Object>}
+ * Create a new record under the specified schema.
+ * @param {string} schemaId - ID of the schema.
+ * @param {Object} record - RecordDto: { name, description, data }
+ * @returns {Promise<Object>} The created record.
  */
 export const createRecord = async (schemaId, record) => {
     const res = await fetch(`${BASE_URL}/${schemaId}/records`, {
@@ -57,11 +57,11 @@ export const createRecord = async (schemaId, record) => {
 };
 
 /**
- * Update an existing record
- * @param {string} schemaId
- * @param {string} recordId
- * @param {Object} record - RecordDto { data: Object }
- * @returns {Promise<Object>}
+ * Update an existing record.
+ * @param {string} schemaId - ID of the schema.
+ * @param {string} recordId - ID of the record.
+ * @param {Object} record - RecordDto to update.
+ * @returns {Promise<Object>} The updated record.
  */
 export const updateRecord = async (schemaId, recordId, record) => {
     const res = await fetch(`${BASE_URL}/${schemaId}/records/${recordId}`, {
@@ -77,6 +77,7 @@ export const updateRecord = async (schemaId, recordId, record) => {
     if (!res.ok) throw new Error("Failed to update record");
     return res.json();
 };
+
 
 /**
  * Delete a record by ID

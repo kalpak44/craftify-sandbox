@@ -12,6 +12,7 @@ import {PrivacyPage} from './pages/PrivacyPage';
 import {CallbackPage} from './pages/CallbackPage';
 import {NotFoundPage} from './pages/NotFoundPage';
 import {RecordsPage} from "./pages/RecordsPage.jsx";
+import {RecordEditPage} from "./pages/RecordEditPage.jsx";
 
 export default function App() {
     const {isLoading} = useAuth0();
@@ -57,6 +58,22 @@ export default function App() {
                 element={
                     <AuthenticationGuard>
                         <FullWidthLayout><RecordsPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
+            />
+            <Route
+                path="/schemas/:id/records/new"
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><RecordEditPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
+            />
+            <Route
+                path="/schemas/:id/records/:recordId/edit"
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><RecordEditPage/></FullWidthLayout>
                     </AuthenticationGuard>
                 }
             />

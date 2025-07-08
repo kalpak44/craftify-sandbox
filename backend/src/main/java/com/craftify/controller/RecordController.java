@@ -1,6 +1,8 @@
 package com.craftify.controller;
 
 import com.craftify.dto.RecordDto;
+import com.craftify.dto.RecordSummaryDto;
+import com.craftify.model.DataRecord;
 import com.craftify.service.RecordsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -8,7 +10,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,39 +28,42 @@ import org.springframework.web.bind.annotation.RestController;
     name = "Schema Data Management",
     description = "CRUD operations for managing schema-bound records")
 public class RecordController {
+
   private final RecordsService service;
 
   public RecordController(RecordsService service) {
     this.service = service;
   }
 
+  /** Create a new record. */
   @Operation(summary = "Create a new record under the schema")
   @ApiResponse(
       responseCode = "200",
-      description = "Record created successfully",
+      description = "Record created",
       content = @Content(schema = @Schema(implementation = RecordDto.class)))
   @PostMapping
   public ResponseEntity<RecordDto> create(
       @PathVariable String schemaId, @RequestBody RecordDto dto) {
     var created = service.create(toEntity(dto, schemaId));
-    return ResponseEntity.ok(toDto(created));
+    return ResponseEntity.ok(toFullDto(created));
   }
 
-  @Operation(summary = "Get a paginated list of records")
+  /** List record summaries. */
+  @Operation(summary = "List record summaries")
   @ApiResponse(
       responseCode = "200",
-      description = "Paginated list of records",
-      content = @Content(schema = @Schema(implementation = RecordDto.class)))
+      description = "List of record summaries",
+      content = @Content(schema = @Schema(implementation = RecordSummaryDto.class)))
   @GetMapping
-  public ResponseEntity<Page<RecordDto>> list(
+  public ResponseEntity<Page<RecordSummaryDto>> list(
       @PathVariable String schemaId,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
-    var records = service.list(schemaId, page, size).map(this::toDto);
-    return ResponseEntity.ok(records);
+    return ResponseEntity.ok(service.list(schemaId, page, size));
   }
 
-  @Operation(summary = "Get a single record by ID")
+  /** Get a single record by ID. */
+  @Operation(summary = "Get a record by ID")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -70,53 +74,58 @@ public class RecordController {
   @GetMapping("/{recordId}")
   public ResponseEntity<RecordDto> detail(
       @PathVariable String schemaId, @PathVariable String recordId) {
-    Optional<RecordDto> dto = service.getById(schemaId, recordId).map(this::toDto);
-    return dto.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    return service
+        .getById(schemaId, recordId)
+        .map(this::toFullDto)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
-  @Operation(summary = "Update an existing record")
+  /** Update an existing record. */
+  @Operation(summary = "Update a record")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
         description = "Record updated",
         content = @Content(schema = @Schema(implementation = RecordDto.class))),
     @ApiResponse(responseCode = "404", description = "Record not found"),
-    @ApiResponse(responseCode = "409", description = "Validation failed or update not permitted")
+    @ApiResponse(responseCode = "409", description = "Update not allowed or validation failed")
   })
   @PutMapping("/{recordId}")
   public ResponseEntity<RecordDto> update(
       @PathVariable String schemaId, @PathVariable String recordId, @RequestBody RecordDto dto) {
+
     return service
         .update(schemaId, recordId, toEntity(dto, schemaId))
-        .map(updated -> ResponseEntity.ok(toDto(updated)))
+        .map(this::toFullDto)
+        .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
-  @Operation(summary = "Delete a record by ID")
+  /** Delete a record. */
+  @Operation(summary = "Delete a record")
   @ApiResponses({
     @ApiResponse(responseCode = "204", description = "Record deleted"),
     @ApiResponse(responseCode = "404", description = "Record not found")
   })
   @DeleteMapping("/{recordId}")
   public ResponseEntity<Void> delete(@PathVariable String schemaId, @PathVariable String recordId) {
-    if (!service.delete(schemaId, recordId)) {
-      return ResponseEntity.notFound().build();
-    }
-    return ResponseEntity.noContent().build();
+    return service.delete(schemaId, recordId)
+        ? ResponseEntity.noContent().build()
+        : ResponseEntity.notFound().build();
   }
 
-  private RecordDto toDto(com.craftify.model.Record record) {
-    return new RecordDto(
-        record.id(),
-        record.name(),
-        record.name(),
-        record.createdAt(),
-        record.updatedAt(),
-        record.data());
+  // Conversion helpers (inline instead of mappers)
+  private RecordDto toFullDto(DataRecord r) {
+    return new RecordDto(r.id(), r.name(), r.description(), r.createdAt(), r.updatedAt(), r.data());
   }
 
-  private com.craftify.model.Record toEntity(RecordDto dto, String schemaId) {
-    return new com.craftify.model.Record(
-        dto.id(), schemaId, null, schemaId, dto.description(), null, null, dto.data());
+  private RecordSummaryDto toSummaryDto(DataRecord r) {
+    return new RecordSummaryDto(r.id(), r.name(), r.description(), r.createdAt(), r.updatedAt());
+  }
+
+  private DataRecord toEntity(RecordDto dto, String schemaId) {
+    return new DataRecord(
+        dto.id(), schemaId, null, dto.name(), dto.description(), null, null, dto.data());
   }
 }

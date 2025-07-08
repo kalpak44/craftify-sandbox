@@ -13,7 +13,7 @@ export const RecordsPage = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [error, setError] = useState(null);
 
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 5;
 
     const fetchPage = async (pageIndex) => {
         setLoading(true);
@@ -22,8 +22,9 @@ export const RecordsPage = () => {
             setData(result);
         } catch (err) {
             setError("Failed to load records: " + err.message);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     useEffect(() => {
@@ -31,11 +32,11 @@ export const RecordsPage = () => {
     }, [schemaId]);
 
     const handleAddRecord = () => {
-        setError("Record creation modal coming soon...");
+        navigate(`/schemas/${schemaId}/records/new`);
     };
 
     const handleEditRecord = (record) => {
-        setError(`Editing record ${record.id} – feature coming soon.`);
+        navigate(`/schemas/${schemaId}/records/${record.id}/edit`);
     };
 
     const handleDeleteRecord = (record) => {
@@ -49,9 +50,10 @@ export const RecordsPage = () => {
             await fetchPage(data.page);
         } catch (e) {
             setError("Failed to delete record: " + e.message);
+        } finally {
+            setRecordToDelete(null);
+            setShowDeleteModal(false);
         }
-        setRecordToDelete(null);
-        setShowDeleteModal(false);
     };
 
     const goBack = () => {
@@ -102,10 +104,10 @@ export const RecordsPage = () => {
                         </thead>
                         <tbody>
                         {data.content.map((record) => {
-                            const name = record.data?.name || record.data?.firstName || "-";
-                            const description = record.data?.description || record.data?.lastName || "-";
-                            const created = record.data?.createdAt || "-";
-                            const updated = record.data?.updatedAt || "-";
+                            const name = record.name || "-";
+                            const description = record.description || "-";
+                            const created = record.createdAt || "-";
+                            const updated = record.updatedAt || "-";
 
                             return (
                                 <tr key={record.id} className="hover:bg-gray-800 border-b border-gray-800">

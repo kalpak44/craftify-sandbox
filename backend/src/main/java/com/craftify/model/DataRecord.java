@@ -7,7 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "data_records")
-public record Record(
+public record DataRecord(
     String id,
     String schemaId,
     String userId,
