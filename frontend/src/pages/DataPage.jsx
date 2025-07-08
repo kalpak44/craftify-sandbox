@@ -1,41 +1,29 @@
-import {useEffect, useState} from "react";
-
-// Simulated Spring Boot–style paginated fetch
-const mockFetchSchemas = (page, size) => {
-    const allSchemas = [];
-
-
-    const start = page * size;
-    const end = start + size;
-    const content = allSchemas.slice(start, end);
-
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve({
-                content,
-                page,
-                size,
-                totalPages: Math.ceil(allSchemas.length / size),
-                totalElements: allSchemas.length,
-                all: allSchemas
-            });
-        }, 500);
-    });
-};
+import { useEffect, useState } from "react";
+import { listSchemas, deleteSchema } from "../api/dataSchema";
 
 export const DataPage = () => {
     const PAGE_SIZE = 5;
 
-    const [data, setData] = useState({content: [], page: 0, totalPages: 0, all: []});
+    const [data, setData] = useState({ content: [], page: 0, totalPages: 0 });
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const [showModal, setShowModal] = useState(false);
     const [newName, setNewName] = useState("");
     const [newDescription, setNewDescription] = useState("");
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [schemaToDelete, setSchemaToDelete] = useState(null);
+
     const fetchPage = async (pageIndex) => {
         setLoading(true);
-        const result = await mockFetchSchemas(pageIndex, PAGE_SIZE);
-        setData(result);
+        setError(null);
+        try {
+            const result = await listSchemas(pageIndex, PAGE_SIZE);
+            setData(result);
+        } catch (err) {
+            setError("Failed to load schemas: " + err.message);
+        }
         setLoading(false);
     };
 
@@ -47,71 +35,55 @@ export const DataPage = () => {
         alert(`Viewing schema: ${schema.name}`);
     };
 
-    const handleRemove = (id) => {
-        const updated = data.all.filter((s) => s.id !== id);
-        updatePageData(updated);
+    const handleDeleteClick = (schema) => {
+        setSchemaToDelete(schema);
+        setShowDeleteModal(true);
     };
 
+    const confirmDelete = async () => {
+        if (!schemaToDelete) return;
+        try {
+            await deleteSchema(schemaToDelete.id);
+            await fetchPage(data.page);
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setSchemaToDelete(null);
+            setShowDeleteModal(false);
+        }
+    };
+
+    // Placeholder create logic (real API coming later)
     const handleAddSchema = () => {
         if (!newName.trim()) return;
 
-        const newSchema = {
-            id: Date.now().toString(),
-            name: newName,
-            description: newDescription,
-            records: 0
-        };
+        alert("Schema creation not yet implemented (UI-only)");
 
-        const updated = [newSchema, ...data.all];
-        updatePageData(updated);
         setShowModal(false);
         setNewName("");
         setNewDescription("");
     };
 
-    const updatePageData = (allSchemas) => {
-        const totalPages = Math.ceil(allSchemas.length / PAGE_SIZE);
-        const page = 0;
-        const start = page * PAGE_SIZE;
-        const end = start + PAGE_SIZE;
-        const content = allSchemas.slice(start, end);
-
-        setData({
-            content,
-            page,
-            totalPages,
-            totalElements: allSchemas.length,
-            all: allSchemas
-        });
-    };
-
     return (
         <div className="p-8 text-white w-full">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-4xl font-semibold">Data Schemas</h1>
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium"
+                >
+                    Add Schema
+                </button>
+            </div>
+
             {loading ? (
                 <div className="text-gray-400">Loading schemas...</div>
+            ) : error ? (
+                <div className="text-red-400">{error}</div>
             ) : data.content.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-96 text-center text-gray-400">
-                    <h1 className="text-3xl font-bold mb-2 text-white">Data Schemas</h1>
-                    <p className="text-gray-400 mb-4 text-lg">No data schemas found.</p>
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium text-white"
-                    >
-                        Add Schema
-                    </button>
-                </div>
+                <div className="text-gray-400">No schemas available.</div>
             ) : (
                 <>
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-4xl font-semibold">Data Schemas</h1>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium"
-                        >
-                            Add Schema
-                        </button>
-                    </div>
-
                     <table className="w-full text-sm border-collapse mb-6">
                         <thead>
                         <tr className="text-gray-400 border-b border-gray-700">
@@ -126,7 +98,7 @@ export const DataPage = () => {
                             <tr key={schema.id} className="hover:bg-gray-800 border-b border-gray-800">
                                 <td className="px-3 py-2">{schema.name}</td>
                                 <td className="px-3 py-2">{schema.description}</td>
-                                <td className="px-3 py-2">{schema.records}</td>
+                                <td className="px-3 py-2">{schema.recordCount}</td>
                                 <td className="px-3 py-2 text-right space-x-3">
                                     <button
                                         onClick={() => handleView(schema)}
@@ -134,9 +106,9 @@ export const DataPage = () => {
                                     >
                                         View
                                     </button>
-                                    {schema.records === 0 && (
+                                    {schema.recordCount === 0 && (
                                         <button
-                                            onClick={() => handleRemove(schema.id)}
+                                            onClick={() => handleDeleteClick(schema)}
                                             className="text-red-400 hover:underline"
                                         >
                                             Remove
@@ -151,7 +123,7 @@ export const DataPage = () => {
                     {/* Pagination */}
                     <div className="flex justify-end mt-4">
                         <div className="inline-flex rounded overflow-hidden border border-gray-700 bg-gray-800 text-sm">
-                            {Array.from({length: data.totalPages}, (_, i) => (
+                            {Array.from({ length: data.totalPages }, (_, i) => (
                                 <button
                                     key={i}
                                     onClick={() => fetchPage(i)}
@@ -169,7 +141,7 @@ export const DataPage = () => {
                 </>
             )}
 
-            {/* Modal */}
+            {/* Add Schema Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-lg border border-gray-600">
@@ -200,6 +172,35 @@ export const DataPage = () => {
                                 className="px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
                             >
                                 Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && schemaToDelete && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-md border border-gray-600">
+                        <h2 className="text-lg font-semibold mb-4">Delete Schema</h2>
+                        <p className="mb-4 text-sm">
+                            Are you sure you want to delete <strong>{schemaToDelete.name}</strong>?
+                        </p>
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setSchemaToDelete(null);
+                                }}
+                                className="px-4 py-1 bg-gray-600 hover:bg-gray-500 rounded"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                            >
+                                Delete
                             </button>
                         </div>
                     </div>
