@@ -54,18 +54,21 @@ Follow the below steps to connect to MinIO server with mc client:
 
 1. Download the MinIO mc client - https://min.io/docs/minio/linux/reference/minio-mc.html#quickstart
 
-2. export
-   MC_HOST_minio-local=http://$(kubectl get secret --namespace minio minio -o jsonpath="{.data.rootUser}" | base64 --decode):$(
+2.
+```shell
+   export MC_HOST_minio-local=http://$(kubectl get secret --namespace minio minio -o jsonpath="{.data.rootUser}" | base64 --decode):$(
    kubectl get secret --namespace minio minio -o jsonpath="{.data.rootPassword}" | base64 --decode)@localhost:9000
+```
+
 
 3. mc ls minio-local
-
+---
 Delete Existing Resources:
 
 ```shell
 helm uninstall minio -n minio
 ```
-
+---
 ## Install Minio CLi
 
 1. Install MinIO Client:
