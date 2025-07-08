@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
    * @param ex the exception containing the restriction reason
    * @return a {@link ResponseEntity} with a 409 status and error details in {@link ApiResponseDTO}
    */
-  @ExceptionHandler(Exception.class)
+  @ExceptionHandler(OperationRestrictionException.class)
   public ResponseEntity<ApiResponseDTO> handleRestrictionException(
       OperationRestrictionException ex) {
     return ResponseEntity.status(409).body(new ApiResponseDTO(Instant.now(), ex.getMessage()));
