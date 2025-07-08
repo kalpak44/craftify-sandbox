@@ -1,6 +1,7 @@
 package com.craftify.service;
 
 import com.craftify.model.Schema;
+import com.craftify.repository.RecordsRepository;
 import com.craftify.repository.SchemaRepository;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -13,15 +14,20 @@ public class SchemaService {
 
   private final SchemaRepository repository;
   private final AuthentificationService auth;
+  private final RecordsRepository recordsRepository;
 
   /**
    * Constructs a new DataSchemaService with the provided repository.
    *
    * @param repository the repository used for DataSchema persistence
    */
-  public SchemaService(SchemaRepository repository, AuthentificationService auth) {
+  public SchemaService(
+      SchemaRepository repository,
+      AuthentificationService auth,
+      RecordsRepository recordsRepository) {
     this.repository = repository;
     this.auth = auth;
+    this.recordsRepository = recordsRepository;
   }
 
   /**
@@ -91,6 +97,10 @@ public class SchemaService {
     repository
         .findByIdAndUserId(id, auth.getCurrentUserId())
         .ifPresent(schema -> repository.deleteById(schema.id()));
+  }
+
+  public long countRecords(String schemaId) {
+    return recordsRepository.countBySchemaId(schemaId);
   }
 
   /**

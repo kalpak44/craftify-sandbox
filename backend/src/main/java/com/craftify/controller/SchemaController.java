@@ -110,7 +110,12 @@ public class SchemaController {
   }
 
   private SchemaDto toDtoWithPlaceholderCount(Schema schema) {
-    return new SchemaDto(schema.id(), schema.name(), schema.description(), schema.schema(), 0);
+    return new SchemaDto(
+        schema.id(),
+        schema.name(),
+        schema.description(),
+        schema.schema(),
+        service.countRecords(schema.id()));
   }
 
   private Schema toEntity(SchemaDto dto) {
@@ -118,6 +123,11 @@ public class SchemaController {
   }
 
   private SchemaDto toDto(Schema schema) {
-    return new SchemaDto(schema.id(), schema.name(), schema.description(), schema.schema(), 0);
+    return new SchemaDto(
+        schema.id(),
+        schema.name(),
+        schema.description(),
+        schema.schema(),
+        service.countRecords(schema.id()));
   }
 }

@@ -126,12 +126,6 @@ export const SchemasPage = () => {
                                         <td className="px-3 py-2">{schema.description}</td>
                                         <td className="px-3 py-2">{schema.recordCount}</td>
                                         <td className="px-3 py-2 text-right space-x-3">
-                                            <button
-                                                onClick={() => handleView(schema)}
-                                                className="text-blue-400 hover:underline"
-                                            >
-                                                Data Management
-                                            </button>
                                             {schema.recordCount === 0 && (
                                                 <button
                                                     onClick={() => handleDeleteClick(schema)}
@@ -140,6 +134,12 @@ export const SchemasPage = () => {
                                                     Remove
                                                 </button>
                                             )}
+                                            <button
+                                                onClick={() => handleView(schema)}
+                                                className="text-blue-400 hover:underline"
+                                            >
+                                                Data Management
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

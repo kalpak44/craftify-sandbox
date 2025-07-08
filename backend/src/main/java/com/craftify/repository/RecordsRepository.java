@@ -14,4 +14,6 @@ public interface RecordsRepository extends MongoRepository<DataRecord, String> {
   Optional<DataRecord> findByIdAndSchemaIdAndUserId(String id, String schemaId, String userId);
 
   void deleteByIdAndSchemaIdAndUserId(String id, String schemaId, String userId);
+
+  long countBySchemaId(String schemaId);
 }

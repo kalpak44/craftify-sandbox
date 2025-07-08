@@ -9,4 +9,4 @@ public record SchemaDto(
     @Schema(description = "Description of the schema", example = "Schema for product entries")
         String description,
     @Schema(description = "JSON Schema definition") Object schema,
-    @Schema(description = "Count of records using this schema") int recordCount) {}
+    @Schema(description = "Count of records using this schema") long recordCount) {}
