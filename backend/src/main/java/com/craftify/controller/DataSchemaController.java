@@ -104,7 +104,7 @@ public class DataSchemaController {
   }
 
   private DataSchema toEntity(DataSchemaDto dto) {
-    return new DataSchema(dto.id(), dto.name(), dto.description(), dto.schema());
+    return new DataSchema(dto.id(), dto.name(), dto.description(), dto.schema(), null);
   }
 
   private DataSchemaDto toDto(DataSchema schema) {

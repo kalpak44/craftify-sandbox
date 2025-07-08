@@ -6,6 +6,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "flows")
 public record Flow(
-    @Id String id, String flowName, String flowDescription, List<Parameter> parameters) {
+    @Id String id,
+    String flowName,
+    String flowDescription,
+    List<Parameter> parameters,
+    String userId) {
   public record Parameter(String key) {}
 }

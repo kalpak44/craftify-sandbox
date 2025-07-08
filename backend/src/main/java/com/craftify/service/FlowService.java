@@ -5,8 +5,6 @@ import com.craftify.repository.FlowRepository;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /** Service layer for managing Flow entities. */
@@ -14,14 +12,16 @@ import org.springframework.stereotype.Service;
 public class FlowService {
 
   private final FlowRepository flowRepository;
+  private final AuthentificationService auth;
 
   /**
    * Constructs a new FlowService with the provided FlowRepository.
    *
    * @param flowRepository the repository for Flow persistence
    */
-  public FlowService(FlowRepository flowRepository) {
+  public FlowService(FlowRepository flowRepository, AuthentificationService auth) {
     this.flowRepository = flowRepository;
+    this.auth = auth;
   }
 
   /**
@@ -31,7 +31,13 @@ public class FlowService {
    * @return the saved Flow entity
    */
   public Flow create(Flow flow) {
-    return flowRepository.save(flow);
+    return flowRepository.save(
+        new Flow(
+            flow.id(),
+            flow.flowName(),
+            flow.flowDescription(),
+            flow.parameters(),
+            auth.getCurrentUserId()));
   }
 
   /**
@@ -42,8 +48,7 @@ public class FlowService {
    * @return a page of Flow entities
    */
   public Page<Flow> list(int page, int size) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by("flowName").ascending());
-    return flowRepository.findAll(pageable);
+    return flowRepository.findAllByUserId(auth.getCurrentUserId(), PageRequest.of(page, size));
   }
 
   /**
@@ -53,7 +58,7 @@ public class FlowService {
    * @return an Optional containing the Flow if found
    */
   public Optional<Flow> getById(String id) {
-    return flowRepository.findById(id);
+    return flowRepository.findByIdAndUserId(id, auth.getCurrentUserId());
   }
 
   /**
@@ -65,7 +70,7 @@ public class FlowService {
    */
   public Optional<Flow> update(String id, Flow newFlow) {
     return flowRepository
-        .findById(id)
+        .findByIdAndUserId(id, auth.getCurrentUserId())
         .map(
             existing -> {
               var updated =
@@ -73,7 +78,8 @@ public class FlowService {
                       existing.id(),
                       newFlow.flowName(),
                       newFlow.flowDescription(),
-                      newFlow.parameters());
+                      newFlow.parameters(),
+                      existing.userId());
               return flowRepository.save(updated);
             });
   }
@@ -84,6 +90,8 @@ public class FlowService {
    * @param id the ID of the Flow to delete
    */
   public void delete(String id) {
-    flowRepository.deleteById(id);
+    flowRepository
+        .findByIdAndUserId(id, auth.getCurrentUserId())
+        .ifPresent(flow -> flowRepository.deleteById(flow.id()));
   }
 }

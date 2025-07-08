@@ -121,6 +121,6 @@ public class FlowController {
         Objects.requireNonNullElse(dto.parameters(), new ArrayList<ParameterDto>()).stream()
             .map(p -> new Parameter(p.key()))
             .toList();
-    return new Flow(dto.id(), dto.flowName(), dto.flowDescription(), params);
+    return new Flow(dto.id(), dto.flowName(), dto.flowDescription(), params, null);
   }
 }

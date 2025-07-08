@@ -12,14 +12,16 @@ import org.springframework.stereotype.Service;
 public class DataSchemaService {
 
   private final DataSchemaRepository repository;
+  private final AuthentificationService auth;
 
   /**
    * Constructs a new DataSchemaService with the provided repository.
    *
    * @param repository the repository used for DataSchema persistence
    */
-  public DataSchemaService(DataSchemaRepository repository) {
+  public DataSchemaService(DataSchemaRepository repository, AuthentificationService auth) {
     this.repository = repository;
+    this.auth = auth;
   }
 
   /**
@@ -29,7 +31,13 @@ public class DataSchemaService {
    * @return the saved DataSchema
    */
   public DataSchema create(DataSchema schema) {
-    return repository.save(schema);
+    return repository.save(
+        new DataSchema(
+            schema.id(),
+            schema.name(),
+            schema.description(),
+            schema.schema(),
+            auth.getCurrentUserId()));
   }
 
   /**
@@ -40,8 +48,7 @@ public class DataSchemaService {
    * @return a page of DataSchema entities
    */
   public Page<DataSchema> list(int page, int size) {
-    var pageable = PageRequest.of(page, size);
-    return repository.findAll(pageable);
+    return repository.findAllByUserId(auth.getCurrentUserId(), PageRequest.of(page, size));
   }
 
   /**
@@ -51,7 +58,7 @@ public class DataSchemaService {
    * @return an Optional containing the DataSchema if found
    */
   public Optional<DataSchema> getById(String id) {
-    return repository.findById(id);
+    return repository.findByIdAndUserId(id, auth.getCurrentUserId());
   }
 
   /**
@@ -62,19 +69,28 @@ public class DataSchemaService {
    * @return an Optional containing the updated schema if the original was found
    */
   public Optional<DataSchema> update(String id, DataSchema updatedSchema) {
-
     return repository
-        .findById(id)
+        .findByIdAndUserId(id, auth.getCurrentUserId())
         .map(
-            existing -> {
-              var updated =
-                  new DataSchema(
-                      existing.id(),
-                      updatedSchema.name(),
-                      updatedSchema.description(),
-                      updatedSchema.schema());
-              return repository.save(updated);
-            });
+            existing ->
+                repository.save(
+                    new DataSchema(
+                        existing.id(),
+                        updatedSchema.name(),
+                        updatedSchema.description(),
+                        updatedSchema.schema(),
+                        existing.userId())));
+  }
+
+  /**
+   * Deletes a DataSchema by ID.
+   *
+   * @param id the ID of the schema to delete
+   */
+  public void delete(String id) {
+    repository
+        .findByIdAndUserId(id, auth.getCurrentUserId())
+        .ifPresent(schema -> repository.deleteById(schema.id()));
   }
 
   /**
@@ -97,14 +113,5 @@ public class DataSchemaService {
   public boolean canUpdate(String id) {
     // TODO: Add logic for locking immutable schemas
     return true;
-  }
-
-  /**
-   * Deletes a DataSchema by ID.
-   *
-   * @param id the ID of the schema to delete
-   */
-  public void delete(String id) {
-    repository.deleteById(id);
   }
 }
