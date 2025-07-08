@@ -41,8 +41,8 @@ public class RecordController {
   @PostMapping
   public ResponseEntity<RecordDto> create(
       @PathVariable String schemaId, @RequestBody RecordDto dto) {
-    var created = service.create(schemaId, dto.data());
-    return ResponseEntity.ok(new RecordDto(created.id(), created.data()));
+    var created = service.create(toEntity(dto, schemaId));
+    return ResponseEntity.ok(toDto(created));
   }
 
   @Operation(summary = "Get a paginated list of records")
@@ -55,7 +55,7 @@ public class RecordController {
       @PathVariable String schemaId,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
-    var records = service.list(schemaId, page, size).map(r -> new RecordDto(r.id(), r.data()));
+    var records = service.list(schemaId, page, size).map(this::toDto);
     return ResponseEntity.ok(records);
   }
 
@@ -70,8 +70,7 @@ public class RecordController {
   @GetMapping("/{recordId}")
   public ResponseEntity<RecordDto> detail(
       @PathVariable String schemaId, @PathVariable String recordId) {
-    Optional<RecordDto> dto =
-        service.getById(schemaId, recordId).map(r -> new RecordDto(r.id(), r.data()));
+    Optional<RecordDto> dto = service.getById(schemaId, recordId).map(this::toDto);
     return dto.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
   }
 
@@ -88,8 +87,8 @@ public class RecordController {
   public ResponseEntity<RecordDto> update(
       @PathVariable String schemaId, @PathVariable String recordId, @RequestBody RecordDto dto) {
     return service
-        .update(schemaId, recordId, dto.data())
-        .map(updated -> ResponseEntity.ok(new RecordDto(updated.id(), updated.data())))
+        .update(schemaId, recordId, toEntity(dto, schemaId))
+        .map(updated -> ResponseEntity.ok(toDto(updated)))
         .orElse(ResponseEntity.notFound().build());
   }
 
@@ -104,5 +103,20 @@ public class RecordController {
       return ResponseEntity.notFound().build();
     }
     return ResponseEntity.noContent().build();
+  }
+
+  private RecordDto toDto(com.craftify.model.Record record) {
+    return new RecordDto(
+        record.id(),
+        record.name(),
+        record.name(),
+        record.createdAt(),
+        record.updatedAt(),
+        record.data());
+  }
+
+  private com.craftify.model.Record toEntity(RecordDto dto, String schemaId) {
+    return new com.craftify.model.Record(
+        dto.id(), schemaId, null, schemaId, dto.description(), null, null, dto.data());
   }
 }

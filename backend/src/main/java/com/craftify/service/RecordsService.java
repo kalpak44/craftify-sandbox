@@ -3,7 +3,6 @@ package com.craftify.service;
 import com.craftify.model.Record;
 import com.craftify.repository.RecordsRepository;
 import com.craftify.repository.SchemaRepository;
-import java.util.Map;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,20 +35,17 @@ public class RecordsService {
   /**
    * Creates and saves a new record under the given schema.
    *
-   * @param schemaId the ID of the schema
-   * @param data the record data
+   * @param record the record data
    * @return the created record
    */
-  public Record create(String schemaId, Map<String, Object> data) {
+  public Record create(Record record) {
     var userId = auth.getCurrentUserId();
     var schema =
         schemaRepository
-            .findByIdAndUserId(schemaId, userId)
+            .findByIdAndUserId(record.id(), userId)
             .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
 
-    validateAgainstSchema(data, schema.schema());
-
-    var record = new Record(null, schemaId, userId, data);
+    validateAgainstSchema(record, schema.schema());
     return repository.save(record);
   }
 
@@ -82,10 +78,10 @@ public class RecordsService {
    *
    * @param schemaId the ID of the schema
    * @param recordId the ID of the record to update
-   * @param newData the new data for the record
+   * @param record the new data for the record
    * @return an Optional containing the updated record if found
    */
-  public Optional<Record> update(String schemaId, String recordId, Map<String, Object> newData) {
+  public Optional<Record> update(String schemaId, String recordId, Record record) {
     var userId = auth.getCurrentUserId();
 
     return repository
@@ -97,10 +93,9 @@ public class RecordsService {
                       .findByIdAndUserId(schemaId, userId)
                       .orElseThrow(() -> new IllegalArgumentException("Schema not found"));
 
-              validateAgainstSchema(newData, schema.schema());
+              validateAgainstSchema(record, schema.schema());
 
-              var updated = new Record(existing.id(), schemaId, userId, newData);
-              return Optional.of(repository.save(updated));
+              return Optional.of(repository.save(record));
             });
   }
 
@@ -122,10 +117,10 @@ public class RecordsService {
   /**
    * Validates the record data against its schema definition.
    *
-   * @param data the record data
+   * @param record the record data
    * @param schemaDefinition the schema definition
    */
-  private void validateAgainstSchema(Map<String, Object> data, Object schemaDefinition) {
+  private void validateAgainstSchema(Record record, Object schemaDefinition) {
     // TODO: Implement validation logic
   }
 }
