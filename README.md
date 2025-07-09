@@ -31,23 +31,48 @@ Central orchestrator and API provider:
 - **Data Management**: CRUD for user records, validated against schemas.
 - **Security**: Namespace isolation, short-lived tokens, JWT enforcement.
 
-### 3. Flow Controller (K8s Sidecar)
 
-A lightweight coordinator that:
+### ~~3. Flow Controller (K8s Sidecar)~~
 
-- Loads and parses flow DAGs.
-- Executes steps with conditional logic.
-- Shares volume between steps.
-- Reports status/logs and cleans up.
+~~A lightweight coordinator that:~~
 
-### 4. Step Containers
+- ~~Loads and parses flow DAGs.~~
+- ~~Executes steps with conditional logic.~~
+- ~~Shares volume between steps.~~
+- ~~Reports status/logs and cleans up.~~
 
-Per-step execution environments:
+### 3. Function Controller
+A lightweight execution orchestrator responsible for managing **function-based logic**, replacing the previous Flow Controller. It now **does not manage entire flows**, but rather:
 
-- Pre-built runtimes (Python, Node.js, Bash, etc.).
-- Mounted user PVC with scripts/config.
-- Receives secrets and tokens via env vars.
-- Securely calls internal APIs (Data API, utils).
+- **Receives function execution requests** from the backend.
+- **Invokes isolated functions** based on step metadata.
+- **Monitors execution lifecycle**: success/failure, logs, and resource usage.
+- **Delegates cleanup** and secret unmounting post execution.
+- Operates per function unit—not entire DAG—offering better modularity and isolation.
+
+> Note: This decoupling allows steps to be developed, tested, and deployed independently while still maintaining orchestration integrity.
+
+
+### ~~4. Step Containers~~
+
+~~Per-step execution environments:~~
+
+- ~~Pre-built runtimes (Python, Node.js, Bash, etc.).~~
+- ~~Mounted user PVC with scripts/config.~~
+- ~~Receives secrets and tokens via env vars.~~
+- ~~Securely calls internal APIs (Data API, utils).~~
+
+
+### 4. Function Step Runners
+
+These replace Step Containers with **language/runtime-specific function runners** optimized for single-purpose executions:
+
+- **Encapsulated runtimes** (e.g., Python, Node.js, Bash).
+- **Directly receive input payloads**, secrets, and tokenized configs via mounted volumes and env vars.
+- **Executes single functions** stored in user volumes (PVCs).
+- **Reports back execution status and logs** via WebSocket or API callbacks.
+- **Stateless and short-lived**: spun up per invocation, improving security and auditability.
+
 
 ### 5. Data API
 
