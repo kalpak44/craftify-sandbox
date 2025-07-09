@@ -5,7 +5,7 @@ const getToken = () => localStorage.getItem("access_token");
 const headers = () => ({Authorization: `Bearer ${getToken()}`});
 
 export const listFiles = async (folder = "") => {
-    const res = await fetch(
+    const res = await window.authFetch(
         `${API_URL}/list?folder=${encodeURIComponent(folder)}`,
         {headers: headers()}
     );
@@ -16,7 +16,7 @@ export const listFiles = async (folder = "") => {
 export const uploadFile = async (folder, file) => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch(
+    const res = await window.authFetch(
         `${API_URL}/upload?folder=${encodeURIComponent(folder)}`,
         {
             method: "POST",
@@ -29,7 +29,7 @@ export const uploadFile = async (folder, file) => {
 };
 
 export const createFolder = async (folderPath) => {
-    const res = await fetch(
+    const res = await window.authFetch(
         `${API_URL}/mkdir?folder=${encodeURIComponent(folderPath)}`,
         {
             method: "POST",
@@ -41,7 +41,7 @@ export const createFolder = async (folderPath) => {
 };
 
 export const renameItem = async (from, to) => {
-    const res = await fetch(
+    const res = await window.authFetch(
         `${API_URL}/move?fromPath=${encodeURIComponent(from)}&toPath=${encodeURIComponent(to)}`,
         {
             method: "POST",
@@ -53,7 +53,7 @@ export const renameItem = async (from, to) => {
 };
 
 export const deleteItem = async (path) => {
-    const res = await fetch(
+    const res = await window.authFetch(
         `${API_URL}/delete?path=${encodeURIComponent(path)}`,
         {
             method: "DELETE",
@@ -65,7 +65,7 @@ export const deleteItem = async (path) => {
 };
 
 export const downloadItem = async (path) => {
-    const res = await fetch(
+    const res = await window.authFetch(
         `${API_URL}/download?fullPath=${encodeURIComponent(path)}`,
         {headers: headers()}
     );

@@ -24,7 +24,7 @@ export const getFlow = async (id) => {
 };
 
 export const createFlow = async (flow) => {
-    const res = await fetch(`${API_URL}`, {
+    const res = await window.authFetch(`${API_URL}`, {
         method: "POST",
         headers: headers(),
         body: JSON.stringify(flow)
@@ -34,7 +34,7 @@ export const createFlow = async (flow) => {
 };
 
 export const updateFlow = async (id, flow) => {
-    const res = await fetch(`${API_URL}/${id}`, {
+    const res = await window.authFetch(`${API_URL}/${id}`, {
         method: "PUT",
         headers: headers(),
         body: JSON.stringify(flow)
@@ -44,7 +44,7 @@ export const updateFlow = async (id, flow) => {
 };
 
 export const deleteFlow = async (id) => {
-    const res = await fetch(`${API_URL}/${id}`, {
+    const res = await window.authFetch(`${API_URL}/${id}`, {
         method: "DELETE",
         headers: headers(),
     });

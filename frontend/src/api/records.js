@@ -46,7 +46,7 @@ export const getRecord = async (schemaId, recordId) => {
  * @returns {Promise<Object>} The created record.
  */
 export const createRecord = async (schemaId, record) => {
-    const res = await fetch(`${BASE_URL}/${schemaId}/records`, {
+    const res = await window.authFetch(`${BASE_URL}/${schemaId}/records`, {
         method: "POST",
         headers: headers(),
         body: JSON.stringify(record)
@@ -64,7 +64,7 @@ export const createRecord = async (schemaId, record) => {
  * @returns {Promise<Object>} The updated record.
  */
 export const updateRecord = async (schemaId, recordId, record) => {
-    const res = await fetch(`${BASE_URL}/${schemaId}/records/${recordId}`, {
+    const res = await window.authFetch(`${BASE_URL}/${schemaId}/records/${recordId}`, {
         method: "PUT",
         headers: headers(),
         body: JSON.stringify(record)
@@ -86,7 +86,7 @@ export const updateRecord = async (schemaId, recordId, record) => {
  * @returns {Promise<void>}
  */
 export const deleteRecord = async (schemaId, recordId) => {
-    const res = await fetch(`${BASE_URL}/${schemaId}/records/${recordId}`, {
+    const res = await window.authFetch(`${BASE_URL}/${schemaId}/records/${recordId}`, {
         method: "DELETE",
         headers: headers()
     });

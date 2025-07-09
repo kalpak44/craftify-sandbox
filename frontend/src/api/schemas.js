@@ -43,7 +43,7 @@ export const getSchema = async (id) => {
  * @returns {Promise<Object>}
  */
 export const createSchema = async (schema) => {
-    const res = await fetch(`${API_URL}`, {
+    const res = await window.authFetch(`${API_URL}`, {
         method: "POST",
         headers: headers(),
         body: JSON.stringify(schema)
@@ -60,7 +60,7 @@ export const createSchema = async (schema) => {
  * @returns {Promise<Object>}
  */
 export const updateSchema = async (id, schema) => {
-    const res = await fetch(`${API_URL}/${id}`, {
+    const res = await window.authFetch(`${API_URL}/${id}`, {
         method: "PUT",
         headers: headers(),
         body: JSON.stringify(schema)
@@ -80,7 +80,7 @@ export const updateSchema = async (id, schema) => {
  * @returns {Promise<void>}
  */
 export const deleteSchema = async (id) => {
-    const res = await fetch(`${API_URL}/${id}`, {
+    const res = await window.authFetch(`${API_URL}/${id}`, {
         method: "DELETE",
         headers: headers()
     });
