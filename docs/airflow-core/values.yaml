@@ -1,3 +1,6 @@
+aiflow:
+  webserverSecretKey: "e84f678bc3d41eada6f87e8bd678a96b9bafcbb1ea78d8fd3e3278a9a45d8e12"
+
 webserver:
   enabled: true
 
