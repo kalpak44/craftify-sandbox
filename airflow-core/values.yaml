@@ -1,0 +1,77 @@
+webserver:
+  enabled: true
+
+  defaultUser:
+    enabled: false  # Disable basic login, use Auth0
+
+  extraVolumeMounts:
+    - name: webserver-config
+      mountPath: /opt/airflow/webserver_config.py
+      subPath: webserver_config.py
+
+  extraVolumes:
+    - name: webserver-config
+      configMap:
+        name: airflow-webserver-config
+
+executor: CeleryExecutor
+
+config:
+  webserver:
+    security_manager_class: webserver_config.CustomSecurityManager
+
+  api:
+    auth_backends: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.default"
+
+  core:
+    executor: CeleryExecutor
+
+  smtp:
+    smtp_host: ""
+    smtp_starttls: "True"
+    smtp_ssl: "False"
+    smtp_user: ""
+    smtp_port: 25
+    smtp_password: ""
+    smtp_mail_from: "airflow@example.com"
+
+dags:
+  gitSync:
+    enabled: false
+
+ingress:
+  enabled: false  # Using kubectl port-forward
+
+redis:
+  enabled: true
+
+postgresql:
+  enabled: true
+
+flower:
+  enabled: false
+
+statsd:
+  enabled: true
+
+triggerer:
+  enabled: true
+
+scheduler:
+  enabled: true
+
+createUserJob:
+  useHelmHooks: true
+  applyCustomEnv: false
+
+migrateDatabaseJob:
+  enabled: true
+  useHelmHooks: true
+
+airflowVersion: "2.9.1"
+
+images:
+  airflow:
+    repository: apache/airflow
+    tag: 2.9.1
+    pullPolicy: IfNotPresent
