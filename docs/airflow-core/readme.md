@@ -37,6 +37,12 @@ Destroy:
 helm uninstall airflow apache-airflow/airflow -n airflow
 ```
 
+Hello world DAG:
+```shell
+kubectl cp hello_world_dag.py $(kubectl get pod -n airflow -l component=webserver -o jsonpath="{.items[0].metadata.name}"):/opt/airflow/dags/ -n airflow
+kubectl cp hello_world_dag.py $(kubectl get pod -n airflow -l component=worker -o jsonpath="{.items[0].metadata.name}"):/opt/airflow/dags/ -n airflow
+kubectl cp hello_world_dag.py $(kubectl get pod -n airflow -l component=scheduler -o jsonpath="{.items[0].metadata.name}"):/opt/airflow/dags/ -n airflow
+```
 
 Access Airflow UI:
 
