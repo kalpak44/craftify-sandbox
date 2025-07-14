@@ -1,113 +1,91 @@
-# Flow Execution Platform - Overview
+# Craftify – Simple Overview
 
-## Vision
+Craftify is a developer tool for building and running small pieces of code (functions) connected to forms, files, or events. It helps you:
 
-The Flow Execution Platform is a developer-focused orchestration system that enables users to visually create, manage, and execute workflows composed of custom code steps. It combines secure multi-tenant data handling, step-level configuration, secrets management, and reactive extensibility—all wrapped in an intuitive UI with AI-assisted authoring.
-
-The platform aims to empower developers to automate tasks, integrate APIs, and manage structured data through flows without building infrastructure from scratch.
+- Design forms
+- Write simple functions
+- Run them on demand or automatically
+- Track execution results
 
 ---
 
-## Architecture Components
+## Key Parts of the System
 
 ### 1. Frontend (React + Auth0)
 
-The UI provides all interfaces for interacting with flows, data, secrets, and files. Key features include:
+The user interface lets you:
 
-- **Flow Editor**: DAG-based visual builder with per-step config (runtime, script, secrets).
-- **Schema Designer**: JSON-based schema creation with form preview.
-- **Secrets Manager**: Add, view, and attach masked secrets.
-- **File Explorer**: Manage scripts/files from persistent storage.
-- **Execution Viewer**: Live logs, retry failed steps, view statuses.
-- **Auth0-based Authentication** for secure, scoped access.
+- Build forms and attach functions to them
+- Write and configure code (functions)
+- See past runs and logs
+- Upload and manage files
+- Log in securely using Auth0
+- Use a simple JSON editor as a data editor
+---
 
-### 2. Backend (Spring Boot)
+### 2. Backend (Java / Spring Boot)
 
-Central orchestrator and API provider:
+Handles:
 
-- **REST + WebSocket APIs** for flow, secrets, file, schema, and data operations.
-- **Kubernetes Integration**: Deploys user flows as Pods/Jobs.
-- **Secrets & Auth**: Injects JWTs, env vars, encrypted secrets.
-- **Data Management**: CRUD for user records, validated against schemas.
-- **Security**: Namespace isolation, short-lived tokens, JWT enforcement.
+- APIs for forms, files, execution, and logs
+- Queueing tasks when a function needs to run
+- Communicating with file storage (S3/MinIO)
+- Sending updates to the frontend (via WebSocket)
 
-
-### ~~3. Flow Controller (K8s Sidecar)~~
-
-~~A lightweight coordinator that:~~
-
-- ~~Loads and parses flow DAGs.~~
-- ~~Executes steps with conditional logic.~~
-- ~~Shares volume between steps.~~
-- ~~Reports status/logs and cleans up.~~
+---
 
 ### 3. Function Controller
-A lightweight execution orchestrator responsible for managing **function-based logic**, replacing the previous Flow Controller. It now **does not manage entire flows**, but rather:
 
-- **Receives function execution requests** from the backend.
-- **Invokes isolated functions** based on step metadata.
-- **Monitors execution lifecycle**: success/failure, logs, and resource usage.
-- **Delegates cleanup** and secret unmounting post execution.
-- Operates per function unit—not entire DAG—offering better modularity and isolation.
+A small service that:
 
-> Note: This decoupling allows steps to be developed, tested, and deployed independently while still maintaining orchestration integrity.
-
-
-### ~~4. Step Containers~~
-
-~~Per-step execution environments:~~
-
-- ~~Pre-built runtimes (Python, Node.js, Bash, etc.).~~
-- ~~Mounted user PVC with scripts/config.~~
-- ~~Receives secrets and tokens via env vars.~~
-- ~~Securely calls internal APIs (Data API, utils).~~
-
-
-### 4. Function Step Runners
-
-These replace Step Containers with **language/runtime-specific function runners** optimized for single-purpose executions:
-
-- **Encapsulated runtimes** (e.g., Python, Node.js, Bash).
-- **Directly receive input payloads**, secrets, and tokenized configs via mounted volumes and env vars.
-- **Executes single functions** stored in user volumes (PVCs).
-- **Reports back execution status and logs** via WebSocket or API callbacks.
-- **Stateless and short-lived**: spun up per invocation, improving security and auditability.
-
-
-### 5. Data API
-
-Internal-only CRUD service:
-
-- JWT-authenticated.
-- Scoped to individual user data.
-- Validates against schemas.
-- Used by step containers for record operations.
+- Picks up queued tasks
+- Starts function execution
+- Watches for success or failure
+- Saves logs and results back
 
 ---
 
-## Key Features
+### 4. Function Runners
 
-- **Live Logs & Retry**: Monitor and rerun specific flow steps.
-- **Multi-Tenant Isolation**: Enforced at K8s and app level.
-- **Secrets & Configs**: Managed per user, securely injected.
-- **Reactive Triggers** (planned): Start flows via email, bots, APIs.
-- **AI Assistant** (planned): Code autocomplete and suggestions.
-- **Extensible Utility APIs**: Email, PDF generation, HTTP requests.
+Tiny, short-lived services that:
 
----
-
-## Directory Structure Context
-
-This platform lives in a monorepo with three main modules:
-
-- `frontend/` – React UI for flow creation & data management.
-- `backend/` – Spring Boot app exposing APIs and deploying executions.
+- Run one function at a time (in Python, Node.js, Bash, etc.)
+- Get inputs and secrets
+- Send logs and results
+- Shut down after finishing
 
 ---
 
-## Future Ideas
+### 5. Data Service
 
-- Reusable step library.
-- Git-integrated flow versioning.
-- Webhook receivers for third-party triggers.
-- Test environments with mock data.
+A private service that:
+
+- Stores user data safely
+- Is only accessible by system components
+
+---
+
+## How it Works (Example Flow)
+
+1. User submits a form
+2. Backend adds a task to the queue
+3. Controller picks it up and runs the function
+4. Runner executes the function and returns results
+5. Frontend shows live status and logs
+
+---
+
+## Running It
+
+- **Locally**: Use Docker or local Kubernetes
+- **Cloud**: Deploy to AWS with EKS, S3, etc.
+- **Queue**: Start with Redis or RabbitMQ; upgrade to Kafka/SQS later
+
+---
+
+## Folder Structure
+
+craftify/
+├── frontend/ # React UI
+├── backend/ # Java backend
+├── controller/ # Task scheduler
