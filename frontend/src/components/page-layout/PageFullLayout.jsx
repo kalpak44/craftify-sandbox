@@ -49,14 +49,12 @@ export const FullWidthLayout = ({ children }) => {
     return (
         <div className="flex flex-col h-screen w-full overflow-hidden bg-gray-900 text-white">
             <nav className="flex items-center justify-between px-6 py-4 bg-gray-950 border-b border-gray-800">
-                <div className="text-white text-lg font-semibold">Flow Execution Platform</div>
+                <div className="text-white text-lg font-semibold">Craftify Platform</div>
                 <div className="flex items-center space-x-6 text-gray-400 text-sm relative">
                     {isAuthenticated ? (
                         <>
                             <NavLink to="/" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Home</NavLink>
                             <NavLink to="/files" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Files</NavLink>
-                            <NavLink to="/flows" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Flows</NavLink>
-                            <NavLink to="/schemas" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Data</NavLink>
                             <div className="relative" ref={profileMenuRef}>
                                 <img
                                     src={user.picture}

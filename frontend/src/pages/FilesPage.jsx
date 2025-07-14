@@ -1,9 +1,12 @@
-import {useEffect, useState} from 'react';
-import {createFolder, deleteItem, downloadItem, listFiles, renameItem, uploadFile} from '../api/files';
-import {Loader} from '../components/common/Loader';
-import {Modal} from '../components/common/Modal';
+import { useEffect, useState } from 'react';
+import { createFolder, deleteItem, downloadItem, listFiles, renameItem, uploadFile } from '../api/files';
+import { Loader } from '../components/common/Loader';
+import { Modal } from '../components/common/Modal';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 
 export const FilesPage = () => {
+    const authFetch = useAuthFetch();
+
     const [loading, setLoading] = useState(true);
     const [files, setFiles] = useState([]);
     const [currentFolder, setCurrentFolder] = useState('');
@@ -26,10 +29,10 @@ export const FilesPage = () => {
     const fetchFiles = async (folder = '') => {
         setLoading(true);
         try {
-            const data = await listFiles(folder);
+            const data = await listFiles(authFetch, folder);
             setFiles(data);
         } catch (e) {
-            showError('Failed to fetch files.');
+            showError('Unable to load files. Please try again or refresh the page.');
         } finally {
             setLoading(false);
         }
@@ -41,11 +44,10 @@ export const FilesPage = () => {
     };
 
     const isValidName = (name) =>
-        // eslint-disable-next-line no-control-regex
         /^[^<>:"/\\|?*\x00-\x1F]+$/.test(name.trim()) && name.trim().length > 0;
 
     const goBack = () => {
-        setFolderStack(prevStack => {
+        setFolderStack((prevStack) => {
             const newStack = [...prevStack];
             const prev = newStack.pop() || '';
             setCurrentFolder(prev);
@@ -55,31 +57,31 @@ export const FilesPage = () => {
     };
 
     const openFolder = (item) => {
-        setFolderStack(prev => [...prev, currentFolder]);
+        setFolderStack((prev) => [...prev, currentFolder]);
         setCurrentFolder(item.fullPath.endsWith('/') ? item.fullPath : `${item.fullPath}/`);
         setSelectedItem(null);
     };
 
     const handleUpload = (file) => {
         setLoading(true);
-        uploadFile(currentFolder, file)
+        uploadFile(authFetch, currentFolder, file)
             .then(() => fetchFiles(currentFolder))
-            .catch(() => showError('Upload failed.'))
+            .catch(() => showError('Failed to upload file. Please try again.'))
             .finally(() => setLoading(false));
     };
 
     const confirmCreateFolder = async () => {
         const trimmed = createName.trim();
         if (!isValidName(trimmed)) {
-            showError('Please enter a valid folder name.');
+            showError('Invalid folder name. Please avoid special characters and empty names.');
             return;
         }
         setLoading(true);
         try {
-            await createFolder(`${currentFolder}${trimmed}/`);
+            await createFolder(authFetch, `${currentFolder}${trimmed}/`);
             await fetchFiles(currentFolder);
         } catch {
-            showError('Failed to create folder.');
+            showError('Could not create the folder. Please try again.');
         } finally {
             setLoading(false);
             setShowCreateModal(false);
@@ -94,10 +96,10 @@ export const FilesPage = () => {
         try {
             const from = selectedItem.fullPath;
             const to = `${currentFolder}${trimmed}${selectedItem.type === 'FOLDER' ? '/' : ''}`;
-            await renameItem(from, to);
+            await renameItem(authFetch, from, to);
             await fetchFiles(currentFolder);
         } catch {
-            showError('Failed to rename item.');
+            showError('Renaming failed. Please make sure the name is valid and try again.');
         } finally {
             setLoading(false);
             setShowRenameModal(false);
@@ -110,18 +112,26 @@ export const FilesPage = () => {
         if (!selectedItem) return;
         setLoading(true);
         try {
-            await deleteItem(selectedItem.fullPath);
+            await deleteItem(authFetch, selectedItem.fullPath);
             await fetchFiles(currentFolder);
             setSelectedItem(null);
         } catch {
-            showError('Failed to delete item.');
+            showError('Failed to delete item. It may be in use or protected.');
         } finally {
             setLoading(false);
             setShowDeleteModal(false);
         }
     };
 
-    if (loading) return <Loader text="Loading files..."/>;
+    const triggerDownload = () => {
+        if (selectedItem?.fullPath) {
+            downloadItem(authFetch, selectedItem.fullPath).catch(() =>
+                showError('Download failed. Please try again.')
+            );
+        }
+    };
+
+    if (loading) return <Loader text="Loading files..." />;
 
     return (
         <div className="flex h-full text-white">
@@ -147,7 +157,7 @@ export const FilesPage = () => {
                             <input
                                 type="file"
                                 className="hidden"
-                                onChange={e => handleUpload(e.target.files[0])}
+                                onChange={(e) => handleUpload(e.target.files[0])}
                             />
                         </label>
                         <button
@@ -161,7 +171,7 @@ export const FilesPage = () => {
                             <>
                                 {selectedItem.type === 'FILE' && (
                                     <button
-                                        onClick={() => downloadItem(selectedItem.fullPath)}
+                                        onClick={triggerDownload}
                                         className="bg-green-600 px-3 py-1 rounded text-sm hover:bg-green-700"
                                     >
                                         Download
@@ -244,8 +254,8 @@ export const FilesPage = () => {
                     <input
                         type="text"
                         value={createName}
-                        onChange={e => setCreateName(e.target.value)}
-                        placeholder="Enter folder name"
+                        onChange={(e) => setCreateName(e.target.value)}
+                        placeholder="Enter a name for the new folder"
                         className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none"
                         autoFocus
                     />
@@ -265,8 +275,8 @@ export const FilesPage = () => {
                     <input
                         type="text"
                         value={renameName}
-                        onChange={e => setRenameName(e.target.value)}
-                        placeholder="Enter new name"
+                        onChange={(e) => setRenameName(e.target.value)}
+                        placeholder="Enter the new name"
                         className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none"
                         autoFocus
                     />
@@ -275,21 +285,18 @@ export const FilesPage = () => {
 
             {showDeleteModal && (
                 <Modal
-                    title="Delete Item"
+                    title="Confirm Deletion"
                     onCancel={() => setShowDeleteModal(false)}
                     onConfirm={confirmDelete}
                     confirmText="Delete"
                 >
-                    Are you sure you want to delete <strong>{selectedItem?.name}</strong>?
+                    Are you sure you want to permanently delete{' '}
+                    <strong>{selectedItem?.name}</strong>?
                 </Modal>
             )}
 
             {showErrorModal && (
-                <Modal
-                    title="Error"
-                    onConfirm={() => setShowErrorModal(false)}
-                    confirmText="OK"
-                >
+                <Modal title="Something went wrong" onConfirm={() => setShowErrorModal(false)} confirmText="OK">
                     <p>{errorMessage}</p>
                 </Modal>
             )}

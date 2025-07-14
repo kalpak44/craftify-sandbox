@@ -5,14 +5,10 @@ import {Route, Routes} from 'react-router-dom';
 import {FullWidthLayout} from './components/page-layout/PageFullLayout';
 import {HomePage} from './pages/HomePage';
 import {FilesPage} from './pages/FilesPage';
-import {FlowsPage} from './pages/FlowsPage';
-import {SchemasPage} from './pages/SchemasPage.jsx';
 import {TermsPage} from './pages/TermsPage';
 import {PrivacyPage} from './pages/PrivacyPage';
 import {CallbackPage} from './pages/CallbackPage';
 import {NotFoundPage} from './pages/NotFoundPage';
-import {RecordsPage} from "./pages/RecordsPage.jsx";
-import {RecordEditPage} from "./pages/RecordEditPage.jsx";
 
 export default function App() {
     const {isLoading} = useAuth0();
@@ -34,46 +30,6 @@ export default function App() {
                 element={
                     <AuthenticationGuard>
                         <FullWidthLayout><FilesPage/></FullWidthLayout>
-                    </AuthenticationGuard>
-                }
-            />
-            <Route
-                path="/flows"
-                element={
-                    <AuthenticationGuard>
-                        <FullWidthLayout><FlowsPage/></FullWidthLayout>
-                    </AuthenticationGuard>
-                }
-            />
-            <Route
-                path="/schemas"
-                element={
-                    <AuthenticationGuard>
-                        <FullWidthLayout><SchemasPage/></FullWidthLayout>
-                    </AuthenticationGuard>
-                }
-            />
-            <Route
-                path="/schemas/:id/records"
-                element={
-                    <AuthenticationGuard>
-                        <FullWidthLayout><RecordsPage/></FullWidthLayout>
-                    </AuthenticationGuard>
-                }
-            />
-            <Route
-                path="/schemas/:id/records/new"
-                element={
-                    <AuthenticationGuard>
-                        <FullWidthLayout><RecordEditPage/></FullWidthLayout>
-                    </AuthenticationGuard>
-                }
-            />
-            <Route
-                path="/schemas/:id/records/:recordId/edit"
-                element={
-                    <AuthenticationGuard>
-                        <FullWidthLayout><RecordEditPage/></FullWidthLayout>
                     </AuthenticationGuard>
                 }
             />

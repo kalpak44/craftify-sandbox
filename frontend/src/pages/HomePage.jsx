@@ -1,27 +1,27 @@
-import {useAuth0} from '@auth0/auth0-react';
+import { useAuth0 } from '@auth0/auth0-react';
 
 /**
- * HomePage: Displays a hero or welcome dashboard depending on authentication state.
+ * HomePage: Displays Craftify's simplified value pillars depending on authentication state.
  */
 export const HomePage = () => {
-    const {loginWithRedirect, isAuthenticated, isLoading, user} = useAuth0();
+    const { loginWithRedirect, isAuthenticated, isLoading, user } = useAuth0();
 
     const features = [
         {
-            title: 'Build Flows',
-            description: 'Design and manage your flow-based applications',
-            icon: '🪄'
+            title: 'Persist Data',
+            description: 'Submit forms or upload files and store them reliably.',
+            icon: '🗃️',
         },
         {
-            title: 'Manage Data',
-            description: 'Validate and store structured records',
-            icon: '🗃️'
+            title: 'Run Logic',
+            description: 'Write functions to process data using Python, Node.js, or Bash.',
+            icon: '🧠',
         },
         {
-            title: 'Define Schemas',
-            description: 'Create and edit data schemas',
-            icon: '📐'
-        }
+            title: 'Build APIs',
+            description: 'Expose forms and functions as simple API endpoints.',
+            icon: '🔗',
+        },
     ];
 
     if (isLoading) {
@@ -36,14 +36,14 @@ export const HomePage = () => {
         return (
             <div className="flex flex-col items-center justify-center h-full px-4">
                 <h1 className="text-3xl font-bold mb-4 text-white">
-                    Welcome, {user?.name || 'User'}!
+                    Welcome, {user?.name || 'Developer'}!
                 </h1>
                 <p className="text-gray-400 mb-8">
-                    You are signed in to the Flow Execution Platform.
+                    You are signed in to the Craftify Platform.
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-5xl">
-                    {features.map(({title, description, icon}) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-4xl">
+                    {features.map(({ title, description, icon }) => (
                         <div
                             key={title}
                             className="bg-gray-800 p-6 rounded-lg shadow text-center hover:bg-gray-700 transition"
@@ -58,15 +58,12 @@ export const HomePage = () => {
         );
     }
 
-    // If not authenticated, show hero section
     return (
         <div className="flex flex-col items-center justify-center h-full px-4">
             <header className="w-full text-center mb-10">
-                <h1 className="text-4xl font-semibold text-white">
-                    Flow Execution Platform
-                </h1>
-                <p className="text-gray-400 mt-2">
-                    Streamline the execution of your workflows
+                <h1 className="text-4xl font-semibold text-white">Craftify</h1>
+                <p className="text-gray-400 mt-2 max-w-xl mx-auto">
+                    Build lightweight APIs powered by logic and data. Just forms, code, and results — no infrastructure.
                 </p>
                 <button
                     onClick={() => loginWithRedirect()}
