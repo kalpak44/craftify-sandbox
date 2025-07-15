@@ -3,12 +3,17 @@ package com.craftify.service;
 import com.craftify.config.MinioClientConfig;
 import com.craftify.dto.FileItemDto;
 import com.craftify.dto.FileType;
+import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import io.minio.Result;
+import io.minio.StatObjectArgs;
 import io.minio.messages.Item;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
@@ -52,17 +57,18 @@ public class UserStorageService {
     var prefix = basePath.toString().replace("\\", "/") + "/";
 
     var results =
-        minioClient.listObjects(
-            ListObjectsArgs.builder().bucket(bucketName).prefix(prefix).delimiter("/").build());
+            minioClient.listObjects(
+                    ListObjectsArgs.builder().bucket(bucketName).prefix(prefix).delimiter("/").build());
 
     return StreamSupport.stream(results.spliterator(), false)
-        .map(result -> toDto(result, prefix))
-        .filter(Objects::nonNull)
-        .filter(
-            f ->
-                FileType.FOLDER.equals(f.type())
-                    || (FileType.FILE.equals(f.type()) && f.size() > 0))
-        .collect(Collectors.toList());
+            .map(result -> toDto(result, prefix))
+            .filter(Objects::nonNull)
+            .filter(
+                    f ->
+                            FileType.FOLDER.equals(f.type())
+                                    || FileType.FUNCTION.equals(f.type())
+                                    || (FileType.FILE.equals(f.type()) && f.size() > 0))
+            .collect(Collectors.toList());
   }
 
   /**
@@ -93,7 +99,10 @@ public class UserStorageService {
     }
   }
 
-  /** Converts a MinIO {@link Item} to a {@link FileItemDto}, removing the user-specific prefix. */
+  /**
+   * Converts a MinIO {@link Item} to a {@link FileItemDto}, removing the user-specific prefix.
+   * If a folder contains a `.meta.json`, it is treated as a FUNCTION and renamed with `_function`.
+   */
   private FileItemDto toDto(Result<Item> result, String prefix) {
     try {
       var item = result.get();
@@ -104,20 +113,43 @@ public class UserStorageService {
       }
 
       var relativeName = fullPath.substring(prefix.length());
-      var type = item.isDir() ? FileType.FOLDER : FileType.FILE;
       var size = item.size();
       var lastModified = item.lastModified() != null ? item.lastModified().toInstant() : null;
 
       var userId = authentificationService.getCurrentUserId();
       var userPrefix = userId + "/";
       var fullPathWithoutUser =
-          fullPath.startsWith(userPrefix) ? fullPath.substring(userPrefix.length()) : fullPath;
+              fullPath.startsWith(userPrefix) ? fullPath.substring(userPrefix.length()) : fullPath;
+
+      FileType type;
+      if (item.isDir()) {
+        var metaPath = Paths.get(fullPath).resolve(".meta.json").toString();
+        boolean hasMeta;
+        try {
+          minioClient.statObject(
+                  StatObjectArgs.builder().bucket(bucketName).object(metaPath).build());
+          hasMeta = true;
+        } catch (Exception e) {
+          hasMeta = false;
+        }
+        if (hasMeta) {
+          // Apply _function suffix to differentiate from folders
+          fullPathWithoutUser = fullPathWithoutUser.replaceAll("/$", "");
+          relativeName = relativeName.replaceAll("/$", "");
+          type = FileType.FUNCTION;
+        } else {
+          type = FileType.FOLDER;
+        }
+      } else {
+        type = FileType.FILE;
+      }
 
       return new FileItemDto(relativeName, type, size, lastModified, fullPathWithoutUser);
     } catch (Exception e) {
       throw new RuntimeException("Failed to map item to FileItemDto", e);
     }
   }
+
 
   /**
    * Uploads a file to the specified folder within the authenticated user's namespace.
@@ -174,7 +206,7 @@ public class UserStorageService {
 
     try {
       return minioClient.getObject(
-          io.minio.GetObjectArgs.builder().bucket(bucketName).object(objectName).build());
+          GetObjectArgs.builder().bucket(bucketName).object(objectName).build());
     } catch (Exception e) {
       throw new RuntimeException("File not found or could not be downloaded: " + fullPath, e);
     }
@@ -224,13 +256,13 @@ public class UserStorageService {
 
       for (var objectName : objectsToDelete) {
         minioClient.removeObject(
-            io.minio.RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
+            RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
       }
 
       // If it's a file and no children were found, try deleting it directly
       if (!isFolder && objectsToDelete.isEmpty()) {
         minioClient.removeObject(
-            io.minio.RemoveObjectArgs.builder().bucket(bucketName).object(objectPrefix).build());
+            RemoveObjectArgs.builder().bucket(bucketName).object(objectPrefix).build());
       }
 
     } catch (Exception e) {
@@ -264,7 +296,7 @@ public class UserStorageService {
 
     try (InputStream stream =
         minioClient.getObject(
-            io.minio.GetObjectArgs.builder().bucket(bucketName).object(fromObject).build())) {
+            GetObjectArgs.builder().bucket(bucketName).object(fromObject).build())) {
 
       minioClient.putObject(
           PutObjectArgs.builder().bucket(bucketName).object(toObject).stream(stream, -1, 10485760)
@@ -272,10 +304,46 @@ public class UserStorageService {
               .build());
 
       minioClient.removeObject(
-          io.minio.RemoveObjectArgs.builder().bucket(bucketName).object(fromObject).build());
+          RemoveObjectArgs.builder().bucket(bucketName).object(fromObject).build());
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to move from " + fromPath + " to " + toPath, e);
     }
   }
+
+  /**
+   * Creates a function by writing a `.meta.json` file in the appropriate user folder path. This method
+   * assumes that the presence of `.meta.json` in a folder denotes a function.
+   *
+   * @param folder the folder path in which to create the function (can be root or nested)
+   * @param name the name of the function
+   * @param environment the runtime environment of the function (e.g., NODE_JS)
+   */
+  public void createFunction(String folder, String name, Enum<?> environment) {
+    var userId = authentificationService.getCurrentUserId();
+    var userRoot = Paths.get(userId);
+    var targetPath = (folder == null || folder.isBlank())
+            ? userRoot.resolve(name)
+            : Paths.get(folder).isAbsolute()
+            ? userRoot.resolve(Paths.get(folder.substring(1)).resolve(name))
+            : userRoot.resolve(folder).resolve(name);
+
+    var metaFilePath = targetPath.resolve(".meta.json").toString().replace("\\", "/");
+
+    String metaJson = "{\"environment\":\"" + environment.name().toLowerCase().replace('_', '.') + "\"}";
+
+    try (InputStream metaStream = new java.io.ByteArrayInputStream(metaJson.getBytes(StandardCharsets.UTF_8))) {
+      minioClient.putObject(
+              PutObjectArgs.builder()
+                      .bucket(bucketName)
+                      .object(metaFilePath)
+                      .stream(metaStream, metaJson.getBytes().length, -1)
+                      .contentType("application/json")
+                      .build());
+
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to create function metadata", e);
+    }
+    }
+
 }

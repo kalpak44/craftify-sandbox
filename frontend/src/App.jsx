@@ -9,6 +9,7 @@ import {TermsPage} from './pages/TermsPage';
 import {PrivacyPage} from './pages/PrivacyPage';
 import {CallbackPage} from './pages/CallbackPage';
 import {NotFoundPage} from './pages/NotFoundPage';
+import {FunctionEditorPage} from "./pages/FunctionEditorPage.jsx";
 
 export default function App() {
     const {isLoading} = useAuth0();
@@ -34,6 +35,14 @@ export default function App() {
                 }
             />
 
+            <Route
+                path="/editor"
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><FunctionEditorPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
+            />
             <Route path="/terms" element={<FullWidthLayout><TermsPage/></FullWidthLayout>}/>
             <Route path="/privacy" element={<FullWidthLayout><PrivacyPage/></FullWidthLayout>}/>
 

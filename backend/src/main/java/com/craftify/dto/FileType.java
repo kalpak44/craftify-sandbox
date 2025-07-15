@@ -1,8 +1,8 @@
 package com.craftify.dto;
 
 /**
- * Enum representing the type of item in user storage. It can either be a regular file or a
- * folder/directory.
+ * Enum representing the type of item in user storage. It can either be a regular file,
+ * a folder/directory, or a function folder.
  */
 public enum FileType {
 
@@ -10,5 +10,8 @@ public enum FileType {
   FILE,
 
   /** Represents a folder or directory. */
-  FOLDER
+  FOLDER,
+
+  /** Represents a function folder (contains .meta.json). */
+  FUNCTION
 }
