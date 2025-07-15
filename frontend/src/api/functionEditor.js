@@ -24,7 +24,7 @@ export const createFunction = async (authFetch, folder, name, environment) => {
         throw new Error("Failed to create function");
     }
 
-    return res.json();
+    return res.text();
 };
 
 /**
