@@ -1,6 +1,7 @@
 package com.craftify.controller;
 
 import com.craftify.dto.CreateFunctionRequestDto;
+import com.craftify.dto.CreateTextFileRequestDto;
 import com.craftify.dto.FileItemDto;
 import com.craftify.dto.FileTreeNodeDto;
 import com.craftify.service.UserStorageService;
@@ -154,7 +155,7 @@ public class UserStorageController {
         return ResponseEntity.ok("Moved successfully from " + fromPath + " to " + toPath);
     }
 
-    @PostMapping("/create")
+    @PostMapping("/create-function")
     @Operation(
             summary = "Create Function",
             description = "Creates a new function folder with a .meta.json file specifying the runtime environment",
@@ -195,5 +196,23 @@ public class UserStorageController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to read file content: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/create-text-file")
+    @Operation(
+            summary = "Create text file with content",
+            description = "Creates a new text file at the given path with the specified content",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateTextFileRequestDto.class)
+                    )
+            )
+    )
+    @ApiResponse(responseCode = "200", description = "Text file created successfully")
+    public ResponseEntity<String> createTextFile(@RequestBody CreateTextFileRequestDto request) {
+        userStorageService.createTextFile(request.path(), request.content());
+        return ResponseEntity.ok("Text file created successfully at path: " + request.path());
     }
 }

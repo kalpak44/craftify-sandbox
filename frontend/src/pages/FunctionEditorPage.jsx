@@ -2,7 +2,7 @@ import {useSearchParams} from 'react-router-dom';
 import {useEffect, useRef, useState} from 'react';
 import Editor from '@monaco-editor/react';
 import {useAuthFetch} from '../hooks/useAuthFetch';
-import {getFileContent, loadFunctionTree, createFolder, deleteItem} from '../api/files';
+import {createFolder, createTextFile, deleteItem, loadFunctionTree} from '../api/files';
 import {Modal} from '../components/common/Modal';
 
 export const FunctionEditorPage = () => {
@@ -62,8 +62,8 @@ export const FunctionEditorPage = () => {
         setCurrentFile(file);
 
         try {
-            const content = await getFileContent(authFetch, path);
-            setFileContent(content);
+            await createTextFile(authFetch, path, '');
+            setFileContent('');
             const ext = path.split('.').pop();
             const langMap = {js: 'javascript', ts: 'typescript', py: 'python', json: 'json'};
             setFileLanguage(langMap[ext] || 'plaintext');
@@ -85,11 +85,7 @@ export const FunctionEditorPage = () => {
             if (type === 'folder') {
                 await createFolder(authFetch, fullPath);
             } else {
-                const res = await authFetch(`/api/createFile`, {
-                    method: 'POST',
-                    body: JSON.stringify({path: fullPath})
-                });
-                if (!res.ok) throw new Error('Failed to create file');
+                await createTextFile(authFetch, fullPath, '');
             }
 
             await refreshTree(path);
@@ -100,6 +96,7 @@ export const FunctionEditorPage = () => {
             setNewItemName('');
         }
     };
+
 
     const removeNode = async (fullPath) => {
         try {

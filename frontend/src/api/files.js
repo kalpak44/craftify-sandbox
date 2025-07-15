@@ -80,7 +80,7 @@ export const downloadItem = async (authFetch, path) => {
 export const createFunction = async (authFetch, folder, name, environment) => {
     const payload = { folder, name, environment };
 
-    const res = await authFetch(`${API_URL}/create`, {
+    const res = await authFetch(`${API_URL}/create-function`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -122,6 +122,31 @@ export const getFileContent = async (authFetch, filePath) => {
 
     if (!res.ok) {
         throw new Error("Failed to fetch file content");
+    }
+
+    return res.text();
+};
+
+/**
+ * Creates a new text file at a given path with the specified content.
+ * @param {Function} authFetch - The authenticated fetch function
+ * @param {string} path - The full path where the file should be created (e.g., "notes/readme.txt")
+ * @param {string} content - The content to write into the file
+ * @returns {Promise<string>}
+ */
+export const createTextFile = async (authFetch, path, content) => {
+    const payload = { path, content };
+
+    const res = await authFetch(`${API_URL}/create-text-file`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to create text file");
     }
 
     return res.text();
