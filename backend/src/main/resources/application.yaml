@@ -1,7 +1,12 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
 # Server configuration
 server:
   # Maximum size of HTTP request headers
-  max-http-request-header-size: 40960
+  max-http-request-header-size: 20MB
   # Enable graceful shutdown
   shutdown: graceful
   # Server port
