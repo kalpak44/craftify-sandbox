@@ -151,3 +151,30 @@ export const createTextFile = async (authFetch, path, content) => {
 
     return res.text();
 };
+
+
+/**
+ * Updates the content of an existing text file at the given path.
+ * @param {Function} authFetch - The authenticated fetch function
+ * @param {string} path - The full path to the file (e.g., "notes/readme.txt")
+ * @param {string} content - The new content to write to the file
+ * @returns {Promise<string>}
+ */
+export const updateTextFile = async (authFetch, path, content) => {
+    const payload = { path, content };
+
+    const res = await authFetch(`${API_URL}/update-text-file`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to update text file");
+    }
+
+    return res.text();
+};
+

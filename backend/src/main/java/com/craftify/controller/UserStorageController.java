@@ -4,6 +4,7 @@ import com.craftify.dto.CreateFunctionRequestDto;
 import com.craftify.dto.CreateTextFileRequestDto;
 import com.craftify.dto.FileItemDto;
 import com.craftify.dto.FileTreeNodeDto;
+import com.craftify.dto.UpdateTextFileRequestDto;
 import com.craftify.service.UserStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -215,4 +216,23 @@ public class UserStorageController {
         userStorageService.createTextFile(request.path(), request.content());
         return ResponseEntity.ok("Text file created successfully at path: " + request.path());
     }
+
+    @PostMapping("/update-text-file")
+    @Operation(
+            summary = "Update text file content",
+            description = "Updates an existing text file with new content at the specified path",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UpdateTextFileRequestDto.class)
+                    )
+            )
+    )
+    @ApiResponse(responseCode = "200", description = "Text file updated successfully")
+    public ResponseEntity<String> updateTextFile(@RequestBody UpdateTextFileRequestDto request) {
+        userStorageService.updateTextFile(request.path(), request.content());
+        return ResponseEntity.ok("Text file updated successfully at path: " + request.path());
+    }
+
 }

@@ -2,7 +2,7 @@ import {useSearchParams} from 'react-router-dom';
 import {useEffect, useRef, useState} from 'react';
 import Editor from '@monaco-editor/react';
 import {useAuthFetch} from '../hooks/useAuthFetch';
-import {createFolder, createTextFile, deleteItem, loadFunctionTree} from '../api/files';
+import {createFolder, createTextFile, deleteItem, getFileContent, loadFunctionTree, updateTextFile} from '../api/files';
 import {Modal} from '../components/common/Modal';
 
 export const FunctionEditorPage = () => {
@@ -29,6 +29,8 @@ export const FunctionEditorPage = () => {
     const [editingNode, setEditingNode] = useState({path: null, type: null});
     const [newItemName, setNewItemName] = useState('');
 
+    const debounceTimer = useRef(null);
+
     const handleMouseDown = () => setIsDragging(true);
     const handleMouseUp = () => {
         setIsDragging(false);
@@ -52,8 +54,7 @@ export const FunctionEditorPage = () => {
 
     const toggleFolder = (path) => {
         const newSet = new Set(expandedPaths);
-        if (newSet.has(path)) newSet.delete(path);
-        else newSet.add(path);
+        newSet.has(path) ? newSet.delete(path) : newSet.add(path);
         setExpandedPaths(newSet);
     };
 
@@ -62,8 +63,8 @@ export const FunctionEditorPage = () => {
         setCurrentFile(file);
 
         try {
-            await createTextFile(authFetch, path, '');
-            setFileContent('');
+            const content = await getFileContent(authFetch, path);
+            setFileContent(content);
             const ext = path.split('.').pop();
             const langMap = {js: 'javascript', ts: 'typescript', py: 'python', json: 'json'};
             setFileLanguage(langMap[ext] || 'plaintext');
@@ -96,7 +97,6 @@ export const FunctionEditorPage = () => {
             setNewItemName('');
         }
     };
-
 
     const removeNode = async (fullPath) => {
         try {
@@ -195,6 +195,24 @@ export const FunctionEditorPage = () => {
         );
     };
 
+    const handleEditorChange = (newValue) => {
+        setFileContent(newValue);
+
+        if (!currentFile) return;
+
+        // Debounce backend update
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+        debounceTimer.current = setTimeout(async () => {
+            try {
+                const fullPath = functionPath + '/' + currentFile.fullPath;
+                await updateTextFile(authFetch, fullPath, newValue);
+            } catch (err) {
+                showError('Failed to auto-save file.');
+            }
+        }, 300);
+    };
+
     useEffect(() => {
         refreshTree('');
     }, [authFetch, functionPath]);
@@ -236,6 +254,7 @@ export const FunctionEditorPage = () => {
                             value={fileContent}
                             theme="vs-dark"
                             options={{fontSize: 14}}
+                            onChange={handleEditorChange}
                         />
                     </div>
 
