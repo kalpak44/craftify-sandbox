@@ -1,9 +1,9 @@
-import { useSearchParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import {useSearchParams} from 'react-router-dom';
+import {useEffect, useRef, useState} from 'react';
 import Editor from '@monaco-editor/react';
-import { useAuthFetch } from '../hooks/useAuthFetch';
-import { getFileContent, loadFunctionTree } from '../api/functionEditor';
-import { Modal } from '../components/common/Modal';
+import {useAuthFetch} from '../hooks/useAuthFetch';
+import {getFileContent, loadFunctionTree, createFolder, deleteItem} from '../api/files';
+import {Modal} from '../components/common/Modal';
 
 export const FunctionEditorPage = () => {
     const [searchParams] = useSearchParams();
@@ -13,6 +13,9 @@ export const FunctionEditorPage = () => {
     const [activeTab, setActiveTab] = useState('output');
     const [terminalHeight, setTerminalHeight] = useState(200);
     const [isDragging, setIsDragging] = useState(false);
+    const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+    const [sidebarWidth, setSidebarWidth] = useState(260);
+    const sidebarRef = useRef(null);
 
     const [fileTree, setFileTree] = useState(null);
     const [expandedPaths, setExpandedPaths] = useState(new Set());
@@ -23,12 +26,22 @@ export const FunctionEditorPage = () => {
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
+    const [editingNode, setEditingNode] = useState({path: null, type: null});
+    const [newItemName, setNewItemName] = useState('');
+
     const handleMouseDown = () => setIsDragging(true);
-    const handleMouseUp = () => setIsDragging(false);
+    const handleMouseUp = () => {
+        setIsDragging(false);
+        setIsResizingSidebar(false);
+    };
     const handleMouseMove = (e) => {
         if (isDragging) {
             const newHeight = window.innerHeight - e.clientY;
             setTerminalHeight(Math.max(100, Math.min(400, newHeight)));
+        }
+        if (isResizingSidebar) {
+            const newWidth = Math.max(150, Math.min(500, e.clientX));
+            setSidebarWidth(newWidth);
         }
     };
 
@@ -45,20 +58,68 @@ export const FunctionEditorPage = () => {
     };
 
     const openFile = async (file) => {
-        const path = functionPath + '/'+ file.fullPath;
+        const path = functionPath + '/' + file.fullPath;
         setCurrentFile(file);
 
         try {
             const content = await getFileContent(authFetch, path);
             setFileContent(content);
             const ext = path.split('.').pop();
-            const langMap = { js: 'javascript', ts: 'typescript', py: 'python', json: 'json' };
+            const langMap = {js: 'javascript', ts: 'typescript', py: 'python', json: 'json'};
             setFileLanguage(langMap[ext] || 'plaintext');
         } catch (e) {
             showError('Failed to load file content.');
             setFileContent('// Failed to load file');
             setFileLanguage('plaintext');
         }
+    };
+
+    const createNode = async () => {
+        const {path, type} = editingNode;
+        const name = newItemName.trim();
+        if (!name || !path || !type) return;
+
+        const fullPath = `${path}/${name}`;
+
+        try {
+            if (type === 'folder') {
+                await createFolder(authFetch, fullPath);
+            } else {
+                const res = await authFetch(`/api/createFile`, {
+                    method: 'POST',
+                    body: JSON.stringify({path: fullPath})
+                });
+                if (!res.ok) throw new Error('Failed to create file');
+            }
+
+            await refreshTree(path);
+        } catch (err) {
+            showError('Failed to create item');
+        } finally {
+            setEditingNode({path: null, type: null});
+            setNewItemName('');
+        }
+    };
+
+    const removeNode = async (fullPath) => {
+        try {
+            await deleteItem(authFetch, functionPath + '/' + fullPath);
+            await refreshTree(getParentPath(fullPath));
+        } catch (err) {
+            showError('Failed to delete item');
+        }
+    };
+
+    const getParentPath = (fullPath) => {
+        const parts = fullPath.split('/');
+        parts.pop();
+        return parts.join('/') || '';
+    };
+
+    const refreshTree = async (reopenPath) => {
+        const updatedTree = await loadFunctionTree(authFetch, functionPath);
+        setFileTree(updatedTree);
+        setExpandedPaths((prev) => new Set([...prev, reopenPath]));
     };
 
     const renderTree = (node, level = 0) => {
@@ -69,8 +130,8 @@ export const FunctionEditorPage = () => {
         return (
             <li key={node.fullPath}>
                 <div
-                    style={{ paddingLeft: `${level * 12}px` }}
-                    className={`flex justify-between items-center px-2 py-1 rounded hover:bg-gray-700 cursor-pointer ${
+                    style={{paddingLeft: `${level * 12}px`}}
+                    className={`group flex justify-between items-center px-2 py-1 rounded hover:bg-gray-700 cursor-pointer ${
                         currentFile?.fullPath === node.fullPath ? 'bg-gray-700' : ''
                     }`}
                     onClick={() => {
@@ -78,10 +139,56 @@ export const FunctionEditorPage = () => {
                         else openFile(node);
                     }}
                 >
-          <span>
-            {isFolder ? (isOpen ? '📂' : '📁') : '📄'} {node.name}
-          </span>
+                    <span>
+                        {isFolder ? (isOpen ? '📂' : '📁') : '📄'} {node.name}
+                    </span>
+                    <div className="opacity-0 group-hover:opacity-100 flex gap-1">
+                        {isFolder && (
+                            <>
+                                <button onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingNode({path: node.fullPath, type: 'file'});
+                                    setNewItemName('');
+                                }} className="text-xs text-blue-400 hover:text-blue-600">📄+
+                                </button>
+                                <button onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingNode({path: node.fullPath, type: 'folder'});
+                                    setNewItemName('');
+                                }} className="text-xs text-green-400 hover:text-green-600">📁+
+                                </button>
+                            </>
+                        )}
+                        <button onClick={(e) => {
+                            e.stopPropagation();
+                            removeNode(node.fullPath);
+                        }} className="text-xs text-red-400 hover:text-red-600">🗑️
+                        </button>
+                    </div>
                 </div>
+
+                {editingNode.path === node.fullPath && (
+                    <div className="pl-4 py-1 flex items-center gap-1">
+                        <input
+                            autoFocus
+                            value={newItemName}
+                            onChange={(e) => setNewItemName(e.target.value)}
+                            onBlur={createNode}
+                            onKeyDown={async (e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    await createNode();
+                                } else if (e.key === 'Escape') {
+                                    setEditingNode({path: null, type: null});
+                                    setNewItemName('');
+                                }
+                            }}
+                            className="bg-gray-700 text-white px-2 py-0.5 text-sm rounded border border-gray-600"
+                            placeholder={`New ${editingNode.type}`}
+                        />
+                    </div>
+                )}
+
                 {isFolder && isOpen && node.children?.length > 0 && (
                     <ul className="ml-1">
                         {node.children.map((child) => renderTree(child, level + 1))}
@@ -92,32 +199,28 @@ export const FunctionEditorPage = () => {
     };
 
     useEffect(() => {
-        const fetchTree = async () => {
-            try {
-                const root = await loadFunctionTree(authFetch, functionPath);
-                setFileTree(root);
-                setExpandedPaths(new Set([root.fullPath]));
-            } catch (err) {
-                showError('Error loading file tree. Please check your connection or try again.');
-            }
-        };
-
-        fetchTree();
+        refreshTree('');
     }, [authFetch, functionPath]);
 
     return (
         <>
             <div className="flex h-full text-white" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
-                {/* Sidebar */}
-                <aside className="w-64 bg-gray-800 border-r border-gray-700 p-4 overflow-auto">
+                <aside
+                    ref={sidebarRef}
+                    style={{width: sidebarWidth}}
+                    className="bg-gray-800 border-r border-gray-700 p-4 overflow-auto relative"
+                >
                     <h2 className="text-sm uppercase text-gray-400 mb-3">Explorer</h2>
                     <div className="text-xs text-gray-300 mb-4">
                         Path: <span className="text-yellow-400">{functionPath}</span>
                     </div>
                     <ul className="text-sm space-y-1">{fileTree && renderTree(fileTree)}</ul>
+                    <div
+                        className="absolute top-0 right-0 h-full w-1 cursor-col-resize bg-transparent"
+                        onMouseDown={() => setIsResizingSidebar(true)}
+                    />
                 </aside>
 
-                {/* Main Editor Area */}
                 <main className="flex-1 flex flex-col bg-gray-900">
                     <div className="flex justify-between items-center px-4 py-3 border-b border-gray-700">
                         <div className="flex items-center gap-3">
@@ -135,27 +238,20 @@ export const FunctionEditorPage = () => {
                             language={fileLanguage}
                             value={fileContent}
                             theme="vs-dark"
-                            options={{ fontSize: 14 }}
+                            options={{fontSize: 14}}
                         />
                     </div>
 
-                    {/* Resizer */}
-                    <div className="h-2 cursor-row-resize bg-gray-700 hover:bg-gray-600" onMouseDown={handleMouseDown}></div>
+                    <div className="h-2 cursor-row-resize bg-gray-700 hover:bg-gray-600"
+                         onMouseDown={handleMouseDown}></div>
 
-                    {/* Bottom Tabs */}
-                    <div
-                        style={{ height: terminalHeight }}
-                        className="bg-gray-950 border-t border-gray-800 rounded-t-lg shadow-inner flex flex-col"
-                    >
+                    <div style={{height: terminalHeight}}
+                         className="bg-gray-950 border-t border-gray-800 rounded-t-lg shadow-inner flex flex-col">
                         <div className="flex border-b border-gray-700">
                             {['output', 'parameters'].map((tab) => (
                                 <button
                                     key={tab}
-                                    className={`px-4 py-2 transition-colors duration-200 ${
-                                        activeTab === tab
-                                            ? 'bg-gray-800 text-white border-b-2 border-blue-500'
-                                            : 'bg-gray-900 text-gray-400 hover:text-white'
-                                    }`}
+                                    className={`px-4 py-2 transition-colors duration-200 ${activeTab === tab ? 'bg-gray-800 text-white border-b-2 border-blue-500' : 'bg-gray-900 text-gray-400 hover:text-white'}`}
                                     onClick={() => setActiveTab(tab)}
                                 >
                                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -164,21 +260,15 @@ export const FunctionEditorPage = () => {
                         </div>
                         <div className="flex-1 p-4 text-sm text-gray-200 overflow-auto">
                             {activeTab === 'output' && (
-                                <pre className="whitespace-pre-wrap">node {currentFile?.name || ''}\n...</pre>
-                            )}
+                                <pre className="whitespace-pre-wrap">node {currentFile?.name || ''}\n...</pre>)}
                             {activeTab === 'parameters' && <p>Define input parameters here...</p>}
                         </div>
                     </div>
                 </main>
             </div>
 
-            {/* Error Modal */}
             {showErrorModal && (
-                <Modal
-                    title="Something went wrong"
-                    confirmText="OK"
-                    onConfirm={() => setShowErrorModal(false)}
-                >
+                <Modal title="Something went wrong" confirmText="OK" onConfirm={() => setShowErrorModal(false)}>
                     <p>{errorMessage}</p>
                 </Modal>
             )}

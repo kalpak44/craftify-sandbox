@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
-import { createFolder, deleteItem, downloadItem, listFiles, renameItem, uploadFile } from '../api/files';
-import { createFunction } from '../api/functionEditor';
-import { Loader } from '../components/common/Loader';
-import { Modal } from '../components/common/Modal';
-import { useAuthFetch } from '../hooks/useAuthFetch';
-import { useNavigate } from 'react-router-dom';
+import {useEffect, useState} from 'react';
+import {createFolder, createFunction, deleteItem, downloadItem, listFiles, renameItem, uploadFile} from '../api/files';
+import {Loader} from '../components/common/Loader';
+import {Modal} from '../components/common/Modal';
+import {useAuthFetch} from '../hooks/useAuthFetch';
+import {useNavigate} from 'react-router-dom';
 
 export const FilesPage = () => {
     const authFetch = useAuthFetch();
@@ -156,7 +155,7 @@ export const FilesPage = () => {
         }
     };
 
-    if (loading) return <Loader text="Loading files..." />;
+    if (loading) return <Loader text="Loading files..."/>;
 
     return (
         <div className="flex h-full text-white">
