@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createFolder, deleteItem, downloadItem, listFiles, renameItem, uploadFile } from '../api/files';
-import { createFunction } from '../api/functions';
+import { createFunction } from '../api/functionEditor';
 import { Loader } from '../components/common/Loader';
 import { Modal } from '../components/common/Modal';
 import { useAuthFetch } from '../hooks/useAuthFetch';
