@@ -41,7 +41,7 @@ A small service that:
 - Picks up queued tasks
 - Starts function execution
 - Watches for success or failure
-- Saves logs and results back
+- Saves logs and results
 
 ---
 
