@@ -21,17 +21,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * Service for interacting with MinIO object storage for authenticated users. Provides operations
- * such as listing and creating folders in the user namespace.
+ * Service for authenticated user interaction with object storage via MinIO.
+ * Supports folder and file operations including list, upload, delete, move, and function creation.
  */
 @Service
 public class UserStorageService {
@@ -40,462 +37,193 @@ public class UserStorageService {
     private final String bucketName;
     private final AuthentificationService authentificationService;
 
-    public UserStorageService(
-            MinioClient minioClient,
-            MinioClientConfig minioClientConfig,
-            AuthentificationService authentificationService) {
+    public UserStorageService(MinioClient minioClient, MinioClientConfig config, AuthentificationService authService) {
         this.minioClient = minioClient;
-        this.bucketName = minioClientConfig.getBucket();
-        this.authentificationService = authentificationService;
+        this.bucketName = config.getBucket();
+        this.authentificationService = authService;
     }
 
     /**
-     * Lists the files and folders under a given subfolder for the authenticated user. If subFolder is
-     * null, empty or "/", it defaults to the user's root directory.
+     * Lists the contents of the user's folder.
+     *
+     * @param subFolder Subfolder path relative to the user root. If null or blank, root is assumed.
+     * @return List of file and folder DTOs.
      */
     public List<FileItemDto> listUserFolder(String subFolder) {
-        var userId = authentificationService.getCurrentUserId();
-        var basePath = Paths.get(userId);
-
-        if (subFolder != null && !subFolder.isBlank() && !subFolder.equals("/")) {
-            basePath = basePath.resolve(subFolder);
-        }
-
-        var prefix = basePath.toString().replace("\\", "/") + "/";
-
-        var results =
-                minioClient.listObjects(
-                        ListObjectsArgs.builder().bucket(bucketName).prefix(prefix).delimiter("/").build());
+        String prefix = buildUserPrefix(subFolder, true);
+        Iterable<Result<Item>> results = minioClient.listObjects(
+                ListObjectsArgs.builder().bucket(bucketName).prefix(prefix).delimiter("/").build()
+        );
 
         return StreamSupport.stream(results.spliterator(), false)
-                .map(result -> toDto(result, prefix))
+                .map(result -> toFileItemDto(result, prefix))
                 .filter(Objects::nonNull)
-                .filter(
-                        f ->
-                                FileType.FOLDER.equals(f.type())
-                                        || FileType.FUNCTION.equals(f.type())
-                                        || (FileType.FILE.equals(f.type()) && f.size() > 0))
+                .filter(dto -> dto.type() == FileType.FOLDER || dto.type() == FileType.FUNCTION || (dto.type() == FileType.FILE && dto.size() > 0))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Creates a new folder for the current user inside the specified path. Relative and absolute
-     * paths are resolved within the user's namespace.
+     * Creates a new folder under the user's namespace.
+     *
+     * @param folderPath Relative or absolute folder path.
      */
     public void createUserFolder(String folderPath) {
-        var userId = authentificationService.getCurrentUserId();
-        var userRoot = Paths.get(userId);
-        var fullPath =
-                Paths.get(folderPath).isAbsolute()
-                        ? userRoot.resolve(folderPath.substring(1))
-                        : userRoot.resolve(folderPath);
-
-        var objectName = fullPath.toString().replace("\\", "/");
-        if (!objectName.endsWith("/")) {
-            objectName += "/";
-        }
-
+        String objectName = normalizePath(resolveUserPath(folderPath).toString()) + "/";
         try {
             minioClient.putObject(
-                    PutObjectArgs.builder().bucket(bucketName).object(objectName).stream(
-                                    InputStream.nullInputStream(), 0, -1)
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(InputStream.nullInputStream(), 0, -1)
                             .contentType("application/x-directory")
-                            .build());
+                            .build()
+            );
         } catch (Exception e) {
             throw new RuntimeException("Failed to create folder: " + folderPath, e);
         }
     }
 
     /**
-     * Converts a MinIO {@link Item} to a {@link FileItemDto}, removing the user-specific prefix.
-     * If a folder contains a `.meta.json`, it is treated as a FUNCTION and renamed with `_function`.
-     */
-    private FileItemDto toDto(Result<Item> result, String prefix) {
-        try {
-            var item = result.get();
-            var fullPath = item.objectName();
-
-            if (!fullPath.startsWith(prefix)) {
-                return null;
-            }
-
-            var relativeName = fullPath.substring(prefix.length());
-            var size = item.size();
-            var lastModified = item.lastModified() != null ? item.lastModified().toInstant() : null;
-
-            var userId = authentificationService.getCurrentUserId();
-            var userPrefix = userId + "/";
-            var fullPathWithoutUser =
-                    fullPath.startsWith(userPrefix) ? fullPath.substring(userPrefix.length()) : fullPath;
-
-            FileType type;
-            if (item.isDir()) {
-                var metaPath = Paths.get(fullPath).resolve(".meta.json").toString();
-                boolean hasMeta;
-                try {
-                    minioClient.statObject(
-                            StatObjectArgs.builder().bucket(bucketName).object(metaPath).build());
-                    hasMeta = true;
-                } catch (Exception e) {
-                    hasMeta = false;
-                }
-                if (hasMeta) {
-                    // Apply _function suffix to differentiate from folders
-                    fullPathWithoutUser = fullPathWithoutUser.replaceAll("/$", "");
-                    relativeName = relativeName.replaceAll("/$", "");
-                    type = FileType.FUNCTION;
-                } else {
-                    type = FileType.FOLDER;
-                }
-            } else {
-                type = FileType.FILE;
-            }
-
-            return new FileItemDto(relativeName, type, size, lastModified, fullPathWithoutUser);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to map item to FileItemDto", e);
-        }
-    }
-
-
-    /**
-     * Uploads a file to the specified folder within the authenticated user's namespace.
+     * Uploads a file to a specified folder within the user namespace.
      *
-     * @param folderPath the relative or absolute path where the file should be uploaded. If null or
-     *                   blank, the file will be uploaded to the user's root directory.
-     * @param file       the file to upload, received from the client via multipart/form-data.
-     * @throws IllegalArgumentException if the file's original filename is null.
-     * @throws RuntimeException         if an error occurs during upload to MinIO.
+     * @param folderPath Folder path relative to the user's namespace.
+     * @param file       Multipart file to upload.
      */
     public void uploadUserFile(String folderPath, MultipartFile file) {
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || originalFilename.isBlank()) {
-            throw new IllegalArgumentException("Uploaded file must have a valid name.");
-        }
-
-        var userId = authentificationService.getCurrentUserId();
-        var userRoot = Paths.get(userId);
-        var fullPath =
-                (folderPath == null || folderPath.isBlank())
-                        ? userRoot
-                        : Paths.get(folderPath).isAbsolute()
-                        ? userRoot.resolve(folderPath.substring(1))
-                        : userRoot.resolve(folderPath);
-
-        var objectName = fullPath.resolve(originalFilename).toString().replace("\\", "/");
+        String originalFilename = Objects.requireNonNull(file.getOriginalFilename(), "Uploaded file must have a valid name.");
+        Path fullPath = resolveUserPath(folderPath).resolve(originalFilename);
+        String objectName = normalizePath(fullPath.toString());
 
         try (InputStream inputStream = file.getInputStream()) {
             minioClient.putObject(
-                    PutObjectArgs.builder().bucket(bucketName).object(objectName).stream(
-                                    inputStream, file.getSize(), -1)
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(inputStream, file.getSize(), -1)
                             .contentType(file.getContentType())
-                            .build());
+                            .build()
+            );
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload file: " + originalFilename, e);
         }
     }
 
     /**
-     * Downloads a file from the authenticated user's namespace using the provided full path.
+     * Downloads a file from the user's namespace.
      *
-     * @param fullPath the full relative or absolute path of the file within the user's namespace.
-     * @return an {@link InputStream} of the file contents to be streamed to the client.
-     * @throws RuntimeException if the file does not exist or cannot be downloaded.
+     * @param fullPath Full or relative file path.
+     * @return InputStream of file content.
      */
     public InputStream downloadUserFile(String fullPath) {
-        var userId = authentificationService.getCurrentUserId();
-        var userRoot = Paths.get(userId);
-        var resolvedPath =
-                Paths.get(fullPath).isAbsolute()
-                        ? userRoot.resolve(fullPath.substring(1))
-                        : userRoot.resolve(fullPath);
-        var objectName = resolvedPath.toString().replace("\\", "/");
+        String objectName = normalizePath(resolveUserPath(fullPath).toString());
 
         try {
             return minioClient.getObject(
-                    GetObjectArgs.builder().bucket(bucketName).object(objectName).build());
+                    GetObjectArgs.builder().bucket(bucketName).object(objectName).build()
+            );
         } catch (Exception e) {
             throw new RuntimeException("File not found or could not be downloaded: " + fullPath, e);
         }
     }
 
     /**
-     * Deletes a file or folder (recursively) in the authenticated user's namespace.
+     * Deletes a file or folder (recursively) from the user namespace.
      *
-     * @param fullPath the relative or absolute path to the file or folder.
+     * @param fullPath Relative or absolute path of the file/folder to delete.
      */
     public void deleteUserPath(String fullPath) {
-        var userId = authentificationService.getCurrentUserId();
-        var userRoot = Paths.get(userId);
-        var resolvedPath =
-                Paths.get(fullPath).isAbsolute()
-                        ? userRoot.resolve(fullPath.substring(1))
-                        : userRoot.resolve(fullPath);
-
-        var objectPrefix = resolvedPath.toString().replace("\\", "/");
-
-        // Ensure folders end with a slash to delete all nested objects
+        String objectPrefix = normalizePath(resolveUserPath(fullPath).toString());
         boolean isFolder = objectPrefix.endsWith("/") || fullPath.endsWith("/");
+
         if (isFolder && !objectPrefix.endsWith("/")) {
             objectPrefix += "/";
         }
 
         try {
-            var results =
-                    minioClient.listObjects(
-                            ListObjectsArgs.builder()
-                                    .bucket(bucketName)
-                                    .prefix(objectPrefix)
-                                    .recursive(true)
-                                    .build());
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder().bucket(bucketName).prefix(objectPrefix).recursive(true).build()
+            );
 
-            var objectsToDelete =
-                    StreamSupport.stream(results.spliterator(), false)
-                            .map(
-                                    result -> {
-                                        try {
-                                            return result.get().objectName();
-                                        } catch (Exception e) {
-                                            throw new RuntimeException("Failed to resolve object for deletion", e);
-                                        }
-                                    })
-                            .toList();
+            List<String> objectsToDelete = StreamSupport.stream(results.spliterator(), false)
+                    .map(result -> getItemNameOrThrow(result, "Failed to resolve object for deletion"))
+                    .toList();
 
-            for (var objectName : objectsToDelete) {
-                minioClient.removeObject(
-                        RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
+            for (String object : objectsToDelete) {
+                minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(object).build());
             }
 
-            // If it's a file and no children were found, try deleting it directly
             if (!isFolder && objectsToDelete.isEmpty()) {
-                minioClient.removeObject(
-                        RemoveObjectArgs.builder().bucket(bucketName).object(objectPrefix).build());
+                minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(objectPrefix).build());
             }
-
         } catch (Exception e) {
             throw new RuntimeException("Failed to delete path: " + fullPath, e);
         }
     }
 
     /**
-     * Moves or renames a file within the authenticated user's namespace.
+     * Moves or renames a file within the user namespace.
      *
-     * @param fromPath the original file path (relative or absolute within the user's namespace)
-     * @param toPath   the new file path (relative or absolute within the user's namespace)
-     * @throws RuntimeException if the move operation fails
+     * @param fromPath Original file path.
+     * @param toPath   Target file path.
      */
     public void moveUserPath(String fromPath, String toPath) {
-        var userId = authentificationService.getCurrentUserId();
-        var userRoot = Paths.get(userId);
+        String fromObject = normalizePath(resolveUserPath(fromPath).toString());
+        String toObject = normalizePath(resolveUserPath(toPath).toString());
 
-        var resolvedFromPath =
-                Paths.get(fromPath).isAbsolute()
-                        ? userRoot.resolve(fromPath.substring(1))
-                        : userRoot.resolve(fromPath);
-
-        var resolvedToPath =
-                Paths.get(toPath).isAbsolute()
-                        ? userRoot.resolve(toPath.substring(1))
-                        : userRoot.resolve(toPath);
-
-        var fromObject = resolvedFromPath.toString().replace("\\", "/");
-        var toObject = resolvedToPath.toString().replace("\\", "/");
-
-        try (InputStream stream =
-                     minioClient.getObject(
-                             GetObjectArgs.builder().bucket(bucketName).object(fromObject).build())) {
-
+        try (InputStream stream = minioClient.getObject(GetObjectArgs.builder().bucket(bucketName).object(fromObject).build())) {
             minioClient.putObject(
-                    PutObjectArgs.builder().bucket(bucketName).object(toObject).stream(stream, -1, 10485760)
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(toObject)
+                            .stream(stream, -1, 10485760)
                             .contentType("application/octet-stream")
-                            .build());
-
-            minioClient.removeObject(
-                    RemoveObjectArgs.builder().bucket(bucketName).object(fromObject).build());
-
+                            .build()
+            );
+            minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(fromObject).build());
         } catch (Exception e) {
             throw new RuntimeException("Failed to move from " + fromPath + " to " + toPath, e);
         }
     }
 
     /**
-     * Creates a function by writing a `.meta.json` file in the appropriate user folder path. This method
-     * assumes that the presence of `.meta.json` in a folder denotes a function.
+     * Creates a new function by writing metadata to `.meta.json`.
      *
-     * @param folder      the folder path in which to create the function (can be root or nested)
-     * @param name        the name of the function
-     * @param environment the runtime environment of the function (e.g., NODE_JS)
+     * @param folder      Target folder path (can be null or relative).
+     * @param name        Name of the function.
+     * @param environment Execution environment (e.g., NODE_JS).
      */
     public void createFunction(String folder, String name, Enum<?> environment) {
-        var userId = authentificationService.getCurrentUserId();
-        var userRoot = Paths.get(userId);
-        var targetPath = (folder == null || folder.isBlank())
-                ? userRoot.resolve(name)
-                : Paths.get(folder).isAbsolute()
-                ? userRoot.resolve(Paths.get(folder.substring(1)).resolve(name))
-                : userRoot.resolve(folder).resolve(name);
+        Path targetPath = (folder == null || folder.isBlank())
+                ? resolveUserPath(name)
+                : resolveUserPath(folder).resolve(name);
 
-        var metaFilePath = targetPath.resolve(".meta.json").toString().replace("\\", "/");
-
+        String metaFilePath = normalizePath(targetPath.resolve(".meta.json").toString());
         String metaJson = "{\"environment\":\"" + environment.name().toLowerCase().replace('_', '.') + "\"}";
 
-        try (InputStream metaStream = new java.io.ByteArrayInputStream(metaJson.getBytes(StandardCharsets.UTF_8))) {
+        try (InputStream stream = new ByteArrayInputStream(metaJson.getBytes(StandardCharsets.UTF_8))) {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
                             .object(metaFilePath)
-                            .stream(metaStream, metaJson.getBytes().length, -1)
+                            .stream(stream, metaJson.length(), -1)
                             .contentType("application/json")
-                            .build());
-
+                            .build()
+            );
         } catch (Exception e) {
             throw new RuntimeException("Failed to create function metadata", e);
         }
     }
 
-    public FileTreeNodeDto buildFunctionTree(String treeRoot) {
-        var userId = authentificationService.getCurrentUserId();
-        var basePath = Paths.get(userId);
-
-        if (treeRoot != null && !treeRoot.isBlank() && !treeRoot.equals("/")) {
-            basePath = basePath.resolve(treeRoot);
-        }
-
-        var prefix = basePath.toString().replace("\\", "/");
-        if (!prefix.endsWith("/")) {
-            prefix += "/";
-        }
-
-        try {
-            Iterable<Result<Item>> results = minioClient.listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(bucketName)
-                            .prefix(prefix)
-                            .recursive(true)
-                            .build()
-            );
-
-            Map<String, FileTreeNodeDto> nodeMap = new HashMap<>();
-
-            for (Result<Item> result : results) {
-                Item item = result.get();
-                String objectName = item.objectName();
-                if (!objectName.startsWith(prefix)) continue;
-
-                String relativePath = objectName.substring(prefix.length());
-                if (relativePath.isBlank()) continue;
-
-                Path path = Paths.get(relativePath);
-                String name = path.getFileName().toString();
-
-                // Determine if it's a function (.meta.json detection)
-                boolean isMetaFile = name.equals(".meta.json");
-                boolean isFunction = false;
-                if (isMetaFile && path.getNameCount() > 1) {
-                    // Mark the parent as FUNCTION
-                    String functionFolder = path.getParent().toString();
-                    FileTreeNodeDto existing = nodeMap.get(functionFolder);
-                    if (existing != null) {
-                        nodeMap.put(functionFolder,
-                                new FileTreeNodeDto(
-                                        existing.name(),
-                                        existing.fullPath(),
-                                        FileType.FUNCTION,
-                                        existing.size(),
-                                        existing.lastModified(),
-                                        existing.children()
-                                )
-                        );
-                    }
-                    continue;
-                }
-
-                String fullRelativePath = path.toString().replace("\\", "/");
-
-                FileType type = item.isDir() ? FileType.FOLDER : FileType.FILE;
-
-                long size = item.size();
-                Instant lastModified = item.lastModified() != null ? item.lastModified().toInstant() : null;
-
-                FileTreeNodeDto node = new FileTreeNodeDto(
-                        name,
-                        fullRelativePath,
-                        type,
-                        size,
-                        lastModified,
-                        new ArrayList<>()
-                );
-
-                nodeMap.put(fullRelativePath, node);
-
-                // Add to parent
-                if (path.getNameCount() > 1) {
-                    String parentPath = path.getParent().toString().replace("\\", "/");
-                    FileTreeNodeDto parent = nodeMap.get(parentPath);
-                    if (parent == null) {
-                        parent = new FileTreeNodeDto(
-                                path.getParent().getFileName().toString(),
-                                parentPath,
-                                FileType.FOLDER,
-                                0L,
-                                null,
-                                new ArrayList<>()
-                        );
-                        nodeMap.put(parentPath, parent);
-                    }
-                    parent.children().add(node);
-                }
-            }
-
-            // Root path relative from prefix
-            String rootKey = prefix.substring(userId.length() + 1);
-            rootKey = rootKey.endsWith("/") ? rootKey.substring(0, rootKey.length() - 1) : rootKey;
-            FileTreeNodeDto rootNode = nodeMap.get(rootKey);
-
-            if (rootNode == null) {
-                rootNode = new FileTreeNodeDto(
-                        Paths.get(treeRoot).getFileName().toString(),
-                        treeRoot,
-                        FileType.FOLDER,
-                        0L,
-                        null,
-                        new ArrayList<>()
-                );
-            }
-
-            // Collect children directly under root
-            List<FileTreeNodeDto> rootChildren = nodeMap.entrySet().stream()
-                    .filter(e -> {
-                        Path relPath = Paths.get(e.getKey());
-                        return relPath.getNameCount() == 1;
-                    })
-                    .map(Map.Entry::getValue)
-                    .collect(Collectors.toList());
-
-            return new FileTreeNodeDto(
-                    rootNode.name(),
-                    rootNode.fullPath(),
-                    rootNode.type(),
-                    rootNode.size(),
-                    rootNode.lastModified(),
-                    rootChildren
-            );
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to build file tree for root: " + treeRoot, e);
-        }
-    }
-
+    /**
+     * Stores a plain text file in the user's namespace.
+     *
+     * @param path    File path.
+     * @param content Text content to write.
+     */
     public void putTextFile(String path, String content) {
-        var userId = authentificationService.getCurrentUserId();
-        var userRoot = Paths.get(userId);
-        var resolvedPath = Paths.get(path).isAbsolute()
-                ? userRoot.resolve(path.substring(1))
-                : userRoot.resolve(path);
-
-        var objectName = resolvedPath.toString().replace("\\", "/");
-
+        String objectName = normalizePath(resolveUserPath(path).toString());
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+
         try (InputStream inputStream = new ByteArrayInputStream(bytes)) {
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -503,10 +231,89 @@ public class UserStorageService {
                             .object(objectName)
                             .stream(inputStream, bytes.length, -1)
                             .contentType("text/plain")
-                            .build());
+                            .build()
+            );
         } catch (Exception e) {
             throw new RuntimeException("Failed to create text file: " + path, e);
         }
     }
 
+    /**
+     * Builds a hierarchical file tree under the given root path.
+     *
+     * @param treeRoot Root folder to start the tree from.
+     * @return Tree node containing child structure.
+     */
+    public FileTreeNodeDto buildFunctionTree(String treeRoot) {
+        return new FunctionTreeBuilder(minioClient, bucketName, authentificationService).build(treeRoot);
+    }
+
+    private String buildUserPrefix(String path, boolean withTrailingSlash) {
+        Path base = resolveUserPath(path);
+        String prefix = normalizePath(base.toString());
+        return withTrailingSlash && !prefix.endsWith("/") ? prefix + "/" : prefix;
+    }
+
+    private Path resolveUserPath(String inputPath) {
+        String userId = authentificationService.getCurrentUserId();
+        Path root = Paths.get(userId);
+        if (inputPath == null || inputPath.isBlank()) return root;
+        return Paths.get(inputPath).isAbsolute()
+                ? root.resolve(inputPath.substring(1))
+                : root.resolve(inputPath);
+    }
+
+    private String normalizePath(String path) {
+        return path.replace("\\", "/");
+    }
+
+    private String getItemNameOrThrow(Result<Item> result, String errorMsg) {
+        try {
+            return result.get().objectName();
+        } catch (Exception e) {
+            throw new RuntimeException(errorMsg, e);
+        }
+    }
+
+    private FileItemDto toFileItemDto(Result<Item> result, String prefix) {
+        try {
+            Item item = result.get();
+            String objectName = item.objectName();
+
+            if (!objectName.startsWith(prefix)) return null;
+
+            String relativeName = objectName.substring(prefix.length());
+            String userId = authentificationService.getCurrentUserId();
+            String relativeFullPath = objectName.substring((userId + "/").length());
+            long size = item.size();
+            Instant modified = item.lastModified() != null ? item.lastModified().toInstant() : null;
+
+            FileType type = FileType.FILE;
+            if (item.isDir()) {
+                boolean hasMeta = hasFunctionMeta(objectName);
+                if (hasMeta) {
+                    relativeFullPath = relativeFullPath.replaceAll("/$", "");
+                    relativeName = relativeName.replaceAll("/$", "");
+                    type = FileType.FUNCTION;
+                } else {
+                    type = FileType.FOLDER;
+                }
+            }
+
+            return new FileItemDto(relativeName, type, size, modified, relativeFullPath);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to convert item to FileItemDto", e);
+        }
+    }
+
+    private boolean hasFunctionMeta(String folderPath) {
+        String metaPath = Paths.get(folderPath).resolve(".meta.json").toString().replace("\\", "/");
+        try {
+            minioClient.statObject(StatObjectArgs.builder().bucket(bucketName).object(metaPath).build());
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
 }
