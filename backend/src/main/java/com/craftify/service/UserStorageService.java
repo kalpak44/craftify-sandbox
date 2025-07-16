@@ -1,6 +1,7 @@
 package com.craftify.service;
 
 import com.craftify.config.MinioClientConfig;
+import com.craftify.dto.EnvironmentType;
 import com.craftify.dto.FileItemDto;
 import com.craftify.dto.FileTreeNodeDto;
 import com.craftify.dto.FileType;
@@ -192,27 +193,77 @@ public class UserStorageService {
      * @param name        Name of the function.
      * @param environment Execution environment (e.g., NODE_JS).
      */
-    public void createFunction(String folder, String name, Enum<?> environment) {
+    public void createFunction(String folder, String name, EnvironmentType environment) {
         Path targetPath = (folder == null || folder.isBlank())
                 ? resolveUserPath(name)
                 : resolveUserPath(folder).resolve(name);
 
-        String metaFilePath = normalizePath(targetPath.resolve(".meta.json").toString());
-        String metaJson = "{\"environment\":\"" + environment.name().toLowerCase().replace('_', '.') + "\"}";
+        String functionRoot = normalizePath(targetPath.toString());
+        String metaFilePath = functionRoot + "/.meta.json";
 
-        try (InputStream stream = new ByteArrayInputStream(metaJson.getBytes(StandardCharsets.UTF_8))) {
+        String environmentValue = environment.name().toLowerCase().replace('_', '.');
+        String metaJson = "{\"environment\":\"" + environmentValue + "\"}";
+
+        try (InputStream metaStream = new ByteArrayInputStream(metaJson.getBytes(StandardCharsets.UTF_8))) {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
                             .object(metaFilePath)
-                            .stream(stream, metaJson.length(), -1)
+                            .stream(metaStream, metaJson.length(), -1)
                             .contentType("application/json")
                             .build()
             );
         } catch (Exception e) {
             throw new RuntimeException("Failed to create function metadata", e);
         }
+
+        if (EnvironmentType.NODE_JS.equals(environment)) {
+            createNodeJsDefaults(functionRoot, name);
+        }
     }
+
+    private void createNodeJsDefaults(String functionRoot, String functionName) {
+        String indexJsContent = """
+                exports.handler = async (event) => {
+                    return {
+                        statusCode: 200,
+                        body: JSON.stringify({ message: "Hello from Node.js function!" })
+                    };
+                };
+                """;
+
+        String packageJsonContent = String.format("""
+                {
+                  "name": "%s",
+                  "version": "1.0.0",
+                  "main": "./src/index.js",
+                  "scripts": {
+                    "start": "node ./src/index.js"
+                  }
+                }
+                """, functionName);
+
+        try {
+            writeFile(functionRoot + "/src/index.js", indexJsContent);
+            writeFile(functionRoot + "/package.json", packageJsonContent);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create default Node.js files", e);
+        }
+    }
+
+    private void writeFile(String objectPath, String content) throws Exception {
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        try (InputStream stream = new ByteArrayInputStream(bytes)) {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectPath)
+                            .stream(stream, bytes.length, -1)
+                            .build()
+            );
+        }
+    }
+
 
     /**
      * Stores a plain text file in the user's namespace.
@@ -222,17 +273,8 @@ public class UserStorageService {
      */
     public void putTextFile(String path, String content) {
         String objectName = normalizePath(resolveUserPath(path).toString());
-        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-
-        try (InputStream inputStream = new ByteArrayInputStream(bytes)) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .stream(inputStream, bytes.length, -1)
-                            .contentType("text/plain")
-                            .build()
-            );
+        try {
+            writeFile(objectName, content);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create text file: " + path, e);
         }
