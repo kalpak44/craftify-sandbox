@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import {useAuthFetch} from '../hooks/useAuthFetch';
 import {createFolder, createTextFile, deleteItem, getFileContent, loadFunctionTree, updateTextFile} from '../api/files';
 import {Modal} from '../components/common/Modal';
+import {runFunction} from "../api/function.js";
 
 export const FunctionEditorPage = () => {
     const [searchParams] = useSearchParams();
@@ -36,10 +37,11 @@ export const FunctionEditorPage = () => {
         try {
             const event = JSON.parse(eventInput);
             console.log("Run function with event:", event);
-
-
+            await runFunction(authFetch, functionPath, event)
+            setActiveTab('output');
         } catch (err) {
-            showError('Invalid JSON input for event.');
+            console.error(err);
+            showError('Failed to start function.');
         }
     };
 
