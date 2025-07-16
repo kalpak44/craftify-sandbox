@@ -15,6 +15,7 @@ import io.minio.messages.Item;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -406,7 +407,7 @@ public class UserStorageService {
                                 )
                         );
                     }
-                    continue; // Skip .meta.json file itself
+                    continue;
                 }
 
                 String fullRelativePath = path.toString().replace("\\", "/");
@@ -442,7 +443,7 @@ public class UserStorageService {
                         );
                         nodeMap.put(parentPath, parent);
                     }
-                    ((List<FileTreeNodeDto>) parent.children()).add(node);
+                    parent.children().add(node);
                 }
             }
 
@@ -485,7 +486,7 @@ public class UserStorageService {
         }
     }
 
-    public void createTextFile(String path, String content) {
+    public void putTextFile(String path, String content) {
         var userId = authentificationService.getCurrentUserId();
         var userRoot = Paths.get(userId);
         var resolvedPath = Paths.get(path).isAbsolute()
@@ -495,7 +496,7 @@ public class UserStorageService {
         var objectName = resolvedPath.toString().replace("\\", "/");
 
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-        try (InputStream inputStream = new java.io.ByteArrayInputStream(bytes)) {
+        try (InputStream inputStream = new ByteArrayInputStream(bytes)) {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
@@ -507,29 +508,5 @@ public class UserStorageService {
             throw new RuntimeException("Failed to create text file: " + path, e);
         }
     }
-
-    public void updateTextFile(String path, String content) {
-        var userId = authentificationService.getCurrentUserId();
-        var userRoot = Paths.get(userId);
-        var resolvedPath = Paths.get(path).isAbsolute()
-                ? userRoot.resolve(path.substring(1))
-                : userRoot.resolve(path);
-
-        var objectName = resolvedPath.toString().replace("\\", "/");
-
-        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-        try (InputStream inputStream = new java.io.ByteArrayInputStream(bytes)) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .stream(inputStream, bytes.length, -1)
-                            .contentType("text/plain")
-                            .build());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to update text file: " + path, e);
-        }
-    }
-
 
 }

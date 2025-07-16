@@ -213,7 +213,7 @@ public class UserStorageController {
     )
     @ApiResponse(responseCode = "200", description = "Text file created successfully")
     public ResponseEntity<String> createTextFile(@RequestBody CreateTextFileRequestDto request) {
-        userStorageService.createTextFile(request.path(), request.content());
+        userStorageService.putTextFile(request.path(), request.content());
         return ResponseEntity.ok("Text file created successfully at path: " + request.path());
     }
 
@@ -231,7 +231,7 @@ public class UserStorageController {
     )
     @ApiResponse(responseCode = "200", description = "Text file updated successfully")
     public ResponseEntity<String> updateTextFile(@RequestBody UpdateTextFileRequestDto request) {
-        userStorageService.updateTextFile(request.path(), request.content());
+        userStorageService.putTextFile(request.path(), request.content());
         return ResponseEntity.ok("Text file updated successfully at path: " + request.path());
     }
 
