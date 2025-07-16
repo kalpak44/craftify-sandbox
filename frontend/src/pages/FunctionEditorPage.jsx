@@ -29,6 +29,20 @@ export const FunctionEditorPage = () => {
     const [editingNode, setEditingNode] = useState({path: null, type: null});
     const [newItemName, setNewItemName] = useState('');
 
+    const [showEventModal, setShowEventModal] = useState(false);
+    const [eventInput, setEventInput] = useState(JSON.stringify({name: "Test User", action: "trigger"}, null, 2));
+
+    const handleRunFunction = async () => {
+        try {
+            const event = JSON.parse(eventInput);
+            console.log("Run function with event:", event);
+
+
+        } catch (err) {
+            showError('Invalid JSON input for event.');
+        }
+    };
+
     const debounceTimer = useRef(null);
 
     const handleMouseDown = () => setIsDragging(true);
@@ -244,8 +258,24 @@ export const FunctionEditorPage = () => {
                                 <option>Node.js</option>
                             </select>
                         </div>
-                        <button className="bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded">Run</button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm"
+                                onClick={() => setShowEventModal(true)}
+                            >
+                                Edit Event
+                            </button>
+
+                            <button
+                                className="bg-blue-600 hover:bg-blue-700 px-4 py-1 rounded"
+                                onClick={handleRunFunction}
+                            >
+                                Run
+                            </button>
+                        </div>
+
                     </div>
+
 
                     <div className="flex-1">
                         <Editor
@@ -288,6 +318,30 @@ export const FunctionEditorPage = () => {
                     <p>{errorMessage}</p>
                 </Modal>
             )}
+
+            {showEventModal && (
+                <Modal
+                    title="Edit Event Input"
+                    confirmText="Save"
+                    cancelText="Cancel"
+                    onConfirm={() => setShowEventModal(false)}
+                    onCancel={() => setShowEventModal(false)}
+                >
+                    <div style={{height: '300px'}}>
+                        <Editor
+                            language="json"
+                            value={eventInput}
+                            theme="vs-dark"
+                            onChange={(value) => setEventInput(value || '')}
+                            options={{
+                                fontSize: 14,
+                                minimap: { enabled: false },
+                            }}
+                        />
+                    </div>
+                </Modal>
+            )}
+
         </>
     );
 };

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {useEffect} from 'react';
+import { useEffect } from 'react';
 
 export const Modal = ({
                           title,
@@ -22,11 +22,11 @@ export const Modal = ({
 
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
             onClick={onCancel ?? undefined}
         >
             <div
-                className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-sm border border-gray-600"
+                className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-3xl max-h-[90vh] overflow-auto border border-gray-600"
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
@@ -36,10 +36,10 @@ export const Modal = ({
                     {title}
                 </h2>
 
-                <div className="text-sm text-gray-200">{children}</div>
+                <div className="text-sm text-gray-200 space-y-4">{children}</div>
 
                 {(onCancel || onConfirm) && (
-                    <div className="flex justify-end space-x-2 mt-4">
+                    <div className="flex justify-end space-x-2 mt-6">
                         {onCancel && (
                             <button
                                 onClick={onCancel}
@@ -66,7 +66,7 @@ export const Modal = ({
 Modal.propTypes = {
     title: PropTypes.oneOfType([
         PropTypes.string,
-        PropTypes.node, // allows elements like <span>, JSX, etc.
+        PropTypes.node,
     ]).isRequired,
     children: PropTypes.node,
     onCancel: PropTypes.func,
