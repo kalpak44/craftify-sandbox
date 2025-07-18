@@ -1,0 +1,42 @@
+# Kafka configuration for Bitnami Helm chart
+kraft:
+  enabled: true  # Use KRaft mode (no ZooKeeper)
+replicaCount: 3  # Three Kafka brokers for high availability
+persistence:
+  enabled: true  # Enable persistent storage
+  storageClass: ""  # Leave empty to use default storage class, or specify your cluster's storage class
+  size: 1Gi  # 8GB per broker
+listeners:
+  client:
+    protocol: PLAINTEXT
+    name: CLIENT
+    port: 9092  # Default client port
+  controller:
+    protocol: PLAINTEXT
+    name: CONTROLLER
+    port: 9093  # Controller port for KRaft
+  interbroker:
+    protocol: PLAINTEXT
+    name: INTERNAL
+    port: 9094  # Internal broker communication
+service:
+  ports:
+    client: 9092
+    controller: 9093
+    interbroker: 9094
+  type: ClusterIP  # Internal service for Kafka
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+metrics:
+  kafka:
+    enabled: true  # Enable Kafka metrics for Prometheus (needed for KEDA)
+  serviceMonitor:
+    enabled: true  # Create a ServiceMonitor for Prometheus
+    namespace: kafka
+    interval: 30s
+    scrapeTimeout: 25s

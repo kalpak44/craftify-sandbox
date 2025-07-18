@@ -74,6 +74,28 @@ spec:
           ports:
             - containerPort: 8080
 EOF
-
 echo "✅ Done. App is deployed in namespace '$NAMESPACE'"
 kubectl get pods -n $NAMESPACE -l app=$APP_NAME
+
+echo "📈 Deploying KEDA ScaledObject..."
+kubectl apply -n $NAMESPACE -f - <<EOF
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: ${APP_NAME}-scaler
+  namespace: $NAMESPACE
+spec:
+  scaleTargetRef:
+    name: $APP_NAME
+  pollingInterval: 5
+  cooldownPeriod: 30
+  minReplicaCount: 0
+  maxReplicaCount: 1
+  triggers:
+    - type: kafka
+      metadata:
+        bootstrapServers: kafka.kafka.svc:9092
+        topic: event-topic
+        consumerGroup: ${APP_NAME}-group
+        lagThreshold: "1"
+EOF
