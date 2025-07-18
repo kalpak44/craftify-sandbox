@@ -57,7 +57,7 @@ metadata:
   name: $APP_NAME
   namespace: $NAMESPACE
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: $APP_NAME
