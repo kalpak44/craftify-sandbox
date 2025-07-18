@@ -69,20 +69,25 @@ public class FunctionTreeBuilder {
                 Path path = Paths.get(relativePath);
                 String name = path.getFileName().toString();
 
+                // Filter out all .meta.json nodes
                 boolean isMeta = name.equals(".meta.json");
-                if (isMeta && path.getNameCount() > 1) {
-                    String functionFolder = path.getParent().toString().replace("\\", "/");
-                    FileTreeNodeDto folderNode = nodeMap.get(functionFolder);
-                    if (folderNode != null) {
-                        nodeMap.put(functionFolder, new FileTreeNodeDto(
-                                folderNode.name(),
-                                folderNode.fullPath(),
-                                FileType.FUNCTION,
-                                folderNode.size(),
-                                folderNode.lastModified(),
-                                folderNode.children()
-                        ));
+                if (isMeta) {
+                    // If .meta.json is in a subfolder, mark the parent as FUNCTION
+                    if (path.getNameCount() > 1) {
+                        String functionFolder = path.getParent().toString().replace("\\", "/");
+                        FileTreeNodeDto folderNode = nodeMap.get(functionFolder);
+                        if (folderNode != null) {
+                            nodeMap.put(functionFolder, new FileTreeNodeDto(
+                                    folderNode.name(),
+                                    folderNode.fullPath(),
+                                    FileType.FUNCTION,
+                                    folderNode.size(),
+                                    folderNode.lastModified(),
+                                    folderNode.children()
+                            ));
+                        }
                     }
+                    // In all cases, skip adding .meta.json as a node
                     continue;
                 }
 

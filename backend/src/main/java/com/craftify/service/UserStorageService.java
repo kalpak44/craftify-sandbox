@@ -232,20 +232,8 @@ public class UserStorageService {
                 };
                 """;
 
-        String packageJsonContent = String.format("""
-                {
-                  "name": "%s",
-                  "version": "1.0.0",
-                  "main": "./src/index.js",
-                  "scripts": {
-                    "start": "node ./src/index.js"
-                  }
-                }
-                """, functionName);
-
         try {
             writeFile(functionRoot + "/src/index.js", indexJsContent);
-            writeFile(functionRoot + "/package.json", packageJsonContent);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create default Node.js files", e);
         }
