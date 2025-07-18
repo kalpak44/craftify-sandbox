@@ -1,0 +1,9 @@
+spring:
+  kafka:
+    bootstrap-servers: kafka.kafka.svc:9092
+    consumer:
+      group-id: router-group
+      auto-offset-reset: earliest
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      concurrency: 1
