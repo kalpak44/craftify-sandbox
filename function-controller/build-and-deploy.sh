@@ -2,15 +2,17 @@
 
 set -euo pipefail
 
+DOCKER_USER=kalpak44
 APP_NAME=router-app
-IMAGE_NAME=${APP_NAME}:local
+IMAGE_TAG=latest
+IMAGE_NAME=${DOCKER_USER}/${APP_NAME}:${IMAGE_TAG}
 NAMESPACE=userspace
 
 echo "🔧 Building Docker image..."
 docker build -t $IMAGE_NAME .
 
-echo "📦 Loading image into kind cluster..."
-kind load docker-image $IMAGE_NAME
+echo "📤 Pushing image to Docker Hub..."
+docker push $IMAGE_NAME
 
 echo "🚀 Creating namespace if missing..."
 kubectl get namespace $NAMESPACE >/dev/null 2>&1 || kubectl create namespace $NAMESPACE
@@ -68,7 +70,7 @@ spec:
       containers:
         - name: router
           image: $IMAGE_NAME
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
 EOF
