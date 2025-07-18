@@ -23,4 +23,12 @@ helm uninstall keda -n keda
 
 
 ### Hello world example:
+```shell
+kubectl apply -f kafka-producer-pod.yaml
+```
 
+in pod shell:
+
+```shell
+kubectl apply -f kafka-producer-pod.yaml
+```
