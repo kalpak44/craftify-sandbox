@@ -30,5 +30,13 @@ kubectl apply -f kafka-producer-pod.yaml
 in pod shell:
 
 ```shell
-kubectl apply -f kafka-producer-pod.yaml
+echo '{"type":"EVENT_A","payload":{"message":"Hello from kcat"}}' | \
+kcat -P -b kafka.kafka.svc:9092 -t event-topic
+```
+
+or
+```shell
+echo '{"type":"EVENT_B","payload":{"action":"test B"}}' | \
+kcat -P -b kafka.kafka.svc:9092 -t event-topic
+
 ```
