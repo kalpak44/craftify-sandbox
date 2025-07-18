@@ -6,6 +6,16 @@ import {createFolder, createTextFile, deleteItem, getFileContent, loadFunctionTr
 import {Modal} from '../components/common/Modal';
 import {runFunction} from "../api/function.js";
 
+const getLangByExt = (ext) => {
+    const map = {js: 'javascript', ts: 'typescript', py: 'python', json: 'json'};
+    return map[ext] || 'plaintext';
+};
+
+const getInfoTextByFile = (file) => {
+    if (!file) return "No file selected. Please choose a file to start editing.";
+    return "";
+};
+
 export const FunctionEditorPage = () => {
     const [searchParams] = useSearchParams();
     const functionPath = searchParams.get('path') || 'unknown';
@@ -22,7 +32,7 @@ export const FunctionEditorPage = () => {
     const [expandedPaths, setExpandedPaths] = useState(new Set());
     const [currentFile, setCurrentFile] = useState(null);
     const [fileContent, setFileContent] = useState('');
-    const [fileLanguage, setFileLanguage] = useState('javascript');
+    const [fileLanguage, setFileLanguage] = useState('plaintext');
 
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -36,11 +46,9 @@ export const FunctionEditorPage = () => {
     const handleRunFunction = async () => {
         try {
             const event = JSON.parse(eventInput);
-            console.log("Run function with event:", event);
             await runFunction(authFetch, functionPath, event)
             setActiveTab('output');
         } catch (err) {
-            console.error(err);
             showError('Failed to start function.');
         }
     };
@@ -82,8 +90,7 @@ export const FunctionEditorPage = () => {
             const content = await getFileContent(authFetch, path);
             setFileContent(content);
             const ext = path.split('.').pop();
-            const langMap = {js: 'javascript', ts: 'typescript', py: 'python', json: 'json'};
-            setFileLanguage(langMap[ext] || 'plaintext');
+            setFileLanguage(getLangByExt(ext));
         } catch (e) {
             showError('Failed to load file content.');
             setFileContent('// Failed to load file');
@@ -216,7 +223,6 @@ export const FunctionEditorPage = () => {
 
         if (!currentFile) return;
 
-        // Debounce backend update
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
         debounceTimer.current = setTimeout(async () => {
@@ -232,6 +238,13 @@ export const FunctionEditorPage = () => {
     useEffect(() => {
         refreshTree('');
     }, [authFetch, functionPath]);
+
+    useEffect(() => {
+        if (!currentFile) {
+            setFileContent('');
+            setFileLanguage('plaintext');
+        }
+    }, [currentFile]);
 
     return (
         <>
@@ -275,19 +288,24 @@ export const FunctionEditorPage = () => {
                                 Run
                             </button>
                         </div>
-
                     </div>
 
-
                     <div className="flex-1">
-                        <Editor
-                            height={`calc(100vh - ${terminalHeight + 90}px)`}
-                            language={fileLanguage}
-                            value={fileContent}
-                            theme="vs-dark"
-                            options={{fontSize: 14}}
-                            onChange={handleEditorChange}
-                        />
+                        {currentFile ? (
+                            <Editor
+                                height={`calc(100vh - ${terminalHeight + 90}px)`}
+                                language={fileLanguage}
+                                value={fileContent}
+                                theme="vs-dark"
+                                options={{fontSize: 14}}
+                                onChange={handleEditorChange}
+                            />
+                        ) : (
+                            <div
+                                className="w-full h-full flex items-center justify-center text-gray-500 text-lg select-none">
+                                {getInfoTextByFile(currentFile)}
+                            </div>
+                        )}
                     </div>
 
                     <div className="h-2 cursor-row-resize bg-gray-700 hover:bg-gray-600"
@@ -337,7 +355,7 @@ export const FunctionEditorPage = () => {
                             onChange={(value) => setEventInput(value || '')}
                             options={{
                                 fontSize: 14,
-                                minimap: { enabled: false },
+                                minimap: {enabled: false},
                             }}
                         />
                     </div>
