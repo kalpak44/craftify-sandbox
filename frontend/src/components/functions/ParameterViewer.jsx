@@ -1,42 +1,38 @@
-import {useState} from "react";
+import { useState } from "react";
 
 export function ParameterViewer() {
     const [params, setParams] = useState([
-        {key: "RETRY_COUNT", value: "3"},
-        {key: "REGION", value: "eu-west-1"},
-        {key: "EMAIL_FROM", value: "noreply@example.com"},
+        { key: "RETRY_COUNT", value: "3" },
+        { key: "REGION", value: "eu-west-1" },
+        { key: "EMAIL_FROM", value: "noreply@example.com" },
     ]);
     const [editingIdx, setEditingIdx] = useState(null);
-    const [edit, setEdit] = useState({key: "", value: ""});
+    const [edit, setEdit] = useState({ key: "", value: "" });
 
     const [adding, setAdding] = useState(false);
-    const [newParam, setNewParam] = useState({key: "", value: ""});
+    const [newParam, setNewParam] = useState({ key: "", value: "" });
 
-    // Начать редактировать строку
     const startEdit = (idx) => {
         setEditingIdx(idx);
-        setEdit({...params[idx]});
+        setEdit({ ...params[idx] });
     };
 
-    // Сохранить редактирование
     const saveEdit = (idx) => {
         const updated = [...params];
-        updated[idx] = {...edit};
+        updated[idx] = { ...edit };
         setParams(updated);
         setEditingIdx(null);
     };
 
-    // Удалить параметр
     const removeParam = (idx) => {
         setParams(params.filter((_, i) => i !== idx));
         if (editingIdx === idx) setEditingIdx(null);
     };
 
-    // Добавить новый параметр
     const addParam = () => {
         if (!newParam.key) return;
-        setParams([...params, {...newParam}]);
-        setNewParam({key: "", value: ""});
+        setParams([...params, { ...newParam }]);
+        setNewParam({ key: "", value: "" });
         setAdding(false);
     };
 
@@ -46,7 +42,7 @@ export function ParameterViewer() {
                 <div className="text-lg font-semibold text-gray-200">Parameters</div>
                 {!adding && (
                     <button
-                        className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
                         onClick={() => setAdding(true)}
                     >
                         Add
@@ -62,38 +58,42 @@ export function ParameterViewer() {
                 </tr>
                 </thead>
                 <tbody>
-                {/* Форма добавления */}
+                {/* Add new */}
                 {adding && (
                     <tr>
                         <td className="py-2 pr-4">
                             <input
                                 autoFocus
-                                className="bg-gray-800 border border-gray-700 rounded px-2 py-1 w-full text-sm text-gray-100"
+                                className="bg-gray-800 border border-gray-700 rounded-xl px-2 py-1 w-full text-sm text-gray-100"
                                 placeholder="KEY"
                                 value={newParam.key}
-                                onChange={(e) => setNewParam({...newParam, key: e.target.value})}
+                                onChange={(e) =>
+                                    setNewParam({ ...newParam, key: e.target.value })
+                                }
                             />
                         </td>
                         <td className="py-2 pr-4">
                             <input
-                                className="bg-gray-800 border border-gray-700 rounded px-2 py-1 w-full text-sm text-gray-100"
+                                className="bg-gray-800 border border-gray-700 rounded-xl px-2 py-1 w-full text-sm text-gray-100"
                                 placeholder="Value"
                                 value={newParam.value}
-                                onChange={(e) => setNewParam({...newParam, value: e.target.value})}
+                                onChange={(e) =>
+                                    setNewParam({ ...newParam, value: e.target.value })
+                                }
                             />
                         </td>
-                        <td className="py-2">
+                        <td className="py-2 flex gap-2">
                             <button
-                                className="mr-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
+                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-700 rounded-xl px-3 py-1 shadow transition text-xs font-medium"
                                 onClick={addParam}
                             >
                                 Save
                             </button>
                             <button
-                                className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded text-xs"
+                                className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-700 rounded-xl px-3 py-1 shadow transition text-xs font-medium"
                                 onClick={() => {
                                     setAdding(false);
-                                    setNewParam({key: "", value: ""});
+                                    setNewParam({ key: "", value: "" });
                                 }}
                             >
                                 Cancel
@@ -101,16 +101,16 @@ export function ParameterViewer() {
                         </td>
                     </tr>
                 )}
-                {/* Список параметров */}
+                {/* Parameter list */}
                 {params.map((param, idx) =>
                     editingIdx === idx ? (
                         <tr key={idx} className="group hover:bg-gray-900 transition">
                             <td className="py-2 pr-4">
                                 <input
                                     autoFocus
-                                    className="bg-gray-800 border border-gray-700 rounded px-2 py-1 w-full text-sm text-gray-100"
+                                    className="bg-gray-800 border border-gray-700 rounded-xl px-2 py-1 w-full text-sm text-gray-100"
                                     value={edit.key}
-                                    onChange={e => setEdit({...edit, key: e.target.value})}
+                                    onChange={e => setEdit({ ...edit, key: e.target.value })}
                                     onKeyDown={e => {
                                         if (e.key === "Enter") saveEdit(idx);
                                         if (e.key === "Escape") setEditingIdx(null);
@@ -119,24 +119,24 @@ export function ParameterViewer() {
                             </td>
                             <td className="py-2 pr-4">
                                 <input
-                                    className="bg-gray-800 border border-gray-700 rounded px-2 py-1 w-full text-sm text-gray-100"
+                                    className="bg-gray-800 border border-gray-700 rounded-xl px-2 py-1 w-full text-sm text-gray-100"
                                     value={edit.value}
-                                    onChange={e => setEdit({...edit, value: e.target.value})}
+                                    onChange={e => setEdit({ ...edit, value: e.target.value })}
                                     onKeyDown={e => {
                                         if (e.key === "Enter") saveEdit(idx);
                                         if (e.key === "Escape") setEditingIdx(null);
                                     }}
                                 />
                             </td>
-                            <td className="py-2">
+                            <td className="py-2 flex gap-2">
                                 <button
-                                    className="mr-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs"
+                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-700 rounded-xl px-3 py-1 shadow transition text-xs font-medium"
                                     onClick={() => saveEdit(idx)}
                                 >
                                     Save
                                 </button>
                                 <button
-                                    className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded text-xs"
+                                    className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-700 rounded-xl px-3 py-1 shadow transition text-xs font-medium"
                                     onClick={() => setEditingIdx(null)}
                                 >
                                     Cancel
@@ -159,10 +159,10 @@ export function ParameterViewer() {
                             >
                                 {param.value}
                             </td>
-                            <td className="py-2">
+                            <td className="py-2 flex">
                                 <button
                                     onClick={() => removeParam(idx)}
-                                    className="px-2 py-1 text-xs rounded bg-red-800 hover:bg-red-700 text-red-200"
+                                    className="flex items-center gap-2 bg-red-800 hover:bg-red-700 text-red-200 border border-red-700 rounded-xl px-3 py-1 shadow transition text-xs font-medium"
                                     title="Delete parameter"
                                 >
                                     Delete
