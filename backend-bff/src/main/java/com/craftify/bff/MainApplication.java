@@ -17,13 +17,13 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
     servers = {@Server(url = "http://localhost:8080")})
 @EnableMongoRepositories
 @EnableMongoAuditing
-public class CraftifyApplication {
+public class MainApplication {
 
   public static void main(String[] args) {
     // Set the default time zone to UTC.
     TimeZone.setDefault(TimeZone.getTimeZone(UTC));
 
     // Start the Spring Boot application.
-    SpringApplication.run(CraftifyApplication.class, args);
+    SpringApplication.run(MainApplication.class, args);
   }
 }
