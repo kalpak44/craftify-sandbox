@@ -1,4 +1,4 @@
-package com.craftifycontroller.config;
+package com.craftify.consumer.config;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
@@ -45,10 +45,7 @@ public class Fabric8Config {
 
     if (masterUrl != null && !masterUrl.isBlank()) {
       logger.info("Using explicit Fabric8 master URL: {}", masterUrl);
-      config = new ConfigBuilder()
-              .withMasterUrl(masterUrl)
-              .withTrustCerts(trustCerts)
-              .build();
+      config = new ConfigBuilder().withMasterUrl(masterUrl).withTrustCerts(trustCerts).build();
     } else {
       logger.info("Using in-cluster Kubernetes config (default)");
       config = Config.autoConfigure(null);

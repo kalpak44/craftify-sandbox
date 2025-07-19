@@ -3,10 +3,10 @@
 set -euo pipefail
 
 DOCKER_USER=kalpak44
-APP_NAME=router-app
+APP_NAME=events-consumer-api
 IMAGE_TAG=latest
 IMAGE_NAME=${DOCKER_USER}/${APP_NAME}:${IMAGE_TAG}
-NAMESPACE=userspace
+NAMESPACE=craftify
 
 echo "🔧 Building Docker image..."
 docker build -t $IMAGE_NAME .
