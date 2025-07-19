@@ -1,91 +1,72 @@
-# Craftify – Simple Overview
+# Craftify – Function-first developer platform
 
-Craftify is a developer tool for building and running small pieces of code (functions) connected to forms, files, or events. It helps you:
+Craftify is a modular platform for building, running, and managing user-defined functions triggered by HTTP requests or
+event streams.
 
-- Design forms
-- Write simple functions
-- Run them on demand or automatically
-- Track execution results
+It helps you:
 
----
-
-## Key Parts of the System
-
-### 1. Frontend (React + Auth0)
-
-The user interface lets you:
-
-- Build forms and attach functions to them
-- Write and configure code (functions)
-- See past runs and logs
-- Upload and manage files
-- Log in securely using Auth0
-- Use a simple JSON editor as a data editor
----
-
-### 2. Backend (Java / Spring Boot)
-
-Handles:
-
-- APIs for forms, files, execution, and logs
-- Queueing tasks when a function needs to run
-- Communicating with file storage (S3/MinIO)
-- Sending updates to the frontend (via WebSocket)
+- Register functions from GitHub
+- Trigger them via HTTP or Kafka-style events
+- Run them as jobs or services
+- View logs and invocations
+- Manage deployment lifecycle (build, stop, deregister)
 
 ---
 
-### 3. Function Controller
+## 💡 Key Components
 
-A small service that:
+### 1. `frontend/` – React (w/ Auth0)
 
-- Picks up queued tasks
-- Starts function execution
-- Watches for success or failure
-- Saves logs and results
+Provides a simple interface to:
 
----
-
-### 4. Function Runners
-
-Tiny, short-lived services that:
-
-- Run one function at a time (in Python, Node.js, Bash, etc.)
-- Get inputs and secrets
-- Send logs and results
-- Shut down after finishing
+- Register functions (from GitHub repos)
+- Choose execution mode (HTTP or Event, Job or Service)
+- Monitor build & run status
+- View logs, invocation history
+- Toggle and deregister functions
 
 ---
 
-### 5. Data Service
+### 2. `backend-bff/` – BFF API (Node.js / Express / NestJS)
 
-A private service that:
-
-- Stores user data safely
-- Is only accessible by system components
-
----
-
-## How it Works (Example Flow)
-
-1. User submits a form
-2. Backend adds a task to the queue
-3. Controller picks it up and runs the function
-4. Runner executes the function and returns results
-5. Frontend shows live status and logs
+- Authenticates users via Auth0
+- Manages GitHub OAuth flow
+- Provides UI APIs:
+    - Register/enable/disable functions
+    - Query build/run logs
+    - Return real-time updates (WebSocket/SSE)
 
 ---
 
-## Running It
+### 3. `events-producer-api/` – Event Entry Point (Node.js)
 
-- **Locally**: Use Docker or local Kubernetes
-- **Cloud**: Deploy to AWS with EKS, S3, etc.
-- **Queue**: Start with Redis or RabbitMQ; upgrade to Kafka/SQS later
+- Accepts app-level event submissions (via REST or Webhooks)
+- Publishes events to Kafka (or Redis Streams in dev)
+- Examples: `user.registered`, `file.uploaded`, etc.
 
 ---
 
-## Folder Structure
+### 4. `events-consumer-api/` – Event Router & Dispatcher (Java/Spring Boot or Go)
 
+- Subscribes to Kafka topics
+- Filters and matches events to user-registered functions
+- Depending on mode:
+    - Launches job containers (`docker run`)
+    - Sends HTTP request to service-style containers
+- Collects logs, results, and updates state
+
+---
+
+## 📁 Folder Structure
+
+```text
 craftify/
-├── frontend/ # React UI
-├── backend/ # Java backend
-├── controller/ # Task scheduler
+├── frontend/               # React UI
+├── backend-bff/            # User-facing API & auth
+├── events-producer-api/    # Emits events from frontend or 3rd parties
+├── events-consumer-api/    # Listens to events and runs functions
+├── wrappers/
+│   ├── node-event-handler/ # Lightweight runner for event jobs
+│   └── node-http-handler/  # HTTP wrapper for service functions
+└── docs/                   # Research / Experiments
+```
