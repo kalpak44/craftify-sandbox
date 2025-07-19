@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-import { useEffect, useState, useRef } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { NavLink } from 'react-router-dom';
-import { Loader } from '../common/Loader';
+import {useEffect, useRef, useState} from 'react';
+import {useAuth0} from '@auth0/auth0-react';
+import {NavLink} from 'react-router-dom';
+import {Loader} from '../common/Loader';
 
 /**
  * Layout with full width, navbar, and profile dropdown.
@@ -11,8 +11,8 @@ import { Loader } from '../common/Loader';
  * Props:
  * - children: ReactNode
  */
-export const FullWidthLayout = ({ children }) => {
-    const { isAuthenticated, user, logout, loginWithRedirect, isLoading } = useAuth0();
+export const FullWidthLayout = ({children}) => {
+    const {isAuthenticated, user, logout, loginWithRedirect, isLoading} = useAuth0();
     const [showProfile, setShowProfile] = useState(false);
     const profileMenuRef = useRef(null);
 
@@ -37,13 +37,13 @@ export const FullWidthLayout = ({ children }) => {
 
     const handleSignUp = () => {
         loginWithRedirect({
-            appState: { returnTo: '/callback' },
-            authorizationParams: { prompt: 'login', screen_hint: 'signup' }
+            appState: {returnTo: '/callback'},
+            authorizationParams: {prompt: 'login', screen_hint: 'signup'}
         });
     };
 
     if (isLoading) {
-        return <Loader />;
+        return <Loader/>;
     }
 
     return (
@@ -53,8 +53,10 @@ export const FullWidthLayout = ({ children }) => {
                 <div className="flex items-center space-x-6 text-gray-400 text-sm relative">
                     {isAuthenticated ? (
                         <>
-                            <NavLink to="/" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Home</NavLink>
-                            <NavLink to="/files" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Files</NavLink>
+                            <NavLink to="/"
+                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Home</NavLink>
+                            <NavLink to="/files"
+                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Files</NavLink>
                             <div className="relative" ref={profileMenuRef}>
                                 <img
                                     src={user.picture}
@@ -63,9 +65,10 @@ export const FullWidthLayout = ({ children }) => {
                                     onClick={() => setShowProfile(prev => !prev)}
                                 />
                                 {showProfile && (
-                                    <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50 p-4">
+                                    <div
+                                        className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50 p-4">
                                         <div className="flex items-center space-x-3 mb-3">
-                                            <img src={user.picture} alt="avatar" className="w-10 h-10 rounded-full" />
+                                            <img src={user.picture} alt="avatar" className="w-10 h-10 rounded-full"/>
                                             <div>
                                                 <p className="text-sm font-medium text-white">{user.name}</p>
                                                 <p className="text-xs text-gray-400">{user.email}</p>
@@ -74,7 +77,7 @@ export const FullWidthLayout = ({ children }) => {
                                         <button
                                             onClick={() => {
                                                 localStorage.removeItem('access_token');
-                                                logout({ returnTo: window.location.origin });
+                                                logout({returnTo: window.location.origin});
                                             }}
                                             className="w-full mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
                                         >
@@ -86,9 +89,12 @@ export const FullWidthLayout = ({ children }) => {
                         </>
                     ) : (
                         <>
-                            <NavLink to="/" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Home</NavLink>
-                            <NavLink to="/terms" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Terms</NavLink>
-                            <NavLink to="/privacy" className={({ isActive }) => isActive ? 'text-white' : 'hover:text-white'}>Privacy</NavLink>
+                            <NavLink to="/"
+                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Home</NavLink>
+                            <NavLink to="/terms"
+                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Terms</NavLink>
+                            <NavLink to="/privacy"
+                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Privacy</NavLink>
                             <button
                                 onClick={() => loginWithRedirect()}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-sm"

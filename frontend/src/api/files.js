@@ -78,7 +78,7 @@ export const downloadItem = async (authFetch, path) => {
  * @returns {Promise<Object>}
  */
 export const createFunction = async (authFetch, folder, name, environment) => {
-    const payload = { folder, name, environment };
+    const payload = {folder, name, environment};
 
     const res = await authFetch(`${API_URL}/create-function`, {
         method: "POST",
@@ -135,7 +135,7 @@ export const getFileContent = async (authFetch, filePath) => {
  * @returns {Promise<string>}
  */
 export const createTextFile = async (authFetch, path, content) => {
-    const payload = { path, content };
+    const payload = {path, content};
 
     const res = await authFetch(`${API_URL}/create-text-file`, {
         method: "POST",
@@ -161,7 +161,7 @@ export const createTextFile = async (authFetch, path, content) => {
  * @returns {Promise<string>}
  */
 export const updateTextFile = async (authFetch, path, content) => {
-    const payload = { path, content };
+    const payload = {path, content};
 
     const res = await authFetch(`${API_URL}/update-text-file`, {
         method: "POST",

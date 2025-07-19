@@ -10,6 +10,8 @@ import {PrivacyPage} from './pages/PrivacyPage';
 import {CallbackPage} from './pages/CallbackPage';
 import {NotFoundPage} from './pages/NotFoundPage';
 import {FunctionEditorPage} from "./pages/FunctionEditorPage.jsx";
+import {FunctionsListPage} from "./pages/FunctionsListPage.jsx";
+import {FunctionDetailsPage} from "./pages/FunctionDetailsPage.jsx";
 
 export default function App() {
     const {isLoading} = useAuth0();
@@ -40,6 +42,22 @@ export default function App() {
                 element={
                     <AuthenticationGuard>
                         <FullWidthLayout><FunctionEditorPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
+            />
+            <Route
+                path="/functions"
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><FunctionsListPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
+            />
+            <Route
+                path="/functions/:id"
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><FunctionDetailsPage/></FullWidthLayout>
                     </AuthenticationGuard>
                 }
             />

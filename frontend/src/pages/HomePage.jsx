@@ -1,10 +1,10 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import {useAuth0} from '@auth0/auth0-react';
 
 /**
  * HomePage: Displays Craftify's simplified value pillars depending on authentication state.
  */
 export const HomePage = () => {
-    const { loginWithRedirect, isAuthenticated, isLoading, user } = useAuth0();
+    const {loginWithRedirect, isAuthenticated, isLoading, user} = useAuth0();
 
     const features = [
         {
@@ -43,7 +43,7 @@ export const HomePage = () => {
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full max-w-4xl">
-                    {features.map(({ title, description, icon }) => (
+                    {features.map(({title, description, icon}) => (
                         <div
                             key={title}
                             className="bg-gray-800 p-6 rounded-lg shadow text-center hover:bg-gray-700 transition"
