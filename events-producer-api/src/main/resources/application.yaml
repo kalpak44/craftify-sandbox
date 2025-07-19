@@ -7,3 +7,16 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     listener:
       concurrency: 1
+
+# Springdoc configuration for OpenAPI and Swagger UI
+springdoc:
+  api-docs:
+    # Path for API documentation
+    path: '/v3/api-docs'
+  swagger-ui:
+    # Path for Swagger UI
+    path: '/swagger-ui'
+    # Sort operations alphabetically
+    operationsSorter: alpha
+    # Sort tags alphabetically
+    tagsSorter: alpha
