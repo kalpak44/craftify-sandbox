@@ -15,7 +15,7 @@ It helps you:
 
 ## 💡 Key Components
 
-### 1. `frontend/` – React (w/ Auth0)
+### 1. `frontend/` – React (Auth0)
 
 Provides a simple interface to:
 
@@ -27,7 +27,7 @@ Provides a simple interface to:
 
 ---
 
-### 2. `backend-bff/` – BFF API (Node.js / Express / NestJS)
+### 2. `backend-bff/` – BFF API (Java/ Spring Boot)
 
 - Authenticates users via Auth0
 - Manages GitHub OAuth flow
@@ -38,7 +38,7 @@ Provides a simple interface to:
 
 ---
 
-### 3. `events-producer-api/` – Event Entry Point (Node.js)
+### 3. `events-producer-api/` – Event Entry Point (Java/ Spring Boot)
 
 - Accepts app-level event submissions (via REST or Webhooks)
 - Publishes events to Kafka (or Redis Streams in dev)
@@ -46,7 +46,7 @@ Provides a simple interface to:
 
 ---
 
-### 4. `events-consumer-api/` – Event Router & Dispatcher (Java/Spring Boot or Go)
+### 4. `events-consumer-api/` – Event Router & Dispatcher (Java/ Spring Boot)
 
 - Subscribes to Kafka topics
 - Filters and matches events to user-registered functions
