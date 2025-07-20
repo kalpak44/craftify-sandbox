@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "name": "lambda-js-fn",
+  "version": "1.0.0",
+  "main": "bootstrap/main.js",
+  "scripts": {
+    "start": "node bootstrap/main.js"
+  },
+  "dependencies": {}
+}
