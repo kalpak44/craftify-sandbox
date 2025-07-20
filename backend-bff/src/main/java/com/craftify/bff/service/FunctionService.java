@@ -29,7 +29,7 @@ public class FunctionService {
                 ));
     }
 
-    public void saveFunction(String functionName, String userId) {
-        repository.save(new FunctionRegistration(null, userId, functionName, "ACTIVE", "Job"));
+    public void saveFunction(String functionName, String functionType, String userId) {
+        repository.save(new FunctionRegistration(null, userId, functionName, "ACTIVE", functionType));
     }
 }

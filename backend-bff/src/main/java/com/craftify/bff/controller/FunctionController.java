@@ -73,7 +73,7 @@ public class FunctionController {
             Thread.sleep(800);
             job.status = "success";
             send(job, "Registration complete!", "success", null);
-            functionService.saveFunction(req.repo(), currentUserId);
+            functionService.saveFunction(req.repo(), req.type(), currentUserId);
         } catch (Exception e) {
             job.status = "error";
             job.error = e.getMessage();
