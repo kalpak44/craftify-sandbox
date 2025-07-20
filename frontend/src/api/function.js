@@ -55,3 +55,26 @@ export async function listFunctions(authFetch, page = 0, size = 10) {
     }
     return res.json();
 }
+
+
+/**
+ * Registers a new function (service or job) in the backend.
+ * @param {Function} authFetch - The authenticated fetch function
+ * @param {Object} functionData - { type: string, repo: string, branch: string }
+ * @returns {Promise<Object>} - The created function object (or error thrown)
+ */
+export async function registerFunction(authFetch, functionData) {
+    const res = await authFetch(`${FUNCTION_API_URL}/register`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(functionData)
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to register function");
+    }
+    return res.json();
+}
