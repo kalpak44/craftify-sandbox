@@ -11,7 +11,6 @@ export function FunctionTable({functions}) {
                 <tr className="text-gray-400 border-b border-gray-800">
                     <th className="px-4 py-3 text-left font-medium">Name</th>
                     <th className="px-4 py-3 text-left font-medium">Status</th>
-                    <th className="px-4 py-3 text-left font-medium">Type</th>
                     <th className="px-4 py-3 text-left font-medium">Execution Mode</th>
                     <th className="px-4 py-3 text-left font-medium">Actions</th>
                 </tr>
@@ -29,7 +28,6 @@ export function FunctionTable({functions}) {
                             {fn.name}
                         </td>
                         <td className="px-4 py-3">{fn.status}</td>
-                        <td className="px-4 py-3">{fn.type}</td>
                         <td className="px-4 py-3">{fn.executionMode}</td>
                         <td className="px-4 py-3">
                             <FunctionActionsMenu functionId={fn.id}/>
