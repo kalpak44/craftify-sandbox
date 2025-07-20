@@ -1,27 +1,34 @@
 import PropTypes from "prop-types";
-import {useEffect, useRef, useState} from "react";
-import {useAuthFetch} from "../../hooks/useAuthFetch.js";
-import {registerFunction} from "../../api/function.js";
+import { useEffect, useRef, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useAuthFetch } from "../../hooks/useAuthFetch.js";
+import { registerFunction } from "../../api/function.js";
+import { useRegistrationLogs } from "../../hooks/useRegistrationLogs.js";
 
-export function RegisterFunctionModal({onClose, onRegistered}) {
+export function RegisterFunctionModal({ onClose, onRegistered }) {
     const [type, setType] = useState("Service");
     const [repo, setRepo] = useState("");
     const [branch, setBranch] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [registrationId, setRegistrationId] = useState(null);
-    const [logs, setLogs] = useState([]); // Logs as array of strings
-    const [status, setStatus] = useState("idle"); // idle | registering | in-progress | success | error
-    const [error, setError] = useState(null);
+    const [inputError, setInputError] = useState(null);
 
+    const { getAccessTokenSilently } = useAuth0();
     const authFetch = useAuthFetch();
-    const wsRef = useRef(null);
     const modalRef = useRef();
     const logsEndRef = useRef();
+
+    // WebSocket logs for registration process
+    const { logs, status, error: logsError, reset: resetLogs } = useRegistrationLogs({
+        registrationId,
+        getToken: getAccessTokenSilently,
+        onRegistered
+    });
 
     // Scroll log to bottom as new logs appear
     useEffect(() => {
         if (logsEndRef.current) {
-            logsEndRef.current.scrollIntoView({behavior: "smooth"});
+            logsEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }, [logs]);
 
@@ -44,94 +51,32 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [onClose]);
 
-    // Open websocket on registrationId set
-    useEffect(() => {
-        if (!registrationId) return;
-
-        setStatus("in-progress");
-        setLogs(["Connecting to log server..."]);
-
-        // Example: ws://localhost:8080/function/registration-status/{registrationId}
-        const wsUrl = `${import.meta.env.VITE_WS_API_HOST || 'ws://localhost:8080'}/function/registration-status/${registrationId}`;
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-            setLogs(prev => [...prev, "[connected]"]);
-        };
-
-        ws.onmessage = (event) => {
-            try {
-                // Try parsing as JSON, fallback to string
-                let msg = event.data;
-                if (event.data && event.data[0] === "{") {
-                    const parsed = JSON.parse(event.data);
-                    if (parsed.message) msg = parsed.message;
-                    else if (parsed.log) msg = parsed.log;
-                    else if (parsed.step) msg = parsed.step;
-                    if (parsed.status) {
-                        if (parsed.status === "success") {
-                            setStatus("success");
-                            setLogs(prev => [...prev, "[success] Registration complete!"]);
-                            if (onRegistered) onRegistered();
-                        } else if (parsed.status === "error") {
-                            setStatus("error");
-                            setLogs(prev => [...prev, "[error] Registration failed"]);
-                            setError(parsed.error || "Registration failed");
-                        }
-                    }
-                }
-                setLogs(prev => [...prev, msg]);
-            } catch (e) {
-                setLogs(prev => [...prev, event.data]);
-            }
-        };
-
-        ws.onerror = () => {
-            setStatus("error");
-            setLogs(prev => [...prev, "[error] WebSocket error"]);
-            setError("WebSocket error.");
-        };
-        ws.onclose = () => {
-            setLogs(prev => [...prev, "[connection closed]"]);
-        };
-
-        return () => {
-            ws.close();
-        };
-    }, [registrationId, onRegistered]);
-
     const handleSave = async () => {
-        setError(null);
+        setInputError(null);
         setSubmitting(true);
-        setStatus("registering");
-        setLogs([]);
         if (!repo.trim() || !branch.trim()) {
-            setError("Repository name and branch are required.");
+            setInputError("Repository name and branch are required.");
             setSubmitting(false);
-            setStatus("idle");
             return;
         }
         try {
-            const response = await registerFunction(authFetch, {type, repo, branch});
+            // Clear out any previous registration logs before starting new one
+            setRegistrationId(null);
+            resetLogs();
+            // Register function - triggers registration and returns an ID to subscribe logs
+            const response = await registerFunction(authFetch, { type, repo, branch });
             setRegistrationId(response.registrationId || response.id);
-            setLogs(["Registration request sent. Waiting for logs..."]);
         } catch (e) {
             let errorMsg = e.message || "Failed to register function.";
             try {
                 const parsed = JSON.parse(e.message);
                 if (parsed.message) errorMsg = parsed.message;
-            } catch (e) {
-                console.error(e)
-            }
-            setError(errorMsg);
-            setStatus("error");
-            setLogs([`[error] ${errorMsg}`]);
+            } catch (err) { /* ignore */ }
+            setInputError(errorMsg);
         } finally {
             setSubmitting(false);
         }
     };
-
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
@@ -147,7 +92,7 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
                     Register Function
                 </h2>
 
-                {status === "idle" || status === "registering" ? (
+                {(status === "idle" || status === "in-progress") ? (
                     <form
                         className="text-sm text-gray-200 space-y-4"
                         onSubmit={e => {
@@ -183,6 +128,7 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
                                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                 required
                                 autoFocus
+                                disabled={submitting}
                             />
                         </div>
                         <div>
@@ -197,8 +143,12 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
                                 placeholder="main"
                                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                 required
+                                disabled={submitting}
                             />
                         </div>
+                        {(inputError || logsError) && (
+                            <div className="text-red-400 text-sm">{inputError || logsError}</div>
+                        )}
                         <div className="flex justify-end gap-2 mt-6">
                             <button
                                 type="button"
