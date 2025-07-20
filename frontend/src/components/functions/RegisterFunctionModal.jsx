@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import PropTypes from "prop-types";
 
 export function RegisterFunctionModal({onClose}) {
+    const [type, setType] = useState("Service");
     const [repo, setRepo] = useState("");
     const [branch, setBranch] = useState("");
 
@@ -17,7 +18,7 @@ export function RegisterFunctionModal({onClose}) {
 
     const handleSave = () => {
         alert(
-            `Repo: ${repo}\nBranch: ${branch}`
+            `Type: ${type}\nRepo: ${repo}\nBranch: ${branch}`
         );
         onClose();
     };
@@ -39,6 +40,20 @@ export function RegisterFunctionModal({onClose}) {
                 </h2>
 
                 <div className="text-sm text-gray-200 space-y-4">
+                    <div>
+                        <label className="block mb-2 text-gray-300 font-medium" htmlFor="function-type">
+                            Function type
+                        </label>
+                        <select
+                            id="function-type"
+                            value={type}
+                            onChange={e => setType(e.target.value)}
+                            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="Service">Service</option>
+                            <option value="Job">Job</option>
+                        </select>
+                    </div>
                     <div>
                         <label className="block mb-2 text-gray-300 font-medium" htmlFor="repo-name">
                             Repo name
