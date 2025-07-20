@@ -1,38 +1,35 @@
 import PropTypes from "prop-types";
-import { useEffect, useRef, useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useAuthFetch } from "../../hooks/useAuthFetch.js";
-import { registerFunction } from "../../api/function.js";
-import { useRegistrationLogs } from "../../hooks/useRegistrationLogs.js";
+import {useEffect, useRef, useState} from "react";
+import {useAuth0} from "@auth0/auth0-react";
+import {useAuthFetch} from "../../hooks/useAuthFetch.js";
+import {registerFunction} from "../../api/function.js";
+import {useRegistrationLogs} from "../../hooks/useRegistrationLogs.js";
 
-export function RegisterFunctionModal({ onClose, onRegistered }) {
+export function RegisterFunctionModal({onClose, onRegistered}) {
     const [type, setType] = useState("Service");
     const [repo, setRepo] = useState("");
     const [branch, setBranch] = useState("");
-    const [submitting, setSubmitting] = useState(false);
-    const [registrationId, setRegistrationId] = useState(null);
     const [inputError, setInputError] = useState(null);
+    const [registrationId, setRegistrationId] = useState(null);
+    const [showLogs, setShowLogs] = useState(false);
 
-    const { getAccessTokenSilently } = useAuth0();
+    const {getAccessTokenSilently} = useAuth0();
     const authFetch = useAuthFetch();
     const modalRef = useRef();
     const logsEndRef = useRef();
 
     // WebSocket logs for registration process
-    const { logs, status, error: logsError, reset: resetLogs } = useRegistrationLogs({
-        registrationId,
+    const {logs, status, error: logsError, reset: resetLogs, connectLogs} = useRegistrationLogs({
         getToken: getAccessTokenSilently,
         onRegistered
     });
 
-    // Scroll log to bottom as new logs appear
     useEffect(() => {
         if (logsEndRef.current) {
-            logsEndRef.current.scrollIntoView({ behavior: "smooth" });
+            logsEndRef.current.scrollIntoView({behavior: "smooth"});
         }
     }, [logs]);
 
-    // ESC and click outside to close
     useEffect(() => {
         const handler = (e) => {
             if (e.key === "Escape") onClose();
@@ -53,28 +50,28 @@ export function RegisterFunctionModal({ onClose, onRegistered }) {
 
     const handleSave = async () => {
         setInputError(null);
-        setSubmitting(true);
+        resetLogs();
+        setShowLogs(true);
+        setRegistrationId(null);
         if (!repo.trim() || !branch.trim()) {
             setInputError("Repository name and branch are required.");
-            setSubmitting(false);
+            setShowLogs(false);
             return;
         }
         try {
-            // Clear out any previous registration logs before starting new one
-            setRegistrationId(null);
-            resetLogs();
-            // Register function - triggers registration and returns an ID to subscribe logs
-            const response = await registerFunction(authFetch, { type, repo, branch });
-            setRegistrationId(response.registrationId || response.id);
+            const response = await registerFunction(authFetch, {type, repo, branch});
+            const regId = response.registrationId || response.id;
+            setRegistrationId(regId);
+            connectLogs(regId);
         } catch (e) {
             let errorMsg = e.message || "Failed to register function.";
             try {
                 const parsed = JSON.parse(e.message);
                 if (parsed.message) errorMsg = parsed.message;
-            } catch (err) { /* ignore */ }
+            } catch (err) { /* ignore */
+            }
             setInputError(errorMsg);
-        } finally {
-            setSubmitting(false);
+            setShowLogs(false);
         }
     };
 
@@ -92,7 +89,39 @@ export function RegisterFunctionModal({ onClose, onRegistered }) {
                     Register Function
                 </h2>
 
-                {(status === "idle" || status === "in-progress") ? (
+                {showLogs ? (
+                    <div>
+                        <div className="mb-3">
+                            <span className="text-gray-300 font-medium">Registration Logs:</span>
+                        </div>
+                        <div
+                            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 max-h-60 overflow-y-auto text-sm font-mono text-gray-300 space-y-1"
+                            style={{minHeight: 120}}>
+                            {!registrationId && (
+                                <div>Starting registration, waiting for registration ID...</div>
+                            )}
+                            {registrationId && logs.length === 0 && (
+                                <div>Waiting for logs...</div>
+                            )}
+                            {logs.map((line, idx) => (
+                                <div key={idx}>{line}</div>
+                            ))}
+                            <div ref={logsEndRef}/>
+                        </div>
+                        {(inputError || logsError) && (
+                            <div className="text-red-400 text-sm mt-2">{inputError || logsError}</div>
+                        )}
+                        <div className="flex justify-end mt-6">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                ) : (
                     <form
                         className="text-sm text-gray-200 space-y-4"
                         onSubmit={e => {
@@ -128,7 +157,6 @@ export function RegisterFunctionModal({ onClose, onRegistered }) {
                                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                 required
                                 autoFocus
-                                disabled={submitting}
                             />
                         </div>
                         <div>
@@ -143,7 +171,6 @@ export function RegisterFunctionModal({ onClose, onRegistered }) {
                                 placeholder="main"
                                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                 required
-                                disabled={submitting}
                             />
                         </div>
                         {(inputError || logsError) && (
@@ -154,41 +181,17 @@ export function RegisterFunctionModal({ onClose, onRegistered }) {
                                 type="button"
                                 onClick={onClose}
                                 className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
-                                disabled={submitting}
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                disabled={submitting}
                                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
                             >
-                                {submitting ? "Submitting..." : "Save"}
+                                Save
                             </button>
                         </div>
                     </form>
-                ) : (
-                    <div>
-                        <div className="mb-3">
-                            <span className="text-gray-300 font-medium">Registration Logs:</span>
-                        </div>
-                        <div
-                            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 max-h-60 overflow-y-auto text-sm font-mono text-gray-300 space-y-1">
-                            {logs.map((line, idx) => (
-                                <div key={idx}>{line}</div>
-                            ))}
-                            <div ref={logsEndRef}/>
-                        </div>
-                        <div className="flex justify-end mt-6">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
                 )}
             </div>
         </div>
