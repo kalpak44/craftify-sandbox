@@ -18,7 +18,6 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
     const modalRef = useRef();
     const logsEndRef = useRef();
 
-    // WebSocket logs for registration process
     const {logs, status, error: logsError, reset: resetLogs, connectLogs} = useRegistrationLogs({
         getToken: getAccessTokenSilently,
         onRegistered
@@ -48,6 +47,13 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [onClose]);
 
+    useEffect(() => {
+        if (status === 'success') {
+            if (onRegistered) onRegistered();
+            onClose();
+        }
+    }, [status, onRegistered, onClose]);
+
     const handleSave = async () => {
         setInputError(null);
         resetLogs();
@@ -68,7 +74,8 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
             try {
                 const parsed = JSON.parse(e.message);
                 if (parsed.message) errorMsg = parsed.message;
-            } catch (err) { /* ignore */
+            } catch (err) {
+                console.warn(err);
             }
             setInputError(errorMsg);
             setShowLogs(false);

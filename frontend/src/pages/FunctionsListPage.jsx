@@ -16,11 +16,8 @@ export function FunctionsListPage() {
     const [totalElements, setTotalElements] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    // Error Modal Control
     const [showErrorModal, setShowErrorModal] = useState(false);
 
-    // Fetch functions from backend
     const fetchFunctions = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -30,7 +27,7 @@ export function FunctionsListPage() {
             setTotalElements(data.totalElements);
         } catch (err) {
             setError(err.message || "Failed to load functions");
-            setShowErrorModal(true); // Show the modal
+            setShowErrorModal(true);
         }
         setLoading(false);
     }, [authFetch, page]);
@@ -39,7 +36,6 @@ export function FunctionsListPage() {
         fetchFunctions();
     }, [fetchFunctions]);
 
-    // Show more handler
     const handleShowMore = () => setPage(prev => prev + 1);
 
     return (
@@ -84,11 +80,12 @@ export function FunctionsListPage() {
             {showRegister && (
                 <RegisterFunctionModal
                     onClose={() => setShowRegister(false)}
-                    onRegistered={fetchFunctions}
+                    onRegistered={() => {
+                        fetchFunctions();
+                    }}
                 />
             )}
 
-            {/* ERROR MODAL */}
             {showErrorModal && (
                 <Modal
                     title="Failed to fetch functions"
