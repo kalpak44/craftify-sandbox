@@ -1,6 +1,7 @@
 package com.craftify.bff.service;
 
 import com.craftify.bff.dto.FunctionDto;
+import com.craftify.bff.model.FunctionRegistration;
 import com.craftify.bff.repository.FunctionRegistrationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -11,17 +12,14 @@ import org.springframework.stereotype.Service;
 public class FunctionService {
 
     private final FunctionRegistrationRepository repository;
-    private final AuthentificationService authentificationService;
+
 
     @Autowired
-    public FunctionService(FunctionRegistrationRepository repository,
-                           AuthentificationService authentificationService) {
+    public FunctionService(FunctionRegistrationRepository repository) {
         this.repository = repository;
-        this.authentificationService = authentificationService;
     }
 
-    public Page<FunctionDto> getAllFunctionsForCurrentUser(Pageable pageable) {
-        var userId = authentificationService.getCurrentUserId();
+    public Page<FunctionDto> getAllFunctionsForCurrentUser(Pageable pageable, String userId) {
         return repository.findAllByUserId(userId, pageable)
                 .map(fn -> new FunctionDto(
                         fn.id(),
@@ -29,5 +27,9 @@ public class FunctionService {
                         fn.status(),
                         fn.executionMode()
                 ));
+    }
+
+    public void saveFunction(String functionName, String userId) {
+        repository.save(new FunctionRegistration(null, userId, functionName, "ACTIVE", "Job"));
     }
 }
