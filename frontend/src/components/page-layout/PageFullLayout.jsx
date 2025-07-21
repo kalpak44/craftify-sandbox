@@ -59,6 +59,7 @@ export const FullWidthLayout = ({children}) => {
                                      className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Files</NavLink>
                             <NavLink to="/functions"
                                      className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Functions</NavLink>
+                            {/*<CustomMenuTree />*/}
                             <div className="relative" ref={profileMenuRef}>
                                 <img
                                     src={user.picture}

@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class FunctionService {
 
@@ -29,7 +31,8 @@ public class FunctionService {
                 ));
     }
 
-    public void saveFunction(String functionName, String functionType, String userId) {
-        repository.save(new FunctionRegistration(null, userId, functionName, "ACTIVE", functionType));
+    public void saveFunction(String functionName, String functionType, String userId, String commitHash) {
+        Instant now = Instant.now();
+        repository.save(new FunctionRegistration(null, userId, functionName, "ACTIVE", functionType, commitHash, now));
     }
 }

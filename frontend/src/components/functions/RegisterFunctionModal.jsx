@@ -7,8 +7,8 @@ import {useRegistrationLogs} from "../../hooks/useRegistrationLogs.js";
 
 export function RegisterFunctionModal({onClose, onRegistered}) {
     const [type, setType] = useState("Service");
-    const [repo, setRepo] = useState("");
-    const [branch, setBranch] = useState("");
+    const [repo, setRepo] = useState("https://github.com/kalpak44/craftify-event-function.git");
+    const [branch, setBranch] = useState("main");
     const [inputError, setInputError] = useState(null);
     const [registrationId, setRegistrationId] = useState(null);
     const [showLogs, setShowLogs] = useState(false);

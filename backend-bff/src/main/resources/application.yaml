@@ -1,3 +1,7 @@
+function-builder:
+  temp-path: /tmp
+  template-path: ./templates/node-event-based-job-handler/
+
 spring:
   servlet:
     multipart:
