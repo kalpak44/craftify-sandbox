@@ -1,0 +1,26 @@
+{
+  "name": "Product Module",
+  "description": "Handles product registration events.",
+  "handlers": [
+    {
+      "eventType": "product.registration.submitted",
+      "file": "handler.js",
+      "function": "default"
+    }
+  ],
+  "pages": [
+    {
+      "file": "pages/product-registration.form.json",
+      "route": "/products/register",
+      "menu": {
+        "path": [
+          { "id": "inventory", "label": "Inventory" },
+          { "id": "products", "label": "Products" }
+        ],
+        "id": "registerProduct",
+        "label": "Register Product"
+      },
+      "submitHandler": "handleProductRegister"
+    }
+  ]
+}

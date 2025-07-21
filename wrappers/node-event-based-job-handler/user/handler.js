@@ -1,9 +1,11 @@
 export default async (event, context) => {
-    const { user } = event.payload;
-    context.log(`Handling new user: ${user.name}`);
+    const { productName, quantity, unit } = event.payload;
+    context.log(`Registering new product: ${productName}, ${quantity} ${unit}`);
 
-    await context.emit('user.created', {
-        email: user.email,
-        name: user.name
+    // Here, save to DB or perform business logic
+    await context.emit('product.created', {
+        productName,
+        quantity,
+        unit
     });
 };

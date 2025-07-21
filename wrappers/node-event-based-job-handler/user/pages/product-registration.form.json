@@ -1,0 +1,57 @@
+{
+  "title": "Register New Product",
+  "description": "Fill in the details to add a new product.",
+  "fields": [
+    {
+      "id": "productName",
+      "type": "text",
+      "label": "Product Name",
+      "required": true,
+      "validations": [
+        {
+          "type": "minLength",
+          "value": 2,
+          "message": "Product name must be at least 2 characters."
+        },
+        {
+          "type": "maxLength",
+          "value": 40,
+          "message": "Product name must be at most 40 characters."
+        }
+      ]
+    },
+    {
+      "id": "quantity",
+      "type": "number",
+      "label": "Quantity",
+      "required": true,
+      "validations": [
+        {
+          "type": "min",
+          "value": 1,
+          "message": "Quantity must be at least 1."
+        }
+      ]
+    },
+    {
+      "id": "unit",
+      "type": "select",
+      "label": "Unit",
+      "required": true,
+      "options": [
+        { "label": "Piece(s)", "value": "pcs" },
+        { "label": "Kilogram(s)", "value": "kg" },
+        { "label": "Litre(s)", "value": "l" }
+      ],
+      "validations": [
+        {
+          "type": "required",
+          "message": "Please select a unit."
+        }
+      ]
+    }
+  ],
+  "submit": {
+    "label": "Register Product"
+  }
+}
