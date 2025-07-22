@@ -39,7 +39,7 @@ export const runFunction = async (authFetch, path, event) => {
  * @returns {Promise<Object>} - The pageable response: { content, totalElements, totalPages, ... }
  */
 export async function listFunctions(authFetch, page = 0, size = 10) {
-    const url = new URL(`${FUNCTION_API_URL}/list`); // adjust if your endpoint is /function or /function/list
+    const url = new URL(`${FUNCTION_API_URL}/list`);
     url.searchParams.append("page", page);
     url.searchParams.append("size", size);
 

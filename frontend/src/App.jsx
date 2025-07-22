@@ -12,6 +12,7 @@ import {NotFoundPage} from './pages/NotFoundPage';
 import {FunctionEditorPage} from "./pages/FunctionEditorPage.jsx";
 import {FunctionsListPage} from "./pages/FunctionsListPage.jsx";
 import {FunctionDetailsPage} from "./pages/FunctionDetailsPage.jsx";
+import {DataStoreListPage} from "./pages/DataStoreListPage.jsx";
 
 export default function App() {
     const {isLoading} = useAuth0();
@@ -58,6 +59,14 @@ export default function App() {
                 element={
                     <AuthenticationGuard>
                         <FullWidthLayout><FunctionDetailsPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
+            />
+            <Route
+                path="/data-stores"
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><DataStoreListPage/></FullWidthLayout>
                     </AuthenticationGuard>
                 }
             />
