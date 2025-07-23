@@ -1,9 +1,7 @@
 package com.craftify.bff.service;
 
 import com.craftify.bff.config.MinioClientConfig;
-import com.craftify.bff.dto.EnvironmentType;
 import com.craftify.bff.dto.FileItemDto;
-import com.craftify.bff.dto.FileTreeNodeDto;
 import com.craftify.bff.dto.FileType;
 import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
@@ -11,7 +9,6 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.Result;
-import io.minio.StatObjectArgs;
 import io.minio.messages.Item;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,7 +26,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * Service for authenticated user interaction with object storage via MinIO.
- * Supports folder and file operations including list, upload, delete, move, and function creation.
+ * Supports folder and file operations including list, upload, delete, move.
  */
 @Service
 public class UserStorageService {
@@ -59,7 +56,7 @@ public class UserStorageService {
         return StreamSupport.stream(results.spliterator(), false)
                 .map(result -> toFileItemDto(result, prefix))
                 .filter(Objects::nonNull)
-                .filter(dto -> dto.type() == FileType.FOLDER || dto.type() == FileType.FUNCTION || (dto.type() == FileType.FILE && dto.size() > 0))
+                .filter(dto -> dto.type() == FileType.FOLDER || (dto.type() == FileType.FILE && dto.size() > 0))
                 .collect(Collectors.toList());
     }
 
@@ -186,58 +183,6 @@ public class UserStorageService {
         }
     }
 
-    /**
-     * Creates a new function by writing metadata to `.meta.json`.
-     *
-     * @param folder      Target folder path (can be null or relative).
-     * @param name        Name of the function.
-     * @param environment Execution environment (e.g., NODE_JS).
-     */
-    public void createFunction(String folder, String name, EnvironmentType environment) {
-        Path targetPath = (folder == null || folder.isBlank())
-                ? resolveUserPath(name)
-                : resolveUserPath(folder).resolve(name);
-
-        String functionRoot = normalizePath(targetPath.toString());
-        String metaFilePath = functionRoot + "/.meta.json";
-
-        String environmentValue = environment.name().toLowerCase().replace('_', '.');
-        String metaJson = "{\"environment\":\"" + environmentValue + "\"}";
-
-        try (InputStream metaStream = new ByteArrayInputStream(metaJson.getBytes(StandardCharsets.UTF_8))) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(metaFilePath)
-                            .stream(metaStream, metaJson.length(), -1)
-                            .contentType("application/json")
-                            .build()
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create function metadata", e);
-        }
-
-        if (EnvironmentType.NODE_JS.equals(environment)) {
-            createNodeJsDefaults(functionRoot, name);
-        }
-    }
-
-    private void createNodeJsDefaults(String functionRoot, String functionName) {
-        String indexJsContent = """
-                exports.handler = async (event) => {
-                    return {
-                        statusCode: 200,
-                        body: JSON.stringify({ message: "Hello from Node.js function!" })
-                    };
-                };
-                """;
-
-        try {
-            writeFile(functionRoot + "/src/index.js", indexJsContent);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create default Node.js files", e);
-        }
-    }
 
     private void writeFile(String objectPath, String content) throws Exception {
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
@@ -268,15 +213,6 @@ public class UserStorageService {
         }
     }
 
-    /**
-     * Builds a hierarchical file tree under the given root path.
-     *
-     * @param treeRoot Root folder to start the tree from.
-     * @return Tree node containing child structure.
-     */
-    public FileTreeNodeDto buildFunctionTree(String treeRoot) {
-        return new FunctionTreeBuilder(minioClient, bucketName, authentificationService).build(treeRoot);
-    }
 
     private String buildUserPrefix(String path, boolean withTrailingSlash) {
         Path base = resolveUserPath(path);
@@ -318,32 +254,12 @@ public class UserStorageService {
             long size = item.size();
             Instant modified = item.lastModified() != null ? item.lastModified().toInstant() : null;
 
-            FileType type = FileType.FILE;
-            if (item.isDir()) {
-                boolean hasMeta = hasFunctionMeta(objectName);
-                if (hasMeta) {
-                    relativeFullPath = relativeFullPath.replaceAll("/$", "");
-                    relativeName = relativeName.replaceAll("/$", "");
-                    type = FileType.FUNCTION;
-                } else {
-                    type = FileType.FOLDER;
-                }
-            }
+            FileType type = item.isDir() ? FileType.FOLDER : FileType.FILE;
 
             return new FileItemDto(relativeName, type, size, modified, relativeFullPath);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to convert item to FileItemDto", e);
-        }
-    }
-
-    private boolean hasFunctionMeta(String folderPath) {
-        String metaPath = Paths.get(folderPath).resolve(".meta.json").toString().replace("\\", "/");
-        try {
-            minioClient.statObject(StatObjectArgs.builder().bucket(bucketName).object(metaPath).build());
-            return true;
-        } catch (Exception ignored) {
-            return false;
         }
     }
 }

@@ -10,8 +10,5 @@ public enum FileType {
   FILE,
 
   /** Represents a folder or directory. */
-  FOLDER,
-
-  /** Represents a function folder (contains .meta.json). */
-  FUNCTION
+  FOLDER
 }

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {createFolder, createFunction, deleteItem, downloadItem, listFiles, renameItem, uploadFile} from '../api/files';
+import {createFolder, deleteItem, downloadItem, listFiles, renameItem, uploadFile} from '../api/files';
 import {Loader} from '../components/common/Loader';
 import {Modal} from '../components/common/Modal';
 import {useAuthFetch} from '../hooks/useAuthFetch';
@@ -19,13 +19,10 @@ export const FilesPage = () => {
     const [showRenameModal, setShowRenameModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showErrorModal, setShowErrorModal] = useState(false);
-    const [showFunctionModal, setShowFunctionModal] = useState(false);
 
     const [createName, setCreateName] = useState('');
     const [renameName, setRenameName] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const [functionName, setFunctionName] = useState('');
-    const [environment, setEnvironment] = useState('NODE_JS');
 
     useEffect(() => {
         fetchFiles(currentFolder);
@@ -128,24 +125,6 @@ export const FilesPage = () => {
         }
     };
 
-    const confirmCreateFunction = async () => {
-        const name = functionName.trim();
-        if (!isValidName(name)) {
-            showError('Invalid function name.');
-            return;
-        }
-        setLoading(true);
-        try {
-            await createFunction(authFetch, currentFolder, name, environment);
-            navigate(`/editor?path=${encodeURIComponent(`${currentFolder}${name}/`)}`);
-        } catch {
-            showError('Function creation failed. Please try again.');
-        } finally {
-            setLoading(false);
-            setShowFunctionModal(false);
-            setFunctionName('');
-        }
-    };
 
     const triggerDownload = () => {
         if (selectedItem?.fullPath) {
@@ -190,12 +169,6 @@ export const FilesPage = () => {
                         >
                             New Folder
                         </button>
-                        <button
-                            onClick={() => setShowFunctionModal(true)}
-                            className="bg-indigo-600 px-3 py-1 rounded text-sm hover:bg-indigo-700"
-                        >
-                            Create Function
-                        </button>
 
                         {selectedItem && (
                             <>
@@ -230,14 +203,6 @@ export const FilesPage = () => {
                                         Open
                                     </button>
                                 )}
-                                {selectedItem.type === 'FUNCTION' && (
-                                    <button
-                                        onClick={() => navigate(`/editor?path=${encodeURIComponent(selectedItem.fullPath)}`)}
-                                        className="bg-pink-600 px-3 py-1 rounded text-sm hover:bg-pink-700"
-                                    >
-                                        Edit
-                                    </button>
-                                )}
                             </>
                         )}
                     </div>
@@ -254,7 +219,7 @@ export const FilesPage = () => {
                     <tbody>
                     {files.map((item, i) => {
                         const isSelected = selectedItem?.fullPath === item.fullPath;
-                        const icon = item.type === 'FOLDER' ? '📁' : item.type === 'FUNCTION' ? '🧠' : '📄';
+                        const icon = item.type === 'FOLDER' ? '📁' : '📄';
 
                         return (
                             <tr
@@ -268,7 +233,7 @@ export const FilesPage = () => {
                                     {item.name}
                                 </td>
                                 <td className="py-2 px-3 text-gray-300">
-                                    {item.type === 'FOLDER' || item.type === 'FUNCTION' ? '-' : `${(item.size / 1024).toFixed(1)} KB`}
+                                    {item.type === 'FOLDER' ? '-' : `${(item.size / 1024).toFixed(1)} KB`}
                                 </td>
                                 <td className="py-2 px-3 text-gray-400">
                                     {new Date(item.lastModified).toLocaleString()}
@@ -332,36 +297,6 @@ export const FilesPage = () => {
                 >
                     Are you sure you want to permanently delete{' '}
                     <strong>{selectedItem?.name}</strong>?
-                </Modal>
-            )}
-
-            {showFunctionModal && (
-                <Modal
-                    title="Create New Function"
-                    onCancel={() => {
-                        setShowFunctionModal(false);
-                        setFunctionName('');
-                    }}
-                    onConfirm={confirmCreateFunction}
-                    confirmText="Create"
-                >
-                    <div className="space-y-3">
-                        <input
-                            type="text"
-                            value={functionName}
-                            onChange={(e) => setFunctionName(e.target.value)}
-                            placeholder="Function name"
-                            className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none"
-                            autoFocus
-                        />
-                        <select
-                            value={environment}
-                            onChange={(e) => setEnvironment(e.target.value)}
-                            className="w-full px-3 py-2 bg-gray-700 text-white rounded outline-none"
-                        >
-                            <option value="node.js">Node.js</option>
-                        </select>
-                    </div>
                 </Modal>
             )}
 

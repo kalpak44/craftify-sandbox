@@ -15,7 +15,6 @@ public class FunctionService {
 
     private final FunctionRegistrationRepository repository;
 
-
     @Autowired
     public FunctionService(FunctionRegistrationRepository repository) {
         this.repository = repository;

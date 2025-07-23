@@ -1,9 +1,7 @@
 package com.craftify.bff.controller;
 
-import com.craftify.bff.dto.CreateFunctionRequestDto;
 import com.craftify.bff.dto.CreateTextFileRequestDto;
 import com.craftify.bff.dto.FileItemDto;
-import com.craftify.bff.dto.FileTreeNodeDto;
 import com.craftify.bff.dto.UpdateTextFileRequestDto;
 import com.craftify.bff.service.UserStorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -154,34 +152,6 @@ public class UserStorageController {
             @Parameter(description = "Target path", required = true) @RequestParam String toPath) {
         userStorageService.moveUserPath(fromPath, toPath);
         return ResponseEntity.ok("Moved successfully from " + fromPath + " to " + toPath);
-    }
-
-    @PostMapping("/create-function")
-    @Operation(
-            summary = "Create Function",
-            description = "Creates a new function folder with a .meta.json file specifying the runtime environment",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = CreateFunctionRequestDto.class)
-                    )
-            )
-    )
-    @ApiResponse(responseCode = "200", description = "Function creation request accepted")
-    public ResponseEntity<Void> createFunction(@RequestBody CreateFunctionRequestDto request) {
-        userStorageService.createFunction(request.folder(), request.name(), request.environment());
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/tree")
-    @Operation(
-            summary = "List function file tree",
-            description = "Returns root node and full nested structure under given function path (excluding .meta.json)"
-    )
-    public ResponseEntity<FileTreeNodeDto> getFunctionFileTree(@RequestParam("path") String path) {
-        var tree = userStorageService.buildFunctionTree(path);
-        return ResponseEntity.ok(tree);
     }
 
 

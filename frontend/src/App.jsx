@@ -9,7 +9,6 @@ import {TermsPage} from './pages/TermsPage';
 import {PrivacyPage} from './pages/PrivacyPage';
 import {CallbackPage} from './pages/CallbackPage';
 import {NotFoundPage} from './pages/NotFoundPage';
-import {FunctionEditorPage} from "./pages/FunctionEditorPage.jsx";
 import {FunctionsListPage} from "./pages/FunctionsListPage.jsx";
 import {FunctionDetailsPage} from "./pages/FunctionDetailsPage.jsx";
 import {DataStoreListPage} from "./pages/DataStoreListPage.jsx";
@@ -40,14 +39,6 @@ export default function App() {
                 }
             />
 
-            <Route
-                path="/editor"
-                element={
-                    <AuthenticationGuard>
-                        <FullWidthLayout><FunctionEditorPage/></FullWidthLayout>
-                    </AuthenticationGuard>
-                }
-            />
             <Route
                 path="/functions"
                 element={

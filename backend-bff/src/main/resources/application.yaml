@@ -5,12 +5,12 @@ function-builder:
 spring:
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 20MB
+      max-file-size: 100MB
+      max-request-size: 100MB
 # Server configuration
 server:
   # Maximum size of HTTP request headers
-  max-http-request-header-size: 20MB
+  max-http-request-header-size: 100MB
   # Enable graceful shutdown
   shutdown: graceful
   # Server port
