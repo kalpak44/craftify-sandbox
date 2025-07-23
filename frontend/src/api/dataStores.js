@@ -100,3 +100,19 @@ export async function getDataRecordById(authFetch, dataStoreId, recordId) {
     return res.json();
 }
 
+export async function updateDataRecord(authFetch, dataStoreId, recordId, updatedData) {
+    const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records/${recordId}`);
+    const res = await authFetch(url, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ recordData: updatedData })
+    });
+
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err || "Failed to update data record");
+    }
+    return res.json();
+}
