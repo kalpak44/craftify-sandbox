@@ -79,8 +79,9 @@ export function DataStoreListPage() {
             {showStoreCreation && (
                 <CreateDataStoreModal
                     onClose={() => setShowStoreCreation(false)}
-                    onCreated={() => {
-                        fetchDataStores();
+                    onCreated={async () => {
+                        await fetchDataStores();
+                        setShowStoreCreation(false);
                     }}
                 />
             )}

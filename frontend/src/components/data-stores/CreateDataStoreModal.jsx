@@ -1,14 +1,18 @@
 import PropTypes from "prop-types";
 import { useEffect, useRef, useState } from "react";
+import {createDataStores} from "../../api/dataStores.js";
+import {useAuthFetch} from "../../hooks/useAuthFetch.js";
 
 export function CreateDataStoreModal({ onClose, onCreated }) {
     const [formData, setFormData] = useState({
-        dataType: "JSON",
+        type: "JSON",
         name: "",
         description: ""
     });
 
     const modalRef = useRef();
+    const authFetch = useAuthFetch();
+    const [errorMsg, setErrorMsg] = useState(null);
 
     useEffect(() => {
         const handler = (e) => {
@@ -35,9 +39,13 @@ export function CreateDataStoreModal({ onClose, onCreated }) {
         }));
     };
 
-    const handleSave = () => {
-        onCreated?.(formData);
-        alert(`Data Store Created:\n\n${JSON.stringify(formData, null, 2)}`);
+    const handleSave = async () => {
+        try {
+            let created = await createDataStores(authFetch, formData);
+            onCreated?.(created);
+        } catch (e) {
+            setErrorMsg(e.message || "Failed to create data store");
+        }
     };
 
     return (
@@ -69,7 +77,7 @@ export function CreateDataStoreModal({ onClose, onCreated }) {
                         </label>
                         <select
                             id="data-type"
-                            value={formData.dataType}
+                            value={formData.type}
                             onChange={handleChange("dataType")}
                             className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500"
                         >
@@ -108,6 +116,9 @@ export function CreateDataStoreModal({ onClose, onCreated }) {
                         />
                     </div>
 
+                    {(errorMsg) && (
+                        <div className="text-red-400 text-sm mt-2">{errorMsg}</div>
+                    )}
                     {/* Action Buttons */}
                     <div className="flex justify-end gap-2 mt-6">
                         <button
