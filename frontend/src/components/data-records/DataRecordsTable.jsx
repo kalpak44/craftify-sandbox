@@ -1,8 +1,9 @@
-import {useNavigate} from 'react-router-dom';
-import {DataStoreActionsMenu} from "./DataStoreActionsMenu.jsx";
+import {useNavigate, useParams} from 'react-router-dom';
 
-export function DataStoresTable({dataStores}) {
+export function DataRecordsTable({dataRecords}) {
     const navigate = useNavigate();
+    const { id: dataStoreId, type: dataStoreType } = useParams();
+    console.log(dataRecords);
 
     return (
         <div className="w-full bg-gray-950 rounded-xl shadow border border-gray-800 overflow-x-auto mt-4">
@@ -12,29 +13,27 @@ export function DataStoresTable({dataStores}) {
                     <th className="px-4 py-3 text-left font-medium">Name</th>
                     <th className="px-4 py-3 text-left font-medium">Type</th>
                     <th className="px-4 py-3 text-left font-medium">Created at</th>
-                    <th className="px-4 py-3 text-left font-medium">Status</th>
-                    <th className="px-4 py-3 text-left font-medium">Records</th>
+                    <th className="px-4 py-3 text-left font-medium">Updated at</th>
                     <th className="px-4 py-3 text-left font-medium">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                {dataStores.map(ds => (
+                {dataRecords.map(record => (
                     <tr
-                        key={ds.id}
+                        key={record.id}
                         className="hover:bg-gray-900 transition border-b border-gray-900"
                     >
                         <td
                             className="px-4 py-3 cursor-pointer text-blue-400 hover:underline"
-                            onClick={() => navigate(`/data-stores/${ds.id}/${ds.type}`)}
+                            onClick={() => navigate(`/data-stores/${dataStoreId}/${dataStoreType}/${record.id}`)}
                         >
-                            {ds.name}
+                            {record.name}
                         </td>
-                        <td className="px-4 py-3">{ds.type}</td>
-                        <td className="px-4 py-3">{new Date(ds.createdAt).toLocaleString() || " - "}</td>
-                        <td className="px-4 py-3">{ds.status || "ACTIVE"}</td>
-                        <td className="px-4 py-3">{ds.records || 0}</td>
+                        <td className="px-4 py-3">{dataStoreType}</td>
+                        <td className="px-4 py-3">{new Date(record.createdAt).toLocaleString() || " - "}</td>
+                        <td className="px-4 py-3">{new Date(record.updatedAt).toLocaleString() || " - "}</td>
                         <td className="px-4 py-3">
-                            <DataStoreActionsMenu functionId={ds.id}/>
+                            {/*<DataStoreActionsMenu functionId={record.id}/>*/}
                         </td>
                     </tr>
                 ))}

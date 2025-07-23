@@ -22,7 +22,7 @@ export async function listDataStores(authFetch, page = 0, size = 10) {
     });
 
     if (!res.ok) {
-        throw new Error("Failed to fetch functions");
+        throw new Error("Failed to fetch data stores");
     }
     return res.json();
 }
@@ -49,4 +49,31 @@ export const createDataStores = async (authFetch, dataStore) => {
     }
     return res.json();
 };
+
+/**
+ * Fetch a pageable list of data stores from the backend.
+ * @param {Function} authFetch - The authenticated fetch function
+ * @param dataStoreId
+ * @param {number} page - Page number (0-based)
+ * @param {number} size - Page size
+ * @returns {Promise<Object>} - The pageable response: { content, totalElements, totalPages, ... }
+ */
+export async function listDataStoresRecords(authFetch, dataStoreId, page = 0, size = 10) {
+    const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records`);
+
+    url.searchParams.append("page", page);
+    url.searchParams.append("size", size);
+
+    const res = await authFetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch data store records");
+    }
+    return res.json();
+}
 

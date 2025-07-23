@@ -1,7 +1,9 @@
 package com.craftify.bff.controller;
 
 import com.craftify.bff.dto.DataStoreDto;
+import com.craftify.bff.dto.DataStoreRecordDto;
 import com.craftify.bff.model.DataStore;
+import com.craftify.bff.model.DataStoreRecord;
 import com.craftify.bff.service.DataStoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -57,6 +59,22 @@ public class DataStoreController {
     public ResponseEntity<Page<DataStoreDto>> list(
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         var paginated = service.list(page, size).map(this::toDto);
+        return ResponseEntity.ok(paginated);
+    }
+
+
+    @Operation(summary = "List all data stores records with pagination")
+    @ApiResponse(
+            responseCode = "200",
+            description = "List of data stores",
+            content =
+            @Content(
+                    schema =
+                    @io.swagger.v3.oas.annotations.media.Schema(implementation = DataStoreDto.class)))
+    @GetMapping("{id}/records")
+    public ResponseEntity<Page<DataStoreRecordDto>> listRecords(@PathVariable String id,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        var paginated = service.listRecords(id, page, size).map(this::toRecordDto);
         return ResponseEntity.ok(paginated);
     }
 
@@ -126,4 +144,10 @@ public class DataStoreController {
     private DataStoreDto toDto(DataStore entity) {
         return new DataStoreDto(entity.id(), entity.name(), entity.description(), entity.type(), entity.createdAt());
     }
+
+
+    private DataStoreRecordDto toRecordDto(DataStoreRecord entity) {
+        return new DataStoreRecordDto(entity.id(), entity.name(), entity.createdAt(), entity.updatedAt(), entity.record());
+    }
+
 }

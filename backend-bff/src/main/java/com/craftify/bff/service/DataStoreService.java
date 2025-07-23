@@ -1,25 +1,31 @@
 package com.craftify.bff.service;
 
 import com.craftify.bff.model.DataStore;
+import com.craftify.bff.model.DataStoreRecord;
+import com.craftify.bff.repository.DataStoreRecordsRepository;
 import com.craftify.bff.repository.DataStoreRepository;
-
-import java.time.Instant;
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-/** Service layer for managing DataSchema entities. */
+import java.time.Instant;
+import java.util.Optional;
+
+/**
+ * Service layer for managing DataSchema entities.
+ */
 @Service
 public class DataStoreService {
 
-    private final DataStoreRepository repository;
+    private final DataStoreRepository dataStoreRepository;
+    private final DataStoreRecordsRepository dataStoreRecordsRepository;
     private final AuthentificationService auth;
 
     public DataStoreService(
-            DataStoreRepository repository,
+            DataStoreRepository dataStoreRepository, DataStoreRecordsRepository dataStoreRecordsRepository,
             AuthentificationService auth) {
-        this.repository = repository;
+        this.dataStoreRepository = dataStoreRepository;
+        this.dataStoreRecordsRepository = dataStoreRecordsRepository;
         this.auth = auth;
     }
 
@@ -30,7 +36,7 @@ public class DataStoreService {
      * @return the saved DataSchema
      */
     public DataStore create(DataStore schema) {
-        return repository.save(
+        return dataStoreRepository.save(
                 new DataStore(
                         schema.id(),
                         schema.name(),
@@ -48,7 +54,7 @@ public class DataStoreService {
      * @return a page of DataSchema entities
      */
     public Page<DataStore> list(int page, int size) {
-        return repository.findAllByUserId(auth.getCurrentUserId(), PageRequest.of(page, size));
+        return dataStoreRepository.findAllByUserId(auth.getCurrentUserId(), PageRequest.of(page, size));
     }
 
     /**
@@ -58,22 +64,22 @@ public class DataStoreService {
      * @return an Optional containing the DataSchema if found
      */
     public Optional<DataStore> getById(String id) {
-        return repository.findByIdAndUserId(id, auth.getCurrentUserId());
+        return dataStoreRepository.findByIdAndUserId(id, auth.getCurrentUserId());
     }
 
     /**
      * Updates an existing DataStore with new values.
      *
-     * @param id the ID of the existing DataStore
+     * @param id            the ID of the existing DataStore
      * @param updatedSchema the new schema data
      * @return an Optional containing the updated schema if the original was found
      */
     public Optional<DataStore> update(String id, DataStore updatedSchema) {
-        return repository
+        return dataStoreRepository
                 .findByIdAndUserId(id, auth.getCurrentUserId())
                 .map(
                         existing ->
-                                repository.save(
+                                dataStoreRepository.save(
                                         new DataStore(
                                                 existing.id(),
                                                 updatedSchema.name(),
@@ -89,11 +95,10 @@ public class DataStoreService {
      * @param id the ID of the schema to delete
      */
     public void delete(String id) {
-        repository
+        dataStoreRepository
                 .findByIdAndUserId(id, auth.getCurrentUserId())
-                .ifPresent(schema -> repository.deleteById(schema.id()));
+                .ifPresent(schema -> dataStoreRepository.deleteById(schema.id()));
     }
-
 
 
     /**
@@ -117,4 +122,19 @@ public class DataStoreService {
         // TODO: Add logic for locking immutable schemas
         return true;
     }
+
+    public Page<DataStoreRecord> listRecords(String dataStoreId, int page, int size) {
+        Optional<DataStore> dataStoreOpt = dataStoreRepository.findByIdAndUserId(dataStoreId, auth.getCurrentUserId());
+
+        if (dataStoreOpt.isEmpty()) {
+            throw new IllegalArgumentException("DataStore not found for the current user.");
+        }
+
+        return dataStoreRecordsRepository.findAllByUserIdAndDataStoreId(
+                auth.getCurrentUserId(),
+                dataStoreId,
+                PageRequest.of(page, size)
+        );
+    }
+
 }
