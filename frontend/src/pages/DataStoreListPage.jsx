@@ -26,7 +26,7 @@ export function DataStoreListPage() {
             setDataStores(data.content);
             setTotalElements(data.totalElements);
         } catch (err) {
-            setError(err.message || "Failed to load data stiores");
+            setError(err.message || "Failed to load data stores");
             setShowErrorModal(true);
         }
         setLoading(false);
