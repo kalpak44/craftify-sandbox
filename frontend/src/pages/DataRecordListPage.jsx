@@ -1,10 +1,10 @@
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {Modal} from "../components/common/Modal";
 import {Loader} from "../components/common/Loader";
 import {useAuthFetch} from "../hooks/useAuthFetch";
 import {listDataStoresRecords} from "../api/dataStores.js";
 import {DataRecordsTable} from "../components/data-records/DataRecordsTable.jsx";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 
 const INITIAL_PAGE_SIZE = 5;
 
@@ -17,6 +17,9 @@ export function DataRecordListPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [showErrorModal, setShowErrorModal] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+    const popoverRef = useRef();
+    const navigate = useNavigate();
 
     const fetchDataStores = useCallback(async () => {
         setLoading(true);
@@ -30,20 +33,58 @@ export function DataRecordListPage() {
             setShowErrorModal(true);
         }
         setLoading(false);
-    }, [authFetch, page]);
+    }, [authFetch, page, dataStoreId]);
 
     useEffect(() => {
         fetchDataStores();
     }, [fetchDataStores]);
 
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+                setShowSettings(false);
+            }
+        }
+        if (showSettings) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showSettings]);
+
     const handleShowMore = () => setPage(prev => prev + 1);
 
     return (
         <div className="w-full max-w-7xl mx-auto py-8 px-4">
+            {/* Top Action Buttons */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-white">
                     {dataRecords?.length ? "Data Records" : ""}
                 </h1>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => navigate("/data-stores")}
+                        className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
+                    >
+                        Go back
+                    </button>
+                    <div className="relative">
+                        <button
+                            className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
+                            onClick={() => setShowSettings((v) => !v)}
+                        >
+                            Settings
+                        </button>
+                        {showSettings && (
+                            <div
+                                ref={popoverRef}
+                                className="absolute right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-xl shadow-lg p-4 z-20"
+                            >
+                                <div className="text-gray-200">Settings panel content</div>
+                                <div className="text-gray-400 text-sm mt-1">Add your controls here.</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {loading ? (
@@ -54,7 +95,8 @@ export function DataRecordListPage() {
                 <div className="flex flex-col items-center justify-center min-h-[40vh]">
                     <span className="text-gray-500 text-sm">No records created yet.</span>
                 </div>
-            ) : (<DataRecordsTable dataRecords={dataRecords}/>
+            ) : (
+                <DataRecordsTable dataRecords={dataRecords} />
             )}
 
             {dataRecords.length < totalElements && !loading && (
@@ -68,16 +110,6 @@ export function DataRecordListPage() {
                     </button>
                 </div>
             )}
-
-            {/*{showStoreCreation && (*/}
-            {/*    <CreateDataStoreModal*/}
-            {/*        onClose={() => setShowStoreCreation(false)}*/}
-            {/*        onCreated={async () => {*/}
-            {/*            await fetchDataStores();*/}
-            {/*            setShowStoreCreation(false);*/}
-            {/*        }}*/}
-            {/*    />*/}
-            {/*)}*/}
 
             {showErrorModal && (
                 <Modal

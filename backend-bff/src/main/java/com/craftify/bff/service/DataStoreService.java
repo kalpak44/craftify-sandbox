@@ -6,6 +6,7 @@ import com.craftify.bff.repository.DataStoreRecordsRepository;
 import com.craftify.bff.repository.DataStoreRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -54,7 +55,7 @@ public class DataStoreService {
      * @return a page of DataSchema entities
      */
     public Page<DataStore> list(int page, int size) {
-        return dataStoreRepository.findAllByUserId(auth.getCurrentUserId(), PageRequest.of(page, size));
+        return dataStoreRepository.findAllByUserId(auth.getCurrentUserId(), PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
     }
 
     /**
@@ -133,7 +134,7 @@ public class DataStoreService {
         return dataStoreRecordsRepository.findAllByUserIdAndDataStoreId(
                 auth.getCurrentUserId(),
                 dataStoreId,
-                PageRequest.of(page, size)
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"))
         );
     }
 
