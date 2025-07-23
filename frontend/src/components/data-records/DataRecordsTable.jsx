@@ -1,4 +1,5 @@
 import {useNavigate, useParams} from 'react-router-dom';
+import {DataStoreRecordsActionsMenu} from "./DataStoreRecordsActionsMenu.jsx";
 
 export function DataRecordsTable({dataRecords}) {
     const navigate = useNavigate();
@@ -33,7 +34,7 @@ export function DataRecordsTable({dataRecords}) {
                         <td className="px-4 py-3">{new Date(record.createdAt).toLocaleString() || " - "}</td>
                         <td className="px-4 py-3">{new Date(record.updatedAt).toLocaleString() || " - "}</td>
                         <td className="px-4 py-3">
-                            {/*<DataStoreActionsMenu functionId={record.id}/>*/}
+                            <DataStoreRecordsActionsMenu dataRecordId={record.id} dataStoreId={dataStoreId}/>
                         </td>
                     </tr>
                 ))}
