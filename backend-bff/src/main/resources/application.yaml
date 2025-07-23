@@ -42,6 +42,7 @@ server:
     mongodb:
       # MongoDB URI with placeholders for environment variables
       uri: ${MONGO_CONNECTION_STRING:}
+      auto-index-creation: true
   jpa:
     properties:
       # Ensure the JDBC time zone is set to UTC

@@ -4,6 +4,7 @@ import {Loader} from "../components/common/Loader";
 import {useAuthFetch} from "../hooks/useAuthFetch";
 import {listDataStores} from "../api/dataStores.js";
 import {CreateDataStoreModal} from "../components/data-stores/CreateDataStoreModal.jsx";
+import {DataStoresTable} from "../components/data-stores/DataStoresTable.jsx";
 
 const INITIAL_PAGE_SIZE = 5;
 
@@ -61,7 +62,7 @@ export function DataStoreListPage() {
                     <span className="text-gray-500 text-sm">Get started by creating your first data store.</span>
                 </div>
             ) : (
-               /* <FunctionTable functions={functions}/>*/<>hello</>
+              <DataStoresTable dataStores={dataStores}/>
             )}
 
             {dataStores.length < totalElements && !loading && (
