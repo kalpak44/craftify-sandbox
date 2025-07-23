@@ -77,3 +77,26 @@ export async function listDataStoresRecords(authFetch, dataStoreId, page = 0, si
     return res.json();
 }
 
+/**
+ * Get a single data record by ID
+ * @param {Function} authFetch - The authenticated fetch function
+ * @param {string} dataStoreId - ID of the data store
+ * @param {string} recordId - ID of the record
+ * @returns {Promise<Object>} - The record details
+ */
+export async function getDataRecordById(authFetch, dataStoreId, recordId) {
+    const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records/${recordId}`);
+
+    const res = await authFetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch data record");
+    }
+    return res.json();
+}
+

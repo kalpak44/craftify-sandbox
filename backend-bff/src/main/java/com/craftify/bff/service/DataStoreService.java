@@ -2,6 +2,7 @@ package com.craftify.bff.service;
 
 import com.craftify.bff.model.DataStore;
 import com.craftify.bff.model.DataStoreRecord;
+import com.craftify.bff.model.DataStoreRecordDetails;
 import com.craftify.bff.repository.DataStoreRecordsRepository;
 import com.craftify.bff.repository.DataStoreRepository;
 import org.springframework.data.domain.Page;
@@ -58,14 +59,19 @@ public class DataStoreService {
         return dataStoreRepository.findAllByUserId(auth.getCurrentUserId(), PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
     }
 
-    /**
-     * Retrieves a DataStore by its ID.
-     *
-     * @param id the ID of the schema
-     * @return an Optional containing the DataSchema if found
-     */
-    public Optional<DataStore> getById(String id) {
-        return dataStoreRepository.findByIdAndUserId(id, auth.getCurrentUserId());
+
+    public Optional<DataStoreRecordDetails> getDetails(String dataStoreId, String recordId) {
+        Optional<DataStore> dataStoreOpt = dataStoreRepository.findByIdAndUserId(dataStoreId, auth.getCurrentUserId());
+        if (dataStoreOpt.isEmpty()) {
+            throw new IllegalArgumentException("DataStore not found for the current user.");
+        }
+        Optional<DataStoreRecord> recordOpt = dataStoreRecordsRepository.findByIdAndUserId(recordId, auth.getCurrentUserId());
+        if (recordOpt.isEmpty()) {
+            throw new IllegalArgumentException("Record not found for the current user.");
+        }
+        DataStore dataStore = dataStoreOpt.get();
+        DataStoreRecord record = recordOpt.get();
+        return Optional.of(new DataStoreRecordDetails(record.name(), record.createdAt(), record.updatedAt(), dataStore.name(), dataStore.type(), record.record()));
     }
 
     /**

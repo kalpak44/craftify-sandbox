@@ -4,6 +4,7 @@ import com.craftify.bff.dto.DataStoreDto;
 import com.craftify.bff.dto.DataStoreRecordDto;
 import com.craftify.bff.model.DataStore;
 import com.craftify.bff.model.DataStoreRecord;
+import com.craftify.bff.model.DataStoreRecordDetails;
 import com.craftify.bff.service.DataStoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -78,25 +79,28 @@ public class DataStoreController {
         return ResponseEntity.ok(paginated);
     }
 
-    @Operation(summary = "Get a data store by ID")
+    @Operation(summary = "Get a data store details by id and record id")
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Schema found",
+                    description = "Details found",
                     content =
                     @Content(
                             schema =
                             @io.swagger.v3.oas.annotations.media.Schema(implementation = DataStoreDto.class))),
             @ApiResponse(responseCode = "404", description = "Data Store not found")
     })
-    @GetMapping("/{id}")
-    public ResponseEntity<DataStoreDto> detail(@PathVariable String id) {
+    @GetMapping("/{id}/records/{recordId}")
+    public ResponseEntity<DataStoreRecordDetails> detail(@PathVariable String id, @PathVariable String recordId) {
         return service
-                .getById(id)
-                .map(this::toDto)
+                .getDetails(id, recordId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+
+
+
 
     @Operation(summary = "Update a data store by ID")
     @ApiResponses({
