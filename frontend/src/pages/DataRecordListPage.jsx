@@ -79,9 +79,19 @@ export function DataRecordListPage() {
                                 ref={popoverRef}
                                 className="absolute right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-xl shadow-lg p-4 z-20"
                             >
-                                <div className="text-gray-200">Settings panel content</div>
-                                <div className="text-gray-400 text-sm mt-1">Add your controls here.</div>
+                                <div className="text-gray-200 mb-2">Settings panel content</div>
+
+                                <button
+                                    className="w-full bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-md px-3 py-2 text-sm font-medium"
+                                    onClick={() => {
+                                        setShowSettings(false);
+                                    }}
+                                >
+                                    ➕ Create New Record
+                                </button>
+
                             </div>
+
                         )}
                     </div>
                 </div>
