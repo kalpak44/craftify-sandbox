@@ -242,7 +242,7 @@ export function DataRecordDetailsPage() {
                     <h1 className="text-xl font-semibold text-white">{record?.name ?? "<record name>"}</h1>
                     <div className="text-xs text-gray-400 font-mono space-x-4">
                         <span><strong className="text-gray-300">Store:</strong> {record?.dataStoreName ?? "-"}</span>
-                        <span><strong className="text-gray-300">Viewer:</strong> {record?.viewerType ?? "-"}</span>
+                        <span><strong className="text-gray-300">Format:</strong> {record?.viewerType ?? "-"}</span>
                     </div>
                 </div>
                 <button
