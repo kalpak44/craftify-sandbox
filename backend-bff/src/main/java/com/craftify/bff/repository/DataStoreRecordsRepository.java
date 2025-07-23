@@ -13,4 +13,6 @@ public interface DataStoreRecordsRepository extends MongoRepository<DataStoreRec
     Page<DataStoreRecord> findAllByUserIdAndDataStoreId(String userId, String dataStoreId, Pageable pageable);
 
     Optional<DataStoreRecord> findByIdAndUserId(String id, String userId);
+
+    Optional<Long> countByUserIdAndDataStoreId(String userId, String dataStoreId);
 }

@@ -107,6 +107,9 @@ public class DataStoreService {
                 .ifPresent(schema -> dataStoreRepository.deleteById(schema.id()));
     }
 
+    public Long recordsCount(String dataStoreId) {
+        return dataStoreRecordsRepository.countByUserIdAndDataStoreId(auth.getCurrentUserId(), dataStoreId).orElse(0L);
+    }
 
     /**
      * Checks whether a schema can be safely deleted. For now, always returns true (placeholder).

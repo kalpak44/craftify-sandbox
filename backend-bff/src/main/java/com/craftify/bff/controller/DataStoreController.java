@@ -146,7 +146,8 @@ public class DataStoreController {
     }
 
     private DataStoreDto toDto(DataStore entity) {
-        return new DataStoreDto(entity.id(), entity.name(), entity.description(), entity.type(), entity.createdAt());
+        var records = service.recordsCount(entity.id());
+        return new DataStoreDto(entity.id(), entity.name(), entity.description(), entity.type(), records, entity.createdAt());
     }
 
 
