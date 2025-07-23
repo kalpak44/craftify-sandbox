@@ -4,6 +4,7 @@ import {Modal} from "../components/common/Modal";
 import {Loader} from "../components/common/Loader";
 import {useAuthFetch} from "../hooks/useAuthFetch";
 import {getDataRecordById, updateDataRecord} from "../api/dataStores";
+import Editor from "@monaco-editor/react";
 
 export function DataRecordDetailsPage() {
     const {dataRecordId, dataStoreId} = useParams();
@@ -18,6 +19,7 @@ export function DataRecordDetailsPage() {
     const [showModal, setShowModal] = useState(false);
     const [newFields, setNewFields] = useState({});
     const [arrayItems, setArrayItems] = useState({});
+    const [activeIdx, setActiveIdx] = useState(0);
 
     const saveTimeout = useRef(null);
 
@@ -257,10 +259,38 @@ export function DataRecordDetailsPage() {
                 </div>
             ) : fetchError ? null : (
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-gray-100">
-                    <div className="mb-4 text-sm text-gray-400 border-b border-gray-700 pb-2 flex justify-between">
-                        <span className="text-base text-white font-medium">Record Editor</span>
+                    <div className="flex gap-2 mb-4 border-b border-gray-800">
+                        {["Record Editor", "Raw Data"].map((label, idx) => (
+                            <button
+                                key={label}
+                                className={`px-4 py-2 font-medium transition ${
+                                    activeIdx === idx
+                                        ? "border-b-2 border-blue-500 text-blue-400"
+                                        : "text-gray-400 hover:text-blue-400"
+                                }`}
+                                onClick={() => setActiveIdx(idx)}
+                            >
+                                {label}
+                            </button>
+                        ))}
                     </div>
-                    <div className="text-sm">{renderEditor(data)}</div>
+
+                    {activeIdx === 0 ? (
+                        <div className="text-sm">{renderEditor(data)}</div>
+                    ) : (
+                        <Editor
+                            height="600px"
+                            defaultLanguage="json"
+                            value={JSON.stringify(data, null, 2)}
+                            onChange={(val) => {
+                                try {
+                                    const parsed = JSON.parse(val || "{}");
+                                    handleDataChange(parsed);
+                                } catch {}
+                            }}
+                            theme="vs-dark"
+                        />
+                    )}
                 </div>
             )}
 
