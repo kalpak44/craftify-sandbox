@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useState} from "react";
 import {Modal} from "../components/common/Modal";
 import {Loader} from "../components/common/Loader";
-import {listFunctions} from "../api/function";
 import {useAuthFetch} from "../hooks/useAuthFetch";
 import {FormsTable} from "../components/form-builder/FormsTable.jsx";
 import {useNavigate} from "react-router-dom";
+import {listForms} from "../api/forms.js";
 
 const INITIAL_PAGE_SIZE = 5;
 
@@ -25,7 +25,7 @@ export function FormListPage() {
         setLoading(true);
         setError(null);
         try {
-            const data = await listFunctions(authFetch, 0, (page + 1) * INITIAL_PAGE_SIZE);
+            const data = await listForms(authFetch, 0, (page + 1) * INITIAL_PAGE_SIZE);
             setForms(data.content);
             setTotalElements(data.totalElements);
         } catch (err) {
