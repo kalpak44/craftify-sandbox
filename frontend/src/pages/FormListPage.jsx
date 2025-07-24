@@ -4,6 +4,7 @@ import {Loader} from "../components/common/Loader";
 import {listFunctions} from "../api/function";
 import {useAuthFetch} from "../hooks/useAuthFetch";
 import {FormsTable} from "../components/form-builder/FormsTable.jsx";
+import {useNavigate} from "react-router-dom";
 
 const INITIAL_PAGE_SIZE = 5;
 
@@ -16,6 +17,9 @@ export function FormListPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [showErrorModal, setShowErrorModal] = useState(false);
+
+    const navigate = useNavigate();
+
 
     const fetchFunctions = useCallback(async () => {
         setLoading(true);
@@ -45,9 +49,9 @@ export function FormListPage() {
                 </h1>
                 <button
                     className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
-                    onClick={() => alert("go to new page")}
+                    onClick={() => navigate("/forms/new")}
                 >
-                    Build Form
+                    Form Builder
                 </button>
             </div>
 

@@ -58,11 +58,12 @@ export const FullWidthLayout = ({children}) => {
                             <NavLink to="/files"
                                      className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Files</NavLink>
                             <NavLink to="/data-stores"
-                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Data Stores</NavLink>
+                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Data</NavLink>
+                            <NavLink to="/forms"
+                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Forms</NavLink>
                             <NavLink to="/functions"
                                      className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Functions</NavLink>
-                            <NavLink to="/forms"
-                                     className={({isActive}) => isActive ? 'text-white' : 'hover:text-white'}>Forms Builder</NavLink>
+
                             {/*<CustomMenuTree />*/}
                             <div className="relative" ref={profileMenuRef}>
                                 <img
