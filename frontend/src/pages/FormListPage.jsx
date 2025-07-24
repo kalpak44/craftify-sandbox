@@ -49,7 +49,7 @@ export function FormListPage() {
                 </h1>
                 <button
                     className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
-                    onClick={() => navigate("/forms/new")}
+                    onClick={() => navigate("/forms-builder/new")}
                 >
                     Form Builder
                 </button>

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +42,17 @@ public class FormController {
         var created = userFormService.saveForm(toEntity(currentUserId, dto));
         return ResponseEntity.ok(toDto(created));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserFormDto> detail(@PathVariable String id) {
+        var currentUserId = authentificationService.getCurrentUserId();
+        return userFormService
+                .getDetails(currentUserId, id)
+                .map(this::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 
     private Form toEntity(String userId, UserFormDto dto) {
         return new Form(null, dto.name(), dto.createdAt(), dto.updatedAt(), dto.fields(), userId);

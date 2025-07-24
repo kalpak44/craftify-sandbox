@@ -1,25 +1,37 @@
-import { useState } from 'react';
-
-const formDefinition = {
-    name: 'Registration Form',
-    fields: [
-        { type: 'TEXT', label: 'First Name', placeholder: 'John', required: true },
-        { type: 'TEXT', label: 'Last Name', placeholder: 'Doe', required: true },
-        { type: 'EMAIL', label: 'Email', placeholder: 'john@example.com', required: true },
-        { type: 'NUMBER', label: 'Age', placeholder: '30', required: false },
-        { type: 'DATE', label: 'Date of Birth', placeholder: '', required: false },
-        { type: 'DROPDOWN', label: 'Country', required: true, options: ['Germany', 'Austria', 'Switzerland'] },
-        { type: 'RADIO', label: 'Gender', required: false, options: ['Male', 'Female', 'Other'] },
-        { type: 'CHECKBOX', label: 'Interests', required: false, options: ['AI', 'UX', 'Development'] },
-        { type: 'TEXTAREA', label: 'Bio', placeholder: 'Tell us something about yourself...', required: false }
-    ]
-};
+import {useEffect, useState} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
+import {Modal} from '../components/common/Modal';
+import {Loader} from '../components/common/Loader';
+import {useAuthFetch} from '../hooks/useAuthFetch';
+import {loadDetails} from '../api/forms';
 
 export const FormViewPage = () => {
+    const {formId} = useParams();
+    const authFetch = useAuthFetch();
+    const [formDefinition, setFormDefinition] = useState(null);
     const [formData, setFormData] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchForm = async () => {
+            try {
+                const result = await loadDetails(authFetch, formId);
+                setFormDefinition(result);
+            } catch (err) {
+                setError(err.message || 'Failed to load form');
+                setShowErrorModal(true);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchForm();
+    }, [authFetch, formId]);
 
     const handleChange = (label, value) => {
-        setFormData((prev) => ({ ...prev, [label]: value }));
+        setFormData((prev) => ({...prev, [label]: value}));
     };
 
     const handleCheckboxChange = (label, option, checked) => {
@@ -40,6 +52,16 @@ export const FormViewPage = () => {
     const labelStyle = "block text-sm font-semibold text-gray-300 mb-2 tracking-wide";
     const inputStyle =
         "w-full px-4 py-2 bg-gray-800 text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm";
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-gray-950">
+                <Loader/>
+            </div>
+        );
+    }
+
+    if (!formDefinition) return null;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900 text-white px-6 py-12">
@@ -157,23 +179,37 @@ export const FormViewPage = () => {
                         }
                     })}
 
-                    <div className="md:col-span-2 flex justify-end gap-4 pt-6 border-t border-gray-800 mt-10">
+                    <div className="md:col-span-2 flex justify-center gap-4 pt-6 border-t border-gray-800 mt-10">
                         <button
                             type="button"
                             className="px-6 py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-white transition"
-                            onClick={() => setFormData({})}
+                            onClick={() => navigate("/forms/")}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition"
+                            onClick={() => setFormData({})}
                         >
                             Submit
                         </button>
                     </div>
                 </form>
             </div>
+
+            {showErrorModal && (
+                <Modal
+                    title="Failed to load form"
+                    onCancel={() => setShowErrorModal(false)}
+                    cancelText="Close"
+                >
+                    <div className="text-red-400">{error}</div>
+                    <div className="text-gray-400">
+                        Please check the form ID or try again later.
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 };

@@ -29,4 +29,8 @@ public class UserFormService {
         Instant now = Instant.now();
         return userFormRepository.save(new Form(null, entity.name(), now, now, Objects.requireNonNullElse(entity.fields(), List.of()), entity.userId()));
     }
+
+    public Optional<Form> getDetails(String currentUserId, String id) {
+        return userFormRepository.findByIdAndUserId(id, currentUserId);
+    }
 }

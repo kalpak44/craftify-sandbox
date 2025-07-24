@@ -92,7 +92,7 @@ export default function App() {
                 }
             />
             <Route
-                path="/forms/view"
+                path="/forms/:formId"
                 element={
                     <AuthenticationGuard>
                         <FullWidthLayout><FormViewPage/></FullWidthLayout>
@@ -100,7 +100,7 @@ export default function App() {
                 }
             />
             <Route
-                path="/forms/new"
+                path="/forms-builder/new"
                 element={
                     <AuthenticationGuard>
                         <FullWidthLayout><FormBuilderPage/></FullWidthLayout>

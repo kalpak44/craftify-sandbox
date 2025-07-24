@@ -43,3 +43,19 @@ export async function saveForm(authFetch, formDefinition) {
     }
     return res.json();
 }
+
+
+export async function loadDetails(authFetch, formId) {
+    const res = await authFetch(`${FORMS_API_URL}/${formId}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+
+    if (!res.ok) {
+        const errorText = await res.json();
+        throw new Error(errorText || "Failed to load form");
+    }
+    return res.json();
+}
