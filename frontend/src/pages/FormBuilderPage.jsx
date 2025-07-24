@@ -130,7 +130,7 @@ export const FormBuilderPage = () => {
             name: formName,
             fields: fields.map(({ id, ...rest }) => rest),
         };
-        console.log("📝 Saved Form:", formDefinition);
+        console.log("📝 Saved Form:", JSON.stringify(formDefinition, null, 2));
         alert("Form saved to console!");
     };
 

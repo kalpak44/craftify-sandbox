@@ -16,6 +16,7 @@ import {DataRecordListPage} from "./pages/DataRecordListPage.jsx";
 import {DataRecordDetailsPage} from "./pages/DataRecordDetailsPage.jsx";
 import {FormListPage} from "./pages/FormListPage.jsx";
 import {FormBuilderPage} from "./pages/FormBuilderPage.jsx";
+import {FormViewPage} from "./pages/FormViewPage.jsx";
 
 export default function App() {
     const {isLoading} = useAuth0();
@@ -87,6 +88,14 @@ export default function App() {
                 element={
                     <AuthenticationGuard>
                         <FullWidthLayout><FormListPage/></FullWidthLayout>
+                    </AuthenticationGuard>
+                }
+            />
+            <Route
+                path="/forms/view"
+                element={
+                    <AuthenticationGuard>
+                        <FullWidthLayout><FormViewPage/></FullWidthLayout>
                     </AuthenticationGuard>
                 }
             />
