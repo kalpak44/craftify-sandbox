@@ -118,6 +118,7 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
                         {(inputError || logsError) && (
                             <div className="text-red-400 text-sm mt-2">{inputError || logsError}</div>
                         )}
+
                         <div className="flex justify-end mt-6">
                             <button
                                 type="button"
@@ -147,7 +148,6 @@ export function RegisterFunctionModal({onClose, onRegistered}) {
                                 onChange={e => setType(e.target.value)}
                                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500"
                             >
-                                <option value="Service">Service</option>
                                 <option value="Job">Job</option>
                             </select>
                         </div>

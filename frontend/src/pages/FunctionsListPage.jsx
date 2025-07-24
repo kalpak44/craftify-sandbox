@@ -79,7 +79,7 @@ export function FunctionsListPage() {
 
             {showRegister && (
                 <RegisterFunctionModal
-                    onClose={() => setShowRegister(false)}
+                    onClose={() => fetchFunctions().finally(() => setShowRegister(false))}
                     onRegistered={() => fetchFunctions}
                 />
             )}
