@@ -10,7 +10,6 @@ export function FormsTable({forms}) {
                 <thead>
                 <tr className="text-gray-400 border-b border-gray-800">
                     <th className="px-4 py-3 text-left font-medium">Name</th>
-                    <th className="px-4 py-3 text-left font-medium">Handler</th>
                     <th className="px-4 py-3 text-left font-medium">Created At</th>
                     <th className="px-4 py-3 text-left font-medium">Updated At</th>
                     <th className="px-4 py-3 text-left font-medium">Actions</th>
@@ -28,9 +27,8 @@ export function FormsTable({forms}) {
                         >
                             {form.name}
                         </td>
-                        <td className="px-4 py-3">{form.handler}</td>
-                        <td className="px-4 py-3">{new Date(form.createdAt).toLocaleString() || " - "}</td>
-                        <td className="px-4 py-3">{new Date(form.updatedAt).toLocaleString() || " - "}</td>
+                        <td className="px-4 py-3">{new Date(form.createdAt).toLocaleString()}</td>
+                        <td className="px-4 py-3">{new Date(form.updatedAt).toLocaleString()}</td>
                         <td className="px-4 py-3">
                             <FormsActionsMenu functionId={form.id}/>
                         </td>
