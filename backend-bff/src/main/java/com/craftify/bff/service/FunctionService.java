@@ -34,4 +34,8 @@ public class FunctionService {
         Instant now = Instant.now();
         repository.save(new FunctionRegistration(null, userId, functionName, "ACTIVE", functionType, commitHash, now));
     }
+
+    public void delete(String userId, String id) {
+        repository.deleteByIdAndUserId(id, userId);
+    }
 }

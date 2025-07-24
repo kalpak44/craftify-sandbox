@@ -62,7 +62,7 @@ export function FunctionsListPage() {
                     <span className="text-gray-500 text-sm">Get started by registering your first function.</span>
                 </div>
             ) : (
-                <FunctionTable functions={functions}/>
+                <FunctionTable functions={functions} onDeregister={fetchFunctions}/>
             )}
 
             {functions.length < totalElements && !loading && (
@@ -80,9 +80,7 @@ export function FunctionsListPage() {
             {showRegister && (
                 <RegisterFunctionModal
                     onClose={() => setShowRegister(false)}
-                    onRegistered={() => {
-                        fetchFunctions();
-                    }}
+                    onRegistered={() => fetchFunctions}
                 />
             )}
 

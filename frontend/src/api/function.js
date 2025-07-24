@@ -35,7 +35,7 @@ export async function listFunctions(authFetch, page = 0, size = 10) {
  * @returns {Promise<Object>} - The created function object (or error thrown)
  */
 export async function registerFunction(authFetch, functionData) {
-    const res = await authFetch(`${FUNCTION_API_URL}/register`, {
+    const res = await authFetch(`${FUNCTION_API_URL}/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -48,4 +48,18 @@ export async function registerFunction(authFetch, functionData) {
         throw new Error(errorText || "Failed to register function");
     }
     return res.json();
+}
+
+export async function deregisterFunction(authFetch, functionId) {
+    const res = await authFetch(`${FUNCTION_API_URL}/${functionId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to deregister function");
+    }
 }

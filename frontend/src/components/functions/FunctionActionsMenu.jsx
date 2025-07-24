@@ -1,15 +1,18 @@
 import {useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {createPortal} from 'react-dom';
+import {ConfirmDeregistrationModal} from './ConfirmDeregistrationModal';
+import {deregisterFunction} from "../../api/function.js";
+import {useAuthFetch} from "../../hooks/useAuthFetch.js";
 
-export function FunctionActionsMenu({functionId}) {
+export function FunctionActionsMenu({functionId, onDeregister}) {
     const [open, setOpen] = useState(false);
     const [menuStyle, setMenuStyle] = useState({});
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     const buttonRef = useRef();
     const menuRef = useRef();
     const navigate = useNavigate();
 
-    // Handle outside click
     useEffect(() => {
         if (!open) return;
         const handler = (e) => {
@@ -26,13 +29,12 @@ export function FunctionActionsMenu({functionId}) {
         return () => document.removeEventListener('mousedown', handler);
     }, [open]);
 
-
     useEffect(() => {
         if (!open || !buttonRef.current) return;
         const btnRect = buttonRef.current.getBoundingClientRect();
-        const menuHeight = 96; // Estimate
+        const menuHeight = 96;
         let top = btnRect.bottom + 8;
-        let left = btnRect.right - 130; // align right edge
+        let left = btnRect.right - 130;
         if (window.innerHeight - btnRect.bottom < menuHeight + 12) {
             top = btnRect.top - menuHeight - 8;
         }
@@ -45,7 +47,8 @@ export function FunctionActionsMenu({functionId}) {
         });
     }, [open]);
 
-    // Menu content (portal)
+    const authFetch = useAuthFetch();
+
     const menu = open ? createPortal(
         <div
             ref={menuRef}
@@ -65,6 +68,7 @@ export function FunctionActionsMenu({functionId}) {
                 className="block w-full px-4 py-2 text-left hover:bg-red-900 text-red-400"
                 onClick={() => {
                     setOpen(false);
+                    setShowConfirmModal(true);
                 }}
             >
                 Deregister
@@ -84,6 +88,21 @@ export function FunctionActionsMenu({functionId}) {
                 <span className="text-xl font-bold">⋯</span>
             </button>
             {menu}
+            {showConfirmModal && (
+                <ConfirmDeregistrationModal
+                    onCancel={() => setShowConfirmModal(false)}
+                    onConfirm={async () => {
+                        try {
+                            await deregisterFunction(authFetch, functionId);
+                            setShowConfirmModal(false);
+                            if (onDeregister) onDeregister();
+                        } catch (err) {
+                            console.error("Deregistration failed", err);
+                            setShowConfirmModal(false);
+                        }
+                    }}
+                />
+            )}
         </>
     );
 }

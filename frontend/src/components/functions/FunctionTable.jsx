@@ -1,7 +1,7 @@
 import {FunctionActionsMenu} from './FunctionActionsMenu';
 import {useNavigate} from 'react-router-dom';
 
-export function FunctionTable({functions}) {
+export function FunctionTable({functions, onDeregister}) {
     const navigate = useNavigate();
 
     return (
@@ -30,7 +30,10 @@ export function FunctionTable({functions}) {
                         <td className="px-4 py-3">{fn.status}</td>
                         <td className="px-4 py-3">{fn.executionMode}</td>
                         <td className="px-4 py-3">
-                            <FunctionActionsMenu functionId={fn.id}/>
+                            <FunctionActionsMenu
+                                functionId={fn.id}
+                                onDeregister={onDeregister}
+                            />
                         </td>
                     </tr>
                 ))}

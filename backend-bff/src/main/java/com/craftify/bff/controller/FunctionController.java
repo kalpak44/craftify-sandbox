@@ -21,8 +21,11 @@ import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,8 +71,8 @@ public class FunctionController {
         return functionService.getAllFunctionsForCurrentUser(pageable, currentUserId);
     }
 
-    @PostMapping("/register")
-    public RegisterFunctionResponse register(@RequestBody RegisterFunctionDto req) {
+    @PostMapping("/")
+    public RegisterFunctionResponse create(@RequestBody RegisterFunctionDto req) {
         String jobId = UUID.randomUUID().toString();
         RegistrationJob job = jobStore.create(jobId);
         var currentUserId = authentificationService.getCurrentUserId();
@@ -77,6 +80,13 @@ public class FunctionController {
         new Thread(() -> simulateRegistration(job, req, currentUserId)).start();
 
         return new RegisterFunctionResponse(jobId);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        var currentUserId = authentificationService.getCurrentUserId();
+        functionService.delete(currentUserId, id);
+        return ResponseEntity.ok().build();
     }
 
     private void simulateRegistration(RegistrationJob job, RegisterFunctionDto req, String currentUserId) {
@@ -107,36 +117,6 @@ public class FunctionController {
                     throw new IllegalArgumentException("module.json file does not exist or is not a file");
                 }
 
-
-                FunctionModule module = objectMapper.readValue(modulePath, FunctionModule.class);
-                List<FunctionModule.Page> pages = Objects.requireNonNullElse(module.pages(), List.of());
-                List<UserMenu> userMenus = pages.stream()
-                        .map(page -> {
-                            Path pagePath = jobPath.resolve("user").resolve(Paths.get(Objects.requireNonNullElse(page.file(), "")));
-                            if (!pagePath.toFile().exists() && !pagePath.toFile().isFile()) {
-                                throw new IllegalArgumentException("page.json file does not exist or is not a file");
-                            }
-
-                            FunctionModule.Page.Menu menu = page.menu();
-                            List<UserMenu.MenuPathElement> path = menu.path().stream()
-                                    .map(mp -> new UserMenu.MenuPathElement(mp.id(), mp.label()))
-                                    .toList();
-
-                            return new UserMenu(
-                                    null,
-                                    currentUserId,
-                                    path,
-                                    menu.id(),
-                                    menu.label(),
-                                    page.route()
-                            );
-                        })
-                        .toList();
-
-
-                userMenuService.saveMenus(userMenus, currentUserId);
-
-
                 send(job, "Repo successful cloned, use commit #%s".formatted(lastCommitHash), "in-progress", null);
                 send(job, "Installing dependencies...", "in-progress", null);
                 Thread.sleep(1500);
@@ -160,13 +140,6 @@ public class FunctionController {
             }
         }
     }
-/*
-    public static void printMenuTree(MenuTreeNode node, String indent) {
-        System.out.println(indent + node.label() + (node.leafMenu() != null ? " [MENU]" : ""));
-        for (MenuTreeNode child : node.children()) {
-            printMenuTree(child, indent + "  ");
-        }
-    }*/
 
     private void send(RegistrationJob job, String message, String status, String error) {
         var log = new LogEvent(message, status, error);
