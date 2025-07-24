@@ -1,17 +1,17 @@
-import {useState} from 'react';
+import { useState } from 'react';
 
 const formDefinition = {
     name: 'Registration Form',
     fields: [
-        {type: 'TEXT', label: 'First Name', placeholder: 'John', required: true},
-        {type: 'TEXT', label: 'Last Name', placeholder: 'Doe', required: true},
-        {type: 'EMAIL', label: 'Email', placeholder: 'john@example.com', required: true},
-        {type: 'NUMBER', label: 'Age', placeholder: '30', required: false},
-        {type: 'DATE', label: 'Date of Birth', placeholder: '', required: false},
-        {type: 'DROPDOWN', label: 'Country', required: true, options: ['Germany', 'Austria', 'Switzerland']},
-        {type: 'RADIO', label: 'Gender', required: false, options: ['Male', 'Female', 'Other']},
-        {type: 'CHECKBOX', label: 'Interests', required: false, options: ['AI', 'UX', 'Development']},
-        {type: 'TEXTAREA', label: 'Bio', placeholder: 'Tell us something about yourself...', required: false}
+        { type: 'TEXT', label: 'First Name', placeholder: 'John', required: true },
+        { type: 'TEXT', label: 'Last Name', placeholder: 'Doe', required: true },
+        { type: 'EMAIL', label: 'Email', placeholder: 'john@example.com', required: true },
+        { type: 'NUMBER', label: 'Age', placeholder: '30', required: false },
+        { type: 'DATE', label: 'Date of Birth', placeholder: '', required: false },
+        { type: 'DROPDOWN', label: 'Country', required: true, options: ['Germany', 'Austria', 'Switzerland'] },
+        { type: 'RADIO', label: 'Gender', required: false, options: ['Male', 'Female', 'Other'] },
+        { type: 'CHECKBOX', label: 'Interests', required: false, options: ['AI', 'UX', 'Development'] },
+        { type: 'TEXTAREA', label: 'Bio', placeholder: 'Tell us something about yourself...', required: false }
     ]
 };
 
@@ -19,7 +19,7 @@ export const FormViewPage = () => {
     const [formData, setFormData] = useState({});
 
     const handleChange = (label, value) => {
-        setFormData((prev) => ({...prev, [label]: value}));
+        setFormData((prev) => ({ ...prev, [label]: value }));
     };
 
     const handleCheckboxChange = (label, option, checked) => {
@@ -51,13 +51,20 @@ export const FormViewPage = () => {
                         const key = `field-${index}`;
                         const label = field.label;
 
+                        const isLastSingle =
+                            formDefinition.fields.length % 2 === 1 &&
+                            index === formDefinition.fields.length - 1;
+
+                        const isForceFullWidth = ['TEXTAREA', 'CHECKBOX'].includes(field.type);
+                        const baseClass = (isLastSingle || isForceFullWidth) ? "md:col-span-2" : "";
+
                         switch (field.type) {
                             case 'TEXT':
                             case 'EMAIL':
                             case 'NUMBER':
                             case 'DATE':
                                 return (
-                                    <div key={key}>
+                                    <div key={key} className={baseClass}>
                                         <label className={labelStyle}>
                                             {label} {field.required && <span className="text-red-500">*</span>}
                                         </label>
@@ -87,7 +94,7 @@ export const FormViewPage = () => {
 
                             case 'DROPDOWN':
                                 return (
-                                    <div key={key}>
+                                    <div key={key} className={baseClass}>
                                         <label className={labelStyle}>{label}</label>
                                         <select
                                             required={field.required}
@@ -104,7 +111,7 @@ export const FormViewPage = () => {
 
                             case 'RADIO':
                                 return (
-                                    <div key={key}>
+                                    <div key={key} className={baseClass}>
                                         <label className={labelStyle}>{label}</label>
                                         <div className="flex flex-wrap gap-4">
                                             {field.options.map((opt, i) => (
@@ -150,7 +157,6 @@ export const FormViewPage = () => {
                         }
                     })}
 
-                    {/* Footer buttons full width row */}
                     <div className="md:col-span-2 flex justify-end gap-4 pt-6 border-t border-gray-800 mt-10">
                         <button
                             type="button"
