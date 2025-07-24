@@ -6,7 +6,10 @@ import com.craftify.bff.service.AuthentificationService;
 import com.craftify.bff.service.UserFormService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,7 +34,19 @@ public class FormController {
         return userFormService.getAllFormsForCurrentUser(page, size, currentUserId).map(this::toDto);
     }
 
+    @PostMapping("/")
+    public ResponseEntity<UserFormDto> create(@RequestBody UserFormDto dto) {
+        var currentUserId = authentificationService.getCurrentUserId();
+
+        var created = userFormService.saveForm(toEntity(currentUserId, dto));
+        return ResponseEntity.ok(toDto(created));
+    }
+
+    private Form toEntity(String userId, UserFormDto dto) {
+        return new Form(null, dto.name(), dto.createdAt(), dto.updatedAt(), dto.fields(), userId);
+    }
+
     private UserFormDto toDto(Form entity) {
-        return new UserFormDto(entity.id(), entity.name(), entity.createdAt(), entity.updatedAt());
+        return new UserFormDto(entity.id(), entity.name(), entity.createdAt(), entity.updatedAt(), entity.fields());
     }
 }

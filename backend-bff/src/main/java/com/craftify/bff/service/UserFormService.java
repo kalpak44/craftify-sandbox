@@ -7,6 +7,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 @Service
 public class UserFormService {
 
@@ -18,5 +23,10 @@ public class UserFormService {
 
     public Page<Form> getAllFormsForCurrentUser(int page, int size, String currentUserId) {
         return userFormRepository.findAllByUserId(currentUserId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt")));
+    }
+
+    public Form saveForm(Form entity) {
+        Instant now = Instant.now();
+        return userFormRepository.save(new Form(null, entity.name(), now, now, Objects.requireNonNullElse(entity.fields(), List.of()), entity.userId()));
     }
 }

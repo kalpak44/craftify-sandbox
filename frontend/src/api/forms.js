@@ -27,3 +27,19 @@ export async function listForms(authFetch, page = 0, size = 10) {
     return res.json();
 }
 
+
+export async function saveForm(authFetch, formDefinition) {
+    const res = await authFetch(`${FORMS_API_URL}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formDefinition)
+    });
+
+    if (!res.ok) {
+        const errorText = await res.json();
+        throw new Error(errorText || "Failed to save form");
+    }
+    return res.json();
+}

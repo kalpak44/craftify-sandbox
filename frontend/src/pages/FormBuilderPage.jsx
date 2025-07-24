@@ -1,5 +1,8 @@
-import { useState } from "react";
+import {useState} from "react";
 import {useNavigate} from "react-router-dom";
+import {useAuthFetch} from "../hooks/useAuthFetch";
+import {saveForm} from "../api/forms";
+import {Modal} from "../components/common/Modal";
 
 const COMPONENT_TYPES = {
     TEXT: "Text Field",
@@ -15,13 +18,30 @@ const COMPONENT_TYPES = {
 let idCounter = 0;
 
 export const FormBuilderPage = () => {
+    const authFetch = useAuthFetch();
+    const navigate = useNavigate();
     const [formName, setFormName] = useState("Untitled Form");
     const [isEditingName, setIsEditingName] = useState(false);
     const [fields, setFields] = useState([]);
     const [selectedFieldId, setSelectedFieldId] = useState(null);
     const [draggedFieldId, setDraggedFieldId] = useState(null);
     const [dragOverFieldId, setDragOverFieldId] = useState(null);
-    const navigate = useNavigate();
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleSave = async () => {
+        const formDefinition = {
+            name: formName,
+            fields: fields.map(({id, ...rest}) => rest),
+        };
+        try {
+            await saveForm(authFetch, formDefinition);
+            navigate("/forms");
+        } catch (err) {
+            setError(err.message || "Failed to save form");
+            setShowErrorModal(true);
+        }
+    };
 
     const addField = (type) => {
         const newField = {
@@ -40,7 +60,7 @@ export const FormBuilderPage = () => {
 
     const updateField = (key, value) => {
         setFields((prev) =>
-            prev.map((f) => (f.id === selectedFieldId ? { ...f, [key]: value } : f))
+            prev.map((f) => (f.id === selectedFieldId ? {...f, [key]: value} : f))
         );
     };
 
@@ -63,7 +83,7 @@ export const FormBuilderPage = () => {
         setFields((prev) =>
             prev.map((f) =>
                 f.id === selectedFieldId
-                    ? { ...f, options: [...f.options, `Option ${f.options.length + 1}`] }
+                    ? {...f, options: [...f.options, `Option ${f.options.length + 1}`]}
                     : f
             )
         );
@@ -125,15 +145,6 @@ export const FormBuilderPage = () => {
         setDragOverFieldId(null);
     };
 
-    const handleSave = () => {
-        const formDefinition = {
-            name: formName,
-            fields: fields.map(({ id, ...rest }) => rest),
-        };
-        console.log("📝 Saved Form:", JSON.stringify(formDefinition, null, 2));
-        alert("Form saved to console!");
-    };
-
     const selectedField = fields.find((f) => f.id === selectedFieldId);
 
     const renderField = (field) => (
@@ -156,17 +167,13 @@ export const FormBuilderPage = () => {
             <label className="block font-medium mb-1">
                 {field.label} {field.required && <span className="text-red-400">*</span>}
             </label>
-            {field.type === "TEXT" && (
-                <input type="text" placeholder={field.placeholder} disabled className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600" />
-            )}
-            {field.type === "NUMBER" && (
-                <input type="number" placeholder={field.placeholder} disabled className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600" />
-            )}
-            {field.type === "EMAIL" && (
-                <input type="email" placeholder={field.placeholder} disabled className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600" />
-            )}
-            {field.type === "TEXTAREA" && (
-                <textarea placeholder={field.placeholder} disabled rows={3} className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600" />
+            {["TEXT", "NUMBER", "EMAIL", "DATE", "TEXTAREA"].includes(field.type) && (
+                <input
+                    type={field.type === "TEXTAREA" ? "text" : field.type.toLowerCase()}
+                    placeholder={field.placeholder}
+                    disabled
+                    className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600"
+                />
             )}
             {field.type === "DROPDOWN" && (
                 <select disabled className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600">
@@ -179,7 +186,7 @@ export const FormBuilderPage = () => {
                 <div className="space-y-1">
                     {field.options.map((opt, idx) => (
                         <div key={idx} className="flex items-center">
-                            <input type="radio" disabled className="mr-2" />
+                            <input type="radio" disabled className="mr-2"/>
                             <label>{opt}</label>
                         </div>
                     ))}
@@ -187,19 +194,16 @@ export const FormBuilderPage = () => {
             )}
             {field.type === "CHECKBOX" && (
                 <div className="flex items-center">
-                    <input type="checkbox" disabled className="mr-2" />
+                    <input type="checkbox" disabled className="mr-2"/>
                     <label>{field.placeholder || "I agree"}</label>
                 </div>
-            )}
-            {field.type === "DATE" && (
-                <input type="date" disabled className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600" />
             )}
         </div>
     );
 
     return (
         <>
-            {/* Header: Form Name + Save */}
+            {/* Header */}
             <div className="flex items-center justify-between bg-gray-950 px-6 py-3 border-b border-gray-800">
                 {isEditingName ? (
                     <input
@@ -222,8 +226,6 @@ export const FormBuilderPage = () => {
                         {formName}
                     </h1>
                 )}
-
-                {/* Button Container aligned right */}
                 <div className="flex gap-2 ml-auto">
                     <button
                         onClick={() => navigate("/forms")}
@@ -240,9 +242,9 @@ export const FormBuilderPage = () => {
                 </div>
             </div>
 
-            {/* Main Layout */}
+            {/* Layout */}
             <div className="flex h-[calc(100vh-4rem)] bg-gray-900 text-white">
-                {/* Left Sidebar */}
+                {/* Sidebar Left */}
                 <aside className="w-64 border-r border-gray-700 p-4">
                     <h2 className="text-lg font-bold mb-4">Add Components</h2>
                     <div className="space-y-2">
@@ -258,7 +260,7 @@ export const FormBuilderPage = () => {
                     </div>
                 </aside>
 
-                {/* Form Canvas */}
+                {/* Canvas */}
                 <main className="flex-1 p-6 overflow-y-auto">
                     <h1 className="text-2xl font-semibold mb-4">Form Canvas</h1>
                     <div className="bg-gray-800 p-6 rounded-lg min-h-[400px] border border-gray-700">
@@ -270,7 +272,7 @@ export const FormBuilderPage = () => {
                     </div>
                 </main>
 
-                {/* Right Sidebar - Field Settings */}
+                {/* Sidebar Right */}
                 <aside className="w-80 border-l border-gray-700 p-4">
                     <h2 className="text-lg font-bold mb-4">Field Settings</h2>
                     {!selectedField ? (
@@ -286,7 +288,6 @@ export const FormBuilderPage = () => {
                                     className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600"
                                 />
                             </div>
-
                             <div>
                                 <label className="block text-sm font-medium mb-1">Placeholder</label>
                                 <input
@@ -296,7 +297,6 @@ export const FormBuilderPage = () => {
                                     className="w-full bg-gray-800 text-white p-2 rounded border border-gray-600"
                                 />
                             </div>
-
                             <div className="flex items-center space-x-2">
                                 <input
                                     type="checkbox"
@@ -306,7 +306,6 @@ export const FormBuilderPage = () => {
                                 />
                                 <label className="text-sm">Required</label>
                             </div>
-
                             {(selectedField.type === "RADIO" || selectedField.type === "DROPDOWN") && (
                                 <div className="pt-2 space-y-2">
                                     <h4 className="text-sm font-semibold">Options</h4>
@@ -333,7 +332,6 @@ export const FormBuilderPage = () => {
                                     </button>
                                 </div>
                             )}
-
                             <div className="flex gap-2 pt-4 border-t border-gray-700">
                                 <button
                                     onClick={() => moveField("up")}
@@ -358,6 +356,20 @@ export const FormBuilderPage = () => {
                     )}
                 </aside>
             </div>
+
+            {/* Error Modal */}
+            {showErrorModal && (
+                <Modal
+                    title="Failed to save form"
+                    onCancel={() => setShowErrorModal(false)}
+                    cancelText="Close"
+                >
+                    <div className="text-red-400">{error ?? "Unknown error occurred while saving the form."}</div>
+                    <div className="text-gray-400">
+                        Please try again later, or contact your administrator if this issue persists.
+                    </div>
+                </Modal>
+            )}
         </>
     );
 };
