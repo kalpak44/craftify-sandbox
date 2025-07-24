@@ -1,19 +1,22 @@
-import {useEffect, useState} from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
-import {Modal} from '../components/common/Modal';
-import {Loader} from '../components/common/Loader';
-import {useAuthFetch} from '../hooks/useAuthFetch';
-import {loadDetails} from '../api/forms';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Modal } from '../components/common/Modal';
+import { Loader } from '../components/common/Loader';
+import { useAuthFetch } from '../hooks/useAuthFetch';
+import { loadDetails, submitForm } from '../api/forms';
+import { Toast } from '../components/common/Toast';
 
 export const FormViewPage = () => {
-    const {formId} = useParams();
+    const { formId } = useParams();
     const authFetch = useAuthFetch();
+    const navigate = useNavigate();
+
     const [formDefinition, setFormDefinition] = useState(null);
     const [formData, setFormData] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showErrorModal, setShowErrorModal] = useState(false);
-    const navigate = useNavigate();
+    const [showSuccessToast, setShowSuccessToast] = useState(false);
 
     useEffect(() => {
         const fetchForm = async () => {
@@ -31,7 +34,7 @@ export const FormViewPage = () => {
     }, [authFetch, formId]);
 
     const handleChange = (label, value) => {
-        setFormData((prev) => ({...prev, [label]: value}));
+        setFormData((prev) => ({ ...prev, [label]: value }));
     };
 
     const handleCheckboxChange = (label, option, checked) => {
@@ -44,9 +47,16 @@ export const FormViewPage = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
+        try {
+            await submitForm(authFetch, formId, formData);
+            setFormData({});
+            setShowSuccessToast(true);
+        } catch (err) {
+            setError(err.message || 'Failed to submit form');
+            setShowErrorModal(true);
+        }
     };
 
     const labelStyle = "block text-sm font-semibold text-gray-300 mb-2 tracking-wide";
@@ -56,7 +66,7 @@ export const FormViewPage = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-gray-950">
-                <Loader/>
+                <Loader />
             </div>
         );
     }
@@ -64,7 +74,7 @@ export const FormViewPage = () => {
     if (!formDefinition) return null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900 text-white px-6 py-12">
+        <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900 text-white px-6 py-12 relative">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-4xl font-bold mb-10 text-center">{formDefinition.name}</h1>
 
@@ -95,6 +105,7 @@ export const FormViewPage = () => {
                                             placeholder={field.placeholder}
                                             required={field.required}
                                             className={inputStyle}
+                                            value={formData[label] || ""}
                                             onChange={(e) => handleChange(label, e.target.value)}
                                         />
                                     </div>
@@ -109,6 +120,7 @@ export const FormViewPage = () => {
                                             placeholder={field.placeholder}
                                             required={field.required}
                                             className={inputStyle}
+                                            value={formData[label] || ""}
                                             onChange={(e) => handleChange(label, e.target.value)}
                                         />
                                     </div>
@@ -121,6 +133,7 @@ export const FormViewPage = () => {
                                         <select
                                             required={field.required}
                                             className={inputStyle}
+                                            value={formData[label] || ""}
                                             onChange={(e) => handleChange(label, e.target.value)}
                                         >
                                             <option value="">Select...</option>
@@ -142,6 +155,7 @@ export const FormViewPage = () => {
                                                         type="radio"
                                                         name={label}
                                                         value={opt}
+                                                        checked={formData[label] === opt}
                                                         className="accent-blue-500"
                                                         onChange={(e) => handleChange(label, e.target.value)}
                                                     />
@@ -162,6 +176,7 @@ export const FormViewPage = () => {
                                                     <input
                                                         type="checkbox"
                                                         value={opt}
+                                                        checked={(formData[label] || []).includes(opt)}
                                                         className="accent-blue-500"
                                                         onChange={(e) =>
                                                             handleCheckboxChange(label, opt, e.target.checked)
@@ -190,7 +205,6 @@ export const FormViewPage = () => {
                         <button
                             type="submit"
                             className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition"
-                            onClick={() => setFormData({})}
                         >
                             Submit
                         </button>
@@ -200,15 +214,22 @@ export const FormViewPage = () => {
 
             {showErrorModal && (
                 <Modal
-                    title="Failed to load form"
+                    title="Error"
                     onCancel={() => setShowErrorModal(false)}
                     cancelText="Close"
                 >
                     <div className="text-red-400">{error}</div>
                     <div className="text-gray-400">
-                        Please check the form ID or try again later.
+                        Please try again or contact support.
                     </div>
                 </Modal>
+            )}
+
+            {showSuccessToast && (
+                <Toast
+                    message="Form submitted successfully!"
+                    onClose={() => setShowSuccessToast(false)}
+                />
             )}
         </div>
     );

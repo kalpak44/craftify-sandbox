@@ -59,3 +59,19 @@ export async function loadDetails(authFetch, formId) {
     }
     return res.json();
 }
+
+
+export async function submitForm(authFetch, formId, formData) {
+    const res = await authFetch(`${FORMS_API_URL}/${formId}/submit`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+    });
+
+    if (!res.ok) {
+        const errorText = await res.json();
+        throw new Error(errorText || "Failed to submit form");
+    }
+}

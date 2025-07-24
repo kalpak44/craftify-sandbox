@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/forms")
@@ -51,6 +53,14 @@ public class FormController {
                 .map(this::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<UserFormDto> submit(@RequestBody Map<String, Object> dto) {
+        var currentUserId = authentificationService.getCurrentUserId();
+        //todo: TBD
+        System.out.println("Submitting user form: " + dto);
+        return ResponseEntity.ok().build();
     }
 
 
