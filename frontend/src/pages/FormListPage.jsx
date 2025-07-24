@@ -2,7 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 import {Modal} from "../components/common/Modal";
 import {Loader} from "../components/common/Loader";
 import {useAuthFetch} from "../hooks/useAuthFetch";
-import {FormsTable} from "../components/form-builder/FormsTable.jsx";
+import {FormsTable} from "../components/forms/FormsTable.jsx";
 import {useNavigate} from "react-router-dom";
 import {listForms} from "../api/forms.js";
 
