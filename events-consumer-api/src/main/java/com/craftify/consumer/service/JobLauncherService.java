@@ -8,14 +8,17 @@ import org.springframework.stereotype.Service;
 public class JobLauncherService {
 
   private final KubernetesClient client;
+  private final EventTypeRegistry eventTypeRegistry;
 
-  public JobLauncherService(KubernetesClient client) {
+  public JobLauncherService(KubernetesClient client, EventTypeRegistry eventTypeRegistry) {
     this.client = client;
+    this.eventTypeRegistry = eventTypeRegistry;
   }
 
-  public void launchJob(String type) {
-    Job job = JobDefinitions.buildJob(type);
+  public void launchJob(String type, String payload) {
+    String shellCommand = eventTypeRegistry.executionLogic(type, payload);
+    Job job = JobDefinitions.buildJob("form-submit-handler", shellCommand);
     client.batch().v1().jobs().inNamespace("userspace").resource(job).create();
-    System.out.println("Job " + type + " launched.");
+    System.out.println("Job launched for type: " + type);
   }
 }

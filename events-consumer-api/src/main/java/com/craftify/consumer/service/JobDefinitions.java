@@ -5,14 +5,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 
 public class JobDefinitions {
 
-  public static Job buildJob(String name) {
-    String script =
-        switch (name) {
-          case "handler-a" -> "echo Handling EVENT_A && sleep 3";
-          case "handler-b" -> "echo Handling EVENT_B && sleep 3";
-          default -> "echo Unknown job && sleep 1";
-        };
-
+  public static Job buildJob(String name, String command) {
     return new JobBuilder()
         .withNewMetadata()
         .withGenerateName(name + "-")
@@ -24,8 +17,8 @@ public class JobDefinitions {
         .withRestartPolicy("Never")
         .addNewContainer()
         .withName(name)
-        .withImage("busybox:1.35")
-        .withCommand("sh", "-c", script)
+        .withImage("curlimages/curl:latest")
+        .withCommand("sh", "-c", command)
         .endContainer()
         .endSpec()
         .endTemplate()

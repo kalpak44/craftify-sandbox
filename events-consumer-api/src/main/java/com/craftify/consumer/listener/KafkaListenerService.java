@@ -20,8 +20,8 @@ public class KafkaListenerService {
   private final EventTypeRegistry eventTypeRegistry;
   private final JobLauncherService jobLauncherService;
 
-  public KafkaListenerService(EventTypeRegistry eventTypeRegistry,
-                              JobLauncherService jobLauncherService) {
+  public KafkaListenerService(
+      EventTypeRegistry eventTypeRegistry, JobLauncherService jobLauncherService) {
     this.eventTypeRegistry = eventTypeRegistry;
     this.jobLauncherService = jobLauncherService;
   }
@@ -31,11 +31,13 @@ public class KafkaListenerService {
     try {
       JsonNode root = objectMapper.readTree(record.value());
       String type = root.path("type").asText();
+      JsonNode payloadNode = root.path("payload");
+      String payload = payloadNode.isTextual() ? payloadNode.asText() : payloadNode.toString();
 
       logger.info("Received event type: {}", type);
 
       if (eventTypeRegistry.isValid(type)) {
-        jobLauncherService.launchJob(type.toLowerCase());
+        jobLauncherService.launchJob(type, payload);
         ack.acknowledge();
       } else {
         logger.warn("Unknown event type: {} - skipping ack", type);

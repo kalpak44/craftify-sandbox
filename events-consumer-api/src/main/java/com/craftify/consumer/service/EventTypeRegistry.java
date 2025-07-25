@@ -2,14 +2,19 @@ package com.craftify.consumer.service;
 
 import org.springframework.stereotype.Component;
 
-import java.util.Set;
-
 @Component
 public class EventTypeRegistry {
-    private final Set<String> validEventTypes = Set.of("EVENT_A", "EVENT_B", "FORM_SUBMIT");
 
-    public boolean isValid(String type) {
-        return validEventTypes.contains(type);
+  public boolean isValid(String type) {
+    return "FORM_SUBMIT".equals(type);
+  }
+
+  public String executionLogic(String type, String payload) {
+    if ("FORM_SUBMIT".equals(type)) {
+      return "curl -X POST https://kalpak44.free.beeceptor.com -d \"payload="
+          + payload.replace("\"", "\\\"")
+          + "\"";
     }
+    return "echo \"Unknown event type\"";
+  }
 }
-
