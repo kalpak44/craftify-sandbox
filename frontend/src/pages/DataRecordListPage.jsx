@@ -107,7 +107,10 @@ export function DataRecordListPage() {
                     <span className="text-gray-500 text-sm">No records created yet.</span>
                 </div>
             ) : (
-                <DataRecordsTable dataRecords={dataRecords} />
+                <DataRecordsTable
+                    dataRecords={dataRecords}
+                    onRefresh={fetchDataStores}
+                />
             )}
 
             {dataRecords.length < totalElements && !loading && (

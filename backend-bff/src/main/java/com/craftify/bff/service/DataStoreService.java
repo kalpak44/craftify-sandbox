@@ -133,4 +133,20 @@ public class DataStoreService {
 
     return dataStoreRecordsRepository.save(entity);
   }
+
+  public void deleteRecord(String dataStoreId, String recordId) {
+    dataStoreRepository
+            .findByIdAndUserId(dataStoreId, auth.getCurrentUserId())
+            .orElseThrow(() -> new IllegalArgumentException("Data store not found"));
+
+    DataStoreRecord record = dataStoreRecordsRepository
+            .findByIdAndUserId(recordId, auth.getCurrentUserId())
+            .orElseThrow(() -> new IllegalArgumentException("Record not found"));
+
+    if (!record.dataStoreId().equals(dataStoreId)) {
+      throw new IllegalArgumentException("Record does not belong to the specified data store");
+    }
+
+    dataStoreRecordsRepository.deleteById(record.id());
+  }
 }

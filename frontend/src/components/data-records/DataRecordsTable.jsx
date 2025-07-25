@@ -1,10 +1,9 @@
-import {useNavigate, useParams} from 'react-router-dom';
 import {DataStoreRecordsActionsMenu} from "./DataStoreRecordsActionsMenu.jsx";
+import {useNavigate, useParams} from "react-router-dom";
 
-export function DataRecordsTable({dataRecords}) {
+export function DataRecordsTable({ dataRecords, onRefresh }) {
     const navigate = useNavigate();
     const { dataStoreId } = useParams();
-    console.log(dataRecords);
 
     return (
         <div className="w-full bg-gray-950 rounded-xl shadow border border-gray-800 overflow-x-auto mt-4">
@@ -32,7 +31,11 @@ export function DataRecordsTable({dataRecords}) {
                         <td className="px-4 py-3">{new Date(record.createdAt).toLocaleString() || " - "}</td>
                         <td className="px-4 py-3">{new Date(record.updatedAt).toLocaleString() || " - "}</td>
                         <td className="px-4 py-3">
-                            <DataStoreRecordsActionsMenu dataRecordId={record.id} dataStoreId={dataStoreId}/>
+                            <DataStoreRecordsActionsMenu
+                                dataStoreId={dataStoreId}
+                                dataRecordId={record.id}
+                                onDeleted={onRefresh}
+                            />
                         </td>
                     </tr>
                 ))}

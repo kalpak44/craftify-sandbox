@@ -131,6 +131,22 @@ public class DataStoreController {
     return ResponseEntity.noContent().build();
   }
 
+  @Operation(summary = "Delete a record by ID in a specific data store")
+  @ApiResponses({
+          @ApiResponse(responseCode = "204", description = "Record deleted"),
+          @ApiResponse(responseCode = "404", description = "Data store or record not found")
+  })
+  @DeleteMapping("/{dataStoreId}/records/{recordId}")
+  public ResponseEntity<Void> deleteRecord(
+          @PathVariable String dataStoreId, @PathVariable String recordId) {
+    try {
+      service.deleteRecord(dataStoreId, recordId);
+      return ResponseEntity.noContent().build();
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.notFound().build();
+    }
+  }
+
   // Helper mapping methods
   private DataStore toEntity(DataStoreDto dto) {
     return new DataStore(null, dto.name(), dto.description(), dto.type(), dto.createdAt(), null);

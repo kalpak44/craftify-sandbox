@@ -140,3 +140,23 @@ export async function createDataRecord(authFetch, dataStoreId, name, record) {
 
     return res.json();
 }
+
+/**
+ * Delete a data record by ID
+ * @param {Function} authFetch
+ * @param {string} dataStoreId
+ * @param {string} recordId
+ */
+export async function deleteDataRecord(authFetch, dataStoreId, recordId) {
+    const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records/${recordId}`);
+
+    const res = await authFetch(url, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err || "Failed to delete data record");
+    }
+}
