@@ -107,12 +107,37 @@ export async function updateDataRecord(authFetch, dataStoreId, recordId, updated
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ recordData: updatedData })
+        body: JSON.stringify({recordData: updatedData})
     });
 
     if (!res.ok) {
         const err = await res.text();
         throw new Error(err || "Failed to update data record");
+    }
+    return res.json();
+}
+
+
+/**
+ * Create a new data record in a data store.
+ *
+ * @param {Function} authFetch The authenticated fetch function
+ * @param {string} dataStoreId ID of the data store
+ * @param {Object} record An object containing `name` and `recordData`
+ * @returns {Promise<any>} The created record response
+ */
+export async function createDataRecord(authFetch, dataStoreId, record) {
+    const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records`);
+    const res = await authFetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(record)
+    });
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err || "Failed to create data record");
     }
     return res.json();
 }

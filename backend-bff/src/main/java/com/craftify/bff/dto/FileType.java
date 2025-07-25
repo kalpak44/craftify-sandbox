@@ -1,8 +1,8 @@
 package com.craftify.bff.dto;
 
 /**
- * Enum representing the type of item in user storage. It can either be a regular file,
- * a folder/directory, or a function folder.
+ * Enum representing the type of item in user storage. It can either be a regular file, a
+ * folder/directory, or a function folder.
  */
 public enum FileType {
 
