@@ -1,5 +1,6 @@
 package com.craftify.consumer.listener;
 
+import com.craftify.consumer.service.EventTypeRegistry;
 import com.craftify.consumer.service.JobLauncherService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,23 +17,28 @@ public class KafkaListenerService {
   private static final Logger logger = LoggerFactory.getLogger(KafkaListenerService.class);
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final EventTypeRegistry eventTypeRegistry;
   private final JobLauncherService jobLauncherService;
 
-  public KafkaListenerService(JobLauncherService jobLauncherService) {
+  public KafkaListenerService(EventTypeRegistry eventTypeRegistry,
+                              JobLauncherService jobLauncherService) {
+    this.eventTypeRegistry = eventTypeRegistry;
     this.jobLauncherService = jobLauncherService;
   }
 
-  @KafkaListener(topics = "event-topic")
-  public void listen(ConsumerRecord<String, String> record) {
+  @KafkaListener(topics = "event-topic", containerFactory = "kafkaManualAckListenerFactory")
+  public void listen(ConsumerRecord<String, String> record, Acknowledgment ack) {
     try {
       JsonNode root = objectMapper.readTree(record.value());
       String type = root.path("type").asText();
+
       logger.info("Received event type: {}", type);
 
-      switch (type) {
-        case "EVENT_A" -> jobLauncherService.launchJob("handler-a");
-        case "EVENT_B" -> jobLauncherService.launchJob("handler-b");
-        default -> logger.warn("Unknown event type: {}", type);
+      if (eventTypeRegistry.isValid(type)) {
+        jobLauncherService.launchJob(type.toLowerCase());
+        ack.acknowledge();
+      } else {
+        logger.warn("Unknown event type: {} - skipping ack", type);
       }
 
     } catch (Exception e) {
