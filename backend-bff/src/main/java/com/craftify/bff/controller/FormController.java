@@ -89,7 +89,6 @@ public class FormController {
     }
 
     private void eventProducerRequest(Event event) {
-        final HttpResponse<Supplier<String>> response;
         try {
             var uri = UriComponentsBuilder.newInstance()
                     .uri(URI.create(eventProducerConfig.getHost()))
@@ -104,13 +103,13 @@ public class FormController {
                     .header("Content-Type", "application/json")
                     .build();
 
-            response = httpClient.send(request, responseInfo -> null);
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                throw new RuntimeException("An error occurred when trying to submit user form");
+                throw new RuntimeException("An error occurred when trying to submit user form: " + response.body());
             }
-        } catch (IOException | InterruptedException | RuntimeException e) {
-            throw new RuntimeException(e.getMessage(), e);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Failed to send event: " + e.getMessage(), e);
         }
     }
 

@@ -24,8 +24,8 @@ server:
     min-response-size: 1024
 
 events-producer-api:
-  host: http://events-producer-api.craftify.svc:8080/
-  path: /
+  host: http://events-producer-api.craftify.svc:8080
+  path: ""
 
 #logging:
 #  level:
