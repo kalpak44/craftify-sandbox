@@ -34,7 +34,7 @@ export function DataStoresTable({dataStores}) {
                         <td className="px-4 py-3">{ds.status || "ACTIVE"}</td>
                         <td className="px-4 py-3">{ds.records || 0}</td>
                         <td className="px-4 py-3">
-                            <DataStoreActionsMenu functionId={ds.id}/>
+                            <DataStoreActionsMenu dataStoreId={ds.id}/>
                         </td>
                     </tr>
                 ))}

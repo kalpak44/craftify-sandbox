@@ -3,7 +3,7 @@ import {DataStoreRecordsActionsMenu} from "./DataStoreRecordsActionsMenu.jsx";
 
 export function DataRecordsTable({dataRecords}) {
     const navigate = useNavigate();
-    const { id: dataStoreId, type: dataStoreType } = useParams();
+    const { dataStoreId } = useParams();
     console.log(dataRecords);
 
     return (
@@ -12,7 +12,6 @@ export function DataRecordsTable({dataRecords}) {
                 <thead>
                 <tr className="text-gray-400 border-b border-gray-800">
                     <th className="px-4 py-3 text-left font-medium">Name</th>
-                    <th className="px-4 py-3 text-left font-medium">Type</th>
                     <th className="px-4 py-3 text-left font-medium">Created at</th>
                     <th className="px-4 py-3 text-left font-medium">Updated at</th>
                     <th className="px-4 py-3 text-left font-medium">Actions</th>
@@ -26,11 +25,10 @@ export function DataRecordsTable({dataRecords}) {
                     >
                         <td
                             className="px-4 py-3 cursor-pointer text-blue-400 hover:underline"
-                            onClick={() => navigate(`/data-stores/${dataStoreId}/${dataStoreType}/${record.id}`)}
+                            onClick={() => navigate(`/data-stores/${dataStoreId}/${record.id}`)}
                         >
                             {record.name}
                         </td>
-                        <td className="px-4 py-3">{dataStoreType}</td>
                         <td className="px-4 py-3">{new Date(record.createdAt).toLocaleString() || " - "}</td>
                         <td className="px-4 py-3">{new Date(record.updatedAt).toLocaleString() || " - "}</td>
                         <td className="px-4 py-3">

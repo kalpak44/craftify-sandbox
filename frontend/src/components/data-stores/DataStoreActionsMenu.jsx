@@ -62,12 +62,20 @@ export function DataStoreActionsMenu({dataStoreId}) {
                 Details
             </button>
             <button
+                className="block w-full px-4 py-2 text-left hover:bg-gray-800 text-gray-100"
+                onClick={() => {
+                    setOpen(false);
+                }}
+            >
+                Clean
+            </button>
+            <button
                 className="block w-full px-4 py-2 text-left hover:bg-red-900 text-red-400"
                 onClick={() => {
                     setOpen(false);
                 }}
             >
-                Deregister
+                Delete
             </button>
         </div>,
         document.body
