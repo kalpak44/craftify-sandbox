@@ -40,4 +40,12 @@ public class UserFormService {
   public Optional<Form> getDetails(String currentUserId, String id) {
     return userFormRepository.findByIdAndUserId(id, currentUserId);
   }
+
+  public boolean deleteFormById(String userId, String id) {
+    return userFormRepository.findByIdAndUserId(id, userId).map(form -> {
+      userFormRepository.deleteById(form.id());
+      return true;
+    }).orElse(false);
+  }
+
 }

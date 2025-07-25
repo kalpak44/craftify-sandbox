@@ -75,3 +75,21 @@ export async function submitForm(authFetch, formId, formData) {
         throw new Error(errorText || "Failed to submit form");
     }
 }
+
+/**
+ * Delete a form by ID
+ * @param {Function} authFetch
+ * @param {string} id
+ */
+export async function deleteForm(authFetch, id) {
+    const url = new URL(`${FORMS_API_URL}/${id}`);
+    const res = await authFetch(url, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err || "Failed to delete form");
+    }
+}

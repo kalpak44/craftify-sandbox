@@ -1,15 +1,21 @@
 import {useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {createPortal} from 'react-dom';
+import {Modal} from '../common/Modal';
+import {useAuthFetch} from '../../hooks/useAuthFetch';
+import {deleteForm} from '../../api/forms';
 
-export function FormsActionsMenu({formId}) {
+export function FormsActionsMenu({formId, onDeleted}) {
     const [open, setOpen] = useState(false);
     const [menuStyle, setMenuStyle] = useState({});
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [deleteError, setDeleteError] = useState(null);
     const buttonRef = useRef();
     const menuRef = useRef();
     const navigate = useNavigate();
+    const authFetch = useAuthFetch();
 
-    // Handle outside click
     useEffect(() => {
         if (!open) return;
         const handler = (e) => {
@@ -26,13 +32,12 @@ export function FormsActionsMenu({formId}) {
         return () => document.removeEventListener('mousedown', handler);
     }, [open]);
 
-
     useEffect(() => {
         if (!open || !buttonRef.current) return;
         const btnRect = buttonRef.current.getBoundingClientRect();
-        const menuHeight = 96; // Estimate
+        const menuHeight = 96;
         let top = btnRect.bottom + 8;
-        let left = btnRect.right - 130; // align right edge
+        let left = btnRect.right - 130;
         if (window.innerHeight - btnRect.bottom < menuHeight + 12) {
             top = btnRect.top - menuHeight - 8;
         }
@@ -45,7 +50,18 @@ export function FormsActionsMenu({formId}) {
         });
     }, [open]);
 
-    // Menu content (portal)
+    const handleDelete = async () => {
+        try {
+            await deleteForm(authFetch, formId);
+            setShowConfirmModal(false);
+            if (onDeleted) onDeleted();
+        } catch (err) {
+            setDeleteError(err.message || "Failed to delete form");
+            setShowConfirmModal(false);
+            setShowErrorModal(true);
+        }
+    };
+
     const menu = open ? createPortal(
         <div
             ref={menuRef}
@@ -55,7 +71,7 @@ export function FormsActionsMenu({formId}) {
             <button
                 className="block w-full px-4 py-2 text-left hover:bg-gray-800 text-gray-100"
                 onClick={() => {
-                    navigate(`/form/${formId}`);
+                    navigate(`/forms/${formId}`);
                     setOpen(false);
                 }}
             >
@@ -65,6 +81,7 @@ export function FormsActionsMenu({formId}) {
                 className="block w-full px-4 py-2 text-left hover:bg-red-900 text-red-400"
                 onClick={() => {
                     setOpen(false);
+                    setShowConfirmModal(true);
                 }}
             >
                 Delete
@@ -84,6 +101,36 @@ export function FormsActionsMenu({formId}) {
                 <span className="text-xl font-bold">⋯</span>
             </button>
             {menu}
+
+            {showConfirmModal && (
+                <Modal
+                    title="Delete Form"
+                    onCancel={() => setShowConfirmModal(false)}
+                    onConfirm={handleDelete}
+                    confirmText="Delete"
+                    cancelText="Cancel"
+                    variant="danger"
+                >
+                    <div className="text-gray-300">
+                        Are you sure you want to delete this form? This action cannot be undone.
+                    </div>
+                </Modal>
+            )}
+
+            {showErrorModal && (
+                <Modal
+                    title="Failed to delete form"
+                    onCancel={() => setShowErrorModal(false)}
+                    cancelText="Close"
+                >
+                    <div className="text-red-400">
+                        {deleteError ?? "Unknown error occurred while deleting the form."}
+                    </div>
+                    <div className="text-gray-400 mt-2">
+                        Please try again or contact support.
+                    </div>
+                </Modal>
+            )}
         </>
     );
 }

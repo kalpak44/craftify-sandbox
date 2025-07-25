@@ -65,7 +65,7 @@ export function FormListPage() {
                     <span className="text-gray-500 text-sm">Get started by creating your first form.</span>
                 </div>
             ) : (
-                <FormsTable forms={forms}/>
+                <FormsTable forms={forms} onRefresh={fetchFunctions} />
             )}
 
             {forms.length < totalElements && !loading && (

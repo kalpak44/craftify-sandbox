@@ -1,7 +1,7 @@
 import {useNavigate} from 'react-router-dom';
 import {FormsActionsMenu} from "./FormsActionsMenu.jsx";
 
-export function FormsTable({forms}) {
+export function FormsTable({ forms, onRefresh }) {
     const navigate = useNavigate();
 
     return (
@@ -17,10 +17,7 @@ export function FormsTable({forms}) {
                 </thead>
                 <tbody>
                 {forms.map(form => (
-                    <tr
-                        key={form.id}
-                        className="hover:bg-gray-900 transition border-b border-gray-900"
-                    >
+                    <tr key={form.id} className="hover:bg-gray-900 transition border-b border-gray-900">
                         <td
                             className="px-4 py-3 cursor-pointer text-blue-400 hover:underline"
                             onClick={() => navigate(`/forms/${form.id}`)}
@@ -30,7 +27,7 @@ export function FormsTable({forms}) {
                         <td className="px-4 py-3">{new Date(form.createdAt).toLocaleString()}</td>
                         <td className="px-4 py-3">{new Date(form.updatedAt).toLocaleString()}</td>
                         <td className="px-4 py-3">
-                            <FormsActionsMenu functionId={form.id}/>
+                            <FormsActionsMenu formId={form.id} onDeleted={onRefresh} />
                         </td>
                     </tr>
                 ))}
@@ -39,3 +36,4 @@ export function FormsTable({forms}) {
         </div>
     );
 }
+
