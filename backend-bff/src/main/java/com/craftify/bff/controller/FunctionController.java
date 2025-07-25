@@ -1,13 +1,11 @@
 package com.craftify.bff.controller;
 
-import com.craftify.bff.common.model.functions.FunctionModule;
 import com.craftify.bff.config.FunctionBuilderConfig;
 import com.craftify.bff.dto.FunctionDto;
 import com.craftify.bff.dto.LogEvent;
 import com.craftify.bff.dto.RegisterFunctionDto;
 import com.craftify.bff.dto.RegisterFunctionResponse;
 import com.craftify.bff.model.RegistrationJob;
-import com.craftify.bff.model.UserMenu;
 import com.craftify.bff.service.AuthentificationService;
 import com.craftify.bff.service.FunctionService;
 import com.craftify.bff.service.RegistrationJobStore;
@@ -33,9 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @RestController

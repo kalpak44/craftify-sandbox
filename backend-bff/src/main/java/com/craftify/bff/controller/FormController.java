@@ -1,9 +1,12 @@
 package com.craftify.bff.controller;
 
+import com.craftify.bff.config.EventProducerConfig;
 import com.craftify.bff.dto.UserFormDto;
+import com.craftify.bff.model.Event;
 import com.craftify.bff.model.Form;
 import com.craftify.bff.service.AuthentificationService;
 import com.craftify.bff.service.UserFormService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +17,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Map;
+import java.util.function.Supplier;
 
 
 @RestController
@@ -24,10 +34,16 @@ import java.util.Map;
 public class FormController {
     private final AuthentificationService authentificationService;
     private final UserFormService userFormService;
+    private final HttpClient httpClient;
+    private final EventProducerConfig eventProducerConfig;
+    private final ObjectMapper objectMapper;
 
-    public FormController(AuthentificationService authentificationService, UserFormService userFormService) {
+    public FormController(AuthentificationService authentificationService, UserFormService userFormService, HttpClient httpClient, EventProducerConfig eventProducerConfig, ObjectMapper objectMapper) {
         this.authentificationService = authentificationService;
         this.userFormService = userFormService;
+        this.httpClient = httpClient;
+        this.eventProducerConfig = eventProducerConfig;
+        this.objectMapper = objectMapper;
     }
 
 
@@ -56,10 +72,10 @@ public class FormController {
     }
 
     @PostMapping("/{id}/submit")
-    public ResponseEntity<UserFormDto> submit(@RequestBody Map<String, Object> dto) {
+    public ResponseEntity<UserFormDto> submit(@PathVariable String id, @RequestBody Map<String, Object> dto) {
         var currentUserId = authentificationService.getCurrentUserId();
-        //todo: TBD
-        System.out.println("Submitting user form: " + dto);
+        dto.put("FORM_ID",id);
+        eventProducerRequest(new Event("FORM_SUBMIT", currentUserId, dto));
         return ResponseEntity.ok().build();
     }
 
@@ -71,4 +87,31 @@ public class FormController {
     private UserFormDto toDto(Form entity) {
         return new UserFormDto(entity.id(), entity.name(), entity.createdAt(), entity.updatedAt(), entity.fields());
     }
+
+    private void eventProducerRequest(Event event) {
+        final HttpResponse<Supplier<String>> response;
+        try {
+            var uri = UriComponentsBuilder.newInstance()
+                    .uri(URI.create(eventProducerConfig.getHost()))
+                    .pathSegment(eventProducerConfig.getPath())
+                    .build()
+                    .toUri();
+
+            var json = objectMapper.writeValueAsString(event);
+            final HttpRequest request = HttpRequest.newBuilder()
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .uri(uri)
+                    .header("Content-Type", "application/json")
+                    .build();
+
+            response = httpClient.send(request, responseInfo -> null);
+
+            if (response.statusCode() != 200) {
+                throw new RuntimeException("An error occurred when trying to submit user form");
+            }
+        } catch (IOException | InterruptedException | RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
 }

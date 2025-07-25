@@ -23,6 +23,10 @@ server:
     # Minimum response size to trigger compression
     min-response-size: 1024
 
+events-producer-api:
+  host: http://events-producer-api.craftify.svc:8080/
+  path: /
+
 #logging:
 #  level:
 #    org.springframework: INFO
