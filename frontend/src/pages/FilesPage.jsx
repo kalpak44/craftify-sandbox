@@ -1,13 +1,18 @@
-import {useEffect, useState} from 'react';
-import {createFolder, deleteItem, downloadItem, listFiles, renameItem, uploadFile} from '../api/files';
-import {Loader} from '../components/common/Loader';
-import {Modal} from '../components/common/Modal';
-import {useAuthFetch} from '../hooks/useAuthFetch';
-import {useNavigate} from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import {
+    createFolder,
+    deleteItem,
+    downloadItem,
+    listFiles,
+    renameItem,
+    uploadFile,
+} from '../api/files';
+import { Loader } from '../components/common/Loader';
+import { Modal } from '../components/common/Modal';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 
 export const FilesPage = () => {
     const authFetch = useAuthFetch();
-    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
     const [files, setFiles] = useState([]);
@@ -125,7 +130,6 @@ export const FilesPage = () => {
         }
     };
 
-
     const triggerDownload = () => {
         if (selectedItem?.fullPath) {
             downloadItem(authFetch, selectedItem.fullPath).catch(() =>
@@ -134,7 +138,7 @@ export const FilesPage = () => {
         }
     };
 
-    if (loading) return <Loader text="Loading files..."/>;
+    if (loading) return <Loader text="Loading files..." />;
 
     return (
         <div className="flex h-full text-white">
@@ -144,18 +148,23 @@ export const FilesPage = () => {
             </aside>
 
             <main className="flex-1 bg-gray-900 p-6 overflow-auto">
-                <div className="flex justify-between mb-4 items-center">
+                <div className="flex justify-between mb-6 items-center">
                     <div>
-                        <h1 className="text-lg font-semibold">Folder: {currentFolder || 'root'}</h1>
+                        <h1 className="text-2xl font-bold text-white">
+                            Folder: {currentFolder || 'root'}
+                        </h1>
                         {currentFolder && (
-                            <button onClick={goBack} className="mt-1 text-sm text-blue-400 hover:underline">
+                            <button
+                                onClick={goBack}
+                                className="mt-1 text-sm text-blue-400 hover:underline"
+                            >
                                 ← Go Back
                             </button>
                         )}
                     </div>
 
                     <div className="flex gap-2 items-center">
-                        <label className="bg-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-700 cursor-pointer">
+                        <label className="bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 text-sm font-medium cursor-pointer shadow transition">
                             Upload
                             <input
                                 type="file"
@@ -165,9 +174,9 @@ export const FilesPage = () => {
                         </label>
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="bg-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-600"
+                            className="bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 text-sm font-medium shadow transition"
                         >
-                            New Folder
+                            ➕ New Folder
                         </button>
 
                         {selectedItem && (
@@ -175,9 +184,9 @@ export const FilesPage = () => {
                                 {selectedItem.type === 'FILE' && (
                                     <button
                                         onClick={triggerDownload}
-                                        className="bg-green-600 px-3 py-1 rounded text-sm hover:bg-green-700"
+                                        className="bg-gray-800 hover:bg-gray-700 text-green-400 border border-gray-700 rounded-xl px-4 py-2 text-sm font-medium shadow transition"
                                     >
-                                        Download
+                                        ⬇️ Download
                                     </button>
                                 )}
                                 <button
@@ -185,22 +194,22 @@ export const FilesPage = () => {
                                         setRenameName(selectedItem.name);
                                         setShowRenameModal(true);
                                     }}
-                                    className="bg-purple-600 px-3 py-1 rounded text-sm hover:bg-purple-700"
+                                    className="bg-gray-800 hover:bg-gray-700 text-purple-400 border border-gray-700 rounded-xl px-4 py-2 text-sm font-medium shadow transition"
                                 >
-                                    Rename
+                                    ✏️ Rename
                                 </button>
                                 <button
                                     onClick={() => setShowDeleteModal(true)}
-                                    className="bg-red-600 px-3 py-1 rounded text-sm hover:bg-red-700"
+                                    className="bg-gray-800 hover:bg-gray-700 text-red-400 border border-gray-700 rounded-xl px-4 py-2 text-sm font-medium shadow transition"
                                 >
-                                    Delete
+                                    🗑 Delete
                                 </button>
                                 {selectedItem.type === 'FOLDER' && (
                                     <button
                                         onClick={() => openFolder(selectedItem)}
-                                        className="bg-yellow-600 px-3 py-1 rounded text-sm hover:bg-yellow-700"
+                                        className="bg-gray-800 hover:bg-gray-700 text-yellow-400 border border-gray-700 rounded-xl px-4 py-2 text-sm font-medium shadow transition"
                                     >
-                                        Open
+                                        📂 Open
                                     </button>
                                 )}
                             </>
@@ -226,7 +235,9 @@ export const FilesPage = () => {
                                 key={i}
                                 onClick={() => setSelectedItem(item)}
                                 onDoubleClick={() => item.type === 'FOLDER' && openFolder(item)}
-                                className={`cursor-pointer ${isSelected ? 'bg-gray-700' : 'hover:bg-gray-800'}`}
+                                className={`cursor-pointer ${
+                                    isSelected ? 'bg-gray-700' : 'hover:bg-gray-800'
+                                }`}
                             >
                                 <td className="py-2 px-3">
                                     <span className="mr-2">{icon}</span>
@@ -294,6 +305,7 @@ export const FilesPage = () => {
                     onCancel={() => setShowDeleteModal(false)}
                     onConfirm={confirmDelete}
                     confirmText="Delete"
+                    variant="danger"
                 >
                     Are you sure you want to permanently delete{' '}
                     <strong>{selectedItem?.name}</strong>?
@@ -301,7 +313,11 @@ export const FilesPage = () => {
             )}
 
             {showErrorModal && (
-                <Modal title="Something went wrong" onConfirm={() => setShowErrorModal(false)} confirmText="OK">
+                <Modal
+                    title="Something went wrong"
+                    onConfirm={() => setShowErrorModal(false)}
+                    confirmText="OK"
+                >
                     <p>{errorMessage}</p>
                 </Modal>
             )}
