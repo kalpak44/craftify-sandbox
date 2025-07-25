@@ -9,10 +9,14 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DataStoreRecordsRepository extends MongoRepository<DataStoreRecord, String> {
+
   Page<DataStoreRecord> findAllByUserIdAndDataStoreId(
       String userId, String dataStoreId, Pageable pageable);
 
   Optional<DataStoreRecord> findByIdAndUserId(String id, String userId);
 
   Optional<Long> countByUserIdAndDataStoreId(String userId, String dataStoreId);
+
+  boolean existsByUserIdAndDataStoreIdAndNameIgnoreCase(
+      String userId, String dataStoreId, String name);
 }

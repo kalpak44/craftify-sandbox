@@ -13,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-/** Service layer for managing DataSchema entities. */
 @Service
 public class DataStoreService {
 
@@ -30,12 +29,6 @@ public class DataStoreService {
     this.auth = auth;
   }
 
-  /**
-   * Creates and saves a new DataStore.
-   *
-   * @param schema the schema to create
-   * @return the saved DataSchema
-   */
   public DataStore create(DataStore schema) {
     return dataStoreRepository.save(
         new DataStore(
@@ -47,13 +40,6 @@ public class DataStoreService {
             auth.getCurrentUserId()));
   }
 
-  /**
-   * Retrieves a paginated list of DataStore sorted by name.
-   *
-   * @param page the page number to retrieve
-   * @param size the number of items per page
-   * @return a page of DataSchema entities
-   */
   public Page<DataStore> list(int page, int size) {
     return dataStoreRepository.findAllByUserId(
         auth.getCurrentUserId(),
@@ -61,18 +47,18 @@ public class DataStoreService {
   }
 
   public Optional<DataStoreRecordDetails> getDetails(String dataStoreId, String recordId) {
-    Optional<DataStore> dataStoreOpt =
-        dataStoreRepository.findByIdAndUserId(dataStoreId, auth.getCurrentUserId());
-    if (dataStoreOpt.isEmpty()) {
-      throw new IllegalArgumentException("DataStore not found for the current user.");
-    }
-    Optional<DataStoreRecord> recordOpt =
-        dataStoreRecordsRepository.findByIdAndUserId(recordId, auth.getCurrentUserId());
-    if (recordOpt.isEmpty()) {
-      throw new IllegalArgumentException("Record not found for the current user.");
-    }
-    DataStore dataStore = dataStoreOpt.get();
-    DataStoreRecord record = recordOpt.get();
+    DataStore dataStore =
+        dataStoreRepository
+            .findByIdAndUserId(dataStoreId, auth.getCurrentUserId())
+            .orElseThrow(
+                () -> new IllegalArgumentException("DataStore not found for the current user."));
+
+    DataStoreRecord record =
+        dataStoreRecordsRepository
+            .findByIdAndUserId(recordId, auth.getCurrentUserId())
+            .orElseThrow(
+                () -> new IllegalArgumentException("Record not found for the current user."));
+
     return Optional.of(
         new DataStoreRecordDetails(
             record.name(),
@@ -83,13 +69,6 @@ public class DataStoreService {
             record.record()));
   }
 
-  /**
-   * Updates an existing DataStore with new values.
-   *
-   * @param id the ID of the existing DataStore
-   * @param updatedSchema the new schema data
-   * @return an Optional containing the updated schema if the original was found
-   */
   public Optional<DataStore> update(String id, DataStore updatedSchema) {
     return dataStoreRepository
         .findByIdAndUserId(id, auth.getCurrentUserId())
@@ -105,11 +84,6 @@ public class DataStoreService {
                         existing.userId())));
   }
 
-  /**
-   * Deletes a DataStore by ID.
-   *
-   * @param id the ID of the schema to delete
-   */
   public void delete(String id) {
     dataStoreRepository
         .findByIdAndUserId(id, auth.getCurrentUserId())
@@ -122,35 +96,16 @@ public class DataStoreService {
         .orElse(0L);
   }
 
-  /**
-   * Checks whether a schema can be safely deleted. For now, always returns true (placeholder).
-   *
-   * @param id the ID of the schema
-   * @return true if it can be deleted
-   */
   public boolean canDelete(String id) {
-    // TODO: Replace with actual logic for checking record references
-    return true;
-  }
-
-  /**
-   * Checks whether a schema can be updated. For now, always returns true (placeholder).
-   *
-   * @param id the ID of the schema
-   * @return true if the schema is allowed to be updated
-   */
-  public boolean canUpdate(String id) {
-    // TODO: Add logic for locking immutable schemas
+    // Placeholder logic; implement check if needed
     return true;
   }
 
   public Page<DataStoreRecord> listRecords(String dataStoreId, int page, int size) {
-    Optional<DataStore> dataStoreOpt =
-        dataStoreRepository.findByIdAndUserId(dataStoreId, auth.getCurrentUserId());
-
-    if (dataStoreOpt.isEmpty()) {
-      throw new IllegalArgumentException("DataStore not found for the current user.");
-    }
+    dataStoreRepository
+        .findByIdAndUserId(dataStoreId, auth.getCurrentUserId())
+        .orElseThrow(
+            () -> new IllegalArgumentException("DataStore not found for the current user."));
 
     return dataStoreRecordsRepository.findAllByUserIdAndDataStoreId(
         auth.getCurrentUserId(),
@@ -158,22 +113,24 @@ public class DataStoreService {
         PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt")));
   }
 
-  /**
-   * Creates a new record within a data store.
-   *
-   * @param dataStoreId the ID of the data store
-   * @param name the name of the new record
-   * @param record the JSON payload for the record
-   * @return the saved record
-   */
   public DataStoreRecord createRecord(String dataStoreId, String name, Map<String, Object> record) {
-    var dataStoreOpt = dataStoreRepository.findByIdAndUserId(dataStoreId, auth.getCurrentUserId());
-    if (dataStoreOpt.isEmpty()) {
-      throw new IllegalArgumentException("DataStore not found for the current user.");
+    dataStoreRepository
+        .findByIdAndUserId(dataStoreId, auth.getCurrentUserId())
+        .orElseThrow(
+            () -> new IllegalArgumentException("DataStore not found for the current user."));
+
+    boolean exists =
+        dataStoreRecordsRepository.existsByUserIdAndDataStoreIdAndNameIgnoreCase(
+            auth.getCurrentUserId(), dataStoreId, name);
+
+    if (exists) {
+      throw new IllegalStateException("A record with this name already exists.");
     }
-    var now = Instant.now();
+
+    Instant now = Instant.now();
     var entity =
         new DataStoreRecord(null, name, dataStoreId, now, now, record, auth.getCurrentUserId());
+
     return dataStoreRecordsRepository.save(entity);
   }
 }

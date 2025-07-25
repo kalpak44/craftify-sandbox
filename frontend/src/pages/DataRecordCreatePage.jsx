@@ -1,60 +1,68 @@
+// All imports remain the same
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Modal } from "../components/common/Modal";
 import { Loader } from "../components/common/Loader";
 import { useAuthFetch } from "../hooks/useAuthFetch";
-import { getDataRecordById, updateDataRecord } from "../api/dataStores";
 import Editor from "@monaco-editor/react";
+import { getDataRecordById, createDataRecord } from "../api/dataStores.js";
 
-export function DataRecordDetailsPage() {
-    const { dataRecordId, dataStoreId } = useParams();
-    const navigate = useNavigate();
+export function DataRecordCreatePage() {
+    const { dataStoreId, dataRecordId } = useParams();
+    const isEdit = !!dataRecordId;
+
     const authFetch = useAuthFetch();
+    const navigate = useNavigate();
 
-    const [record, setRecord] = useState(null);
     const [recordName, setRecordName] = useState("Untitled Record");
-    const [isEditingName, setIsEditingName] = useState(false);
     const [data, setData] = useState({});
+    const [isEditingName, setIsEditingName] = useState(!isEdit);
     const [loading, setLoading] = useState(false);
-    const [saveError, setSaveError] = useState(null);
-    const [fetchError, setFetchError] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [activeTab, setActiveTab] = useState(0);
+    const [error, setError] = useState(null);
+    const [showErrorModal, setShowErrorModal] = useState(false);
     const [newFields, setNewFields] = useState({});
     const [arrayItems, setArrayItems] = useState({});
-    const [activeIdx, setActiveIdx] = useState(0);
 
-    const fetchRecord = useCallback(async () => {
+    const fetchExistingRecord = useCallback(async () => {
+        if (!isEdit) return;
         setLoading(true);
         try {
             const result = await getDataRecordById(authFetch, dataStoreId, dataRecordId);
-            setRecord(result);
-            setRecordName(result?.name ?? "Untitled Record");
+            setRecordName(result.name);
             setData(result?.recordData ?? {});
         } catch (err) {
-            setFetchError(err.message || "Failed to load data record");
-            setShowModal(true);
+            setError(err.message || "Failed to load data record");
+            setShowErrorModal(true);
         }
         setLoading(false);
-    }, [authFetch, dataStoreId, dataRecordId]);
+    }, [authFetch, dataStoreId, dataRecordId, isEdit]);
 
     useEffect(() => {
-        fetchRecord();
-    }, [fetchRecord]);
+        fetchExistingRecord();
+    }, [fetchExistingRecord]);
+
+    const handleSave = async () => {
+        if (!recordName?.trim()) {
+            setError("Record name cannot be empty.");
+            setShowErrorModal(true);
+            return;
+        }
+
+        try {
+            const saved = await createDataRecord(authFetch, dataStoreId, recordName.trim(), data);
+            navigate(`/data-stores/${dataStoreId}/${saved.id}`);
+        } catch (err) {
+            setError(err.message || "Failed to save record.");
+            setShowErrorModal(true);
+        }
+    };
 
     const tryParse = (val) => {
         try {
             return JSON.parse(val);
         } catch {
             return val;
-        }
-    };
-
-    const handleSave = async () => {
-        try {
-            await updateDataRecord(authFetch, dataStoreId, dataRecordId, data);
-        } catch (err) {
-            setSaveError(err.message || "Failed to update data record");
-            setShowModal(true);
         }
     };
 
@@ -108,7 +116,6 @@ export function DataRecordDetailsPage() {
 
     const renderEditor = (node, path = []) => {
         const flatPath = path.join(".");
-
         if (Array.isArray(node)) {
             return (
                 <div className="space-y-2 w-full">
@@ -261,7 +268,7 @@ export function DataRecordDetailsPage() {
                 <div className="flex gap-2 ml-auto">
                     <button
                         onClick={() => navigate(`/data-stores/${dataStoreId}`)}
-                        className="bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 shadow transition text-sm font-medium"
+                        className="bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-xl px-4 py-2 text-sm font-medium"
                     >
                         Go back
                     </button>
@@ -280,25 +287,24 @@ export function DataRecordDetailsPage() {
                     <div className="flex justify-center py-10">
                         <Loader />
                     </div>
-                ) : fetchError ? null : (
+                ) : (
                     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-gray-100">
                         <div className="flex gap-2 mb-4 border-b border-gray-800">
-                            {["Record Editor", "Raw Data"].map((label, idx) => (
+                            {["Record Editor", "Raw JSON"].map((label, idx) => (
                                 <button
                                     key={label}
                                     className={`px-4 py-2 font-medium transition ${
-                                        activeIdx === idx
+                                        activeTab === idx
                                             ? "border-b-2 border-blue-500 text-blue-400"
                                             : "text-gray-400 hover:text-blue-400"
                                     }`}
-                                    onClick={() => setActiveIdx(idx)}
+                                    onClick={() => setActiveTab(idx)}
                                 >
                                     {label}
                                 </button>
                             ))}
                         </div>
-
-                        {activeIdx === 0 ? (
+                        {activeTab === 0 ? (
                             <div className="text-sm">{renderEditor(data)}</div>
                         ) : (
                             <Editor
@@ -307,10 +313,9 @@ export function DataRecordDetailsPage() {
                                 value={JSON.stringify(data, null, 2)}
                                 onChange={(val) => {
                                     try {
-                                        const parsed = JSON.parse(val || "{}");
-                                        setData(parsed);
+                                        setData(JSON.parse(val || "{}"));
                                     } catch {
-                                        // ignored
+                                        // ignore parse error
                                     }
                                 }}
                                 theme="vs-dark"
@@ -321,19 +326,16 @@ export function DataRecordDetailsPage() {
             </div>
 
             {/* Error Modal */}
-            {showModal && (
+            {showErrorModal && (
                 <Modal
                     title="Error"
                     onCancel={() => {
-                        setShowModal(false);
-                        setSaveError(null);
-                        setFetchError(null);
+                        setShowErrorModal(false);
+                        setError(null);
                     }}
                     cancelText="Close"
                 >
-                    <div className="text-red-400 text-sm">
-                        {fetchError || saveError || "An error occurred."}
-                    </div>
+                    <div className="text-red-400">{error ?? "Something went wrong."}</div>
                 </Modal>
             )}
         </div>

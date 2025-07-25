@@ -9,7 +9,7 @@ import {useNavigate, useParams} from "react-router-dom";
 const INITIAL_PAGE_SIZE = 5;
 
 export function DataRecordListPage() {
-    const { id: dataStoreId, type: dataStoreType } = useParams();
+    const { dataStoreId } = useParams();
     const authFetch = useAuthFetch();
     const [page, setPage] = useState(0);
     const [dataRecords, setDataRecords] = useState([]);
@@ -85,7 +85,7 @@ export function DataRecordListPage() {
                                     className="w-full bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 rounded-md px-3 py-2 text-sm font-medium"
                                     onClick={() => {
                                         setShowSettings(false);
-                                        navigate(`/data-stores/${dataStoreId}/${dataStoreType}/new`)
+                                        navigate(`/data-stores/${dataStoreId}/new`)
                                     }}
                                 >
                                     ➕ Create New Record

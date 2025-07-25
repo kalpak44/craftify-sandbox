@@ -25,7 +25,7 @@ export function DataStoresTable({dataStores}) {
                     >
                         <td
                             className="px-4 py-3 cursor-pointer text-blue-400 hover:underline"
-                            onClick={() => navigate(`/data-stores/${ds.id}/${ds.name}`)}
+                            onClick={() => navigate(`/data-stores/${ds.id}`)}
                         >
                             {ds.name}
                         </td>

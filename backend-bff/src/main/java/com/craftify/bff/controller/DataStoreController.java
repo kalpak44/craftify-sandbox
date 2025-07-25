@@ -8,20 +8,13 @@ import com.craftify.bff.model.DataStoreRecordDetails;
 import com.craftify.bff.service.DataStoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/data-stores")
@@ -38,10 +31,7 @@ public class DataStoreController {
   @ApiResponse(
       responseCode = "200",
       description = "Data store created",
-      content =
-          @Content(
-              schema =
-                  @io.swagger.v3.oas.annotations.media.Schema(implementation = DataStoreDto.class)))
+      content = @Content(schema = @Schema(implementation = DataStoreDto.class)))
   @PostMapping
   public ResponseEntity<DataStoreDto> create(@RequestBody DataStoreDto dto) {
     var created = service.create(toEntity(dto));
@@ -52,10 +42,7 @@ public class DataStoreController {
   @ApiResponse(
       responseCode = "200",
       description = "List of data stores",
-      content =
-          @Content(
-              schema =
-                  @io.swagger.v3.oas.annotations.media.Schema(implementation = DataStoreDto.class)))
+      content = @Content(schema = @Schema(implementation = DataStoreDto.class)))
   @GetMapping
   public ResponseEntity<Page<DataStoreDto>> list(
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
@@ -63,14 +50,11 @@ public class DataStoreController {
     return ResponseEntity.ok(paginated);
   }
 
-  @Operation(summary = "List all data stores records with pagination")
+  @Operation(summary = "List all data store records with pagination")
   @ApiResponse(
       responseCode = "200",
-      description = "List of data stores",
-      content =
-          @Content(
-              schema =
-                  @io.swagger.v3.oas.annotations.media.Schema(implementation = DataStoreDto.class)))
+      description = "List of records",
+      content = @Content(schema = @Schema(implementation = DataStoreRecordDto.class)))
   @GetMapping("{id}/records")
   public ResponseEntity<Page<DataStoreRecordDto>> listRecords(
       @PathVariable String id,
@@ -80,17 +64,13 @@ public class DataStoreController {
     return ResponseEntity.ok(paginated);
   }
 
-  @Operation(summary = "Get a data store details by id and record id")
+  @Operation(summary = "Get record details by data store ID and record ID")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
         description = "Details found",
-        content =
-            @Content(
-                schema =
-                    @io.swagger.v3.oas.annotations.media.Schema(
-                        implementation = DataStoreDto.class))),
-    @ApiResponse(responseCode = "404", description = "Data Store not found")
+        content = @Content(schema = @Schema(implementation = DataStoreRecordDetails.class))),
+    @ApiResponse(responseCode = "404", description = "Data Store or Record not found")
   })
   @GetMapping("/{id}/records/{recordId}")
   public ResponseEntity<DataStoreRecordDetails> detail(
@@ -102,25 +82,22 @@ public class DataStoreController {
   }
 
   @Operation(summary = "Create a new record in a data store")
-  @ApiResponse(
-      responseCode = "200",
-      description = "Data store record created",
-      content =
-          @Content(
-              schema =
-                  @io.swagger.v3.oas.annotations.media.Schema(
-                      implementation = DataStoreRecordDto.class)))
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Record created",
+        content = @Content(schema = @Schema(implementation = DataStoreRecordDto.class))),
+    @ApiResponse(responseCode = "409", description = "Record with the same name already exists")
+  })
   @PostMapping("/{id}/records")
-  public ResponseEntity<DataStoreRecordDto> createRecord(
+  public ResponseEntity<?> createRecord(
       @PathVariable("id") String dataStoreId, @RequestBody DataStoreRecordDto dto) {
-    var created = service.createRecord(dataStoreId, dto.name(), dto.record());
-    return ResponseEntity.ok(
-        new DataStoreRecordDto(
-            created.id(),
-            created.name(),
-            created.createdAt(),
-            created.updatedAt(),
-            created.record()));
+    try {
+      var created = service.createRecord(dataStoreId, dto.name(), dto.record());
+      return ResponseEntity.ok(toRecordDto(created));
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(409).body(e.getMessage());
+    }
   }
 
   @Operation(summary = "Update a data store by ID")
@@ -128,14 +105,7 @@ public class DataStoreController {
     @ApiResponse(
         responseCode = "200",
         description = "Data store updated",
-        content =
-            @Content(
-                schema =
-                    @io.swagger.v3.oas.annotations.media.Schema(
-                        implementation = DataStoreDto.class))),
-    @ApiResponse(
-        responseCode = "409",
-        description = "Cannot update data store due to restrictions"),
+        content = @Content(schema = @Schema(implementation = DataStoreDto.class))),
     @ApiResponse(responseCode = "404", description = "Data store not found")
   })
   @PutMapping("/{id}")
@@ -143,17 +113,14 @@ public class DataStoreController {
       @PathVariable String id, @RequestBody DataStoreDto dto) {
     return service
         .update(id, toEntity(dto))
-        .map(this::toDto)
-        .map(ResponseEntity::ok)
+        .map(updated -> ResponseEntity.ok(toDto(updated)))
         .orElse(ResponseEntity.notFound().build());
   }
 
   @Operation(summary = "Delete a data store by ID")
   @ApiResponses({
     @ApiResponse(responseCode = "204", description = "Data store deleted"),
-    @ApiResponse(
-        responseCode = "409",
-        description = "Cannot delete data store due to associated records")
+    @ApiResponse(responseCode = "409", description = "Cannot delete due to related records")
   })
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(@PathVariable String id) {
@@ -164,6 +131,7 @@ public class DataStoreController {
     return ResponseEntity.noContent().build();
   }
 
+  // Helper mapping methods
   private DataStore toEntity(DataStoreDto dto) {
     return new DataStore(null, dto.name(), dto.description(), dto.type(), dto.createdAt(), null);
   }

@@ -1,143 +1,142 @@
 const API_HOST = import.meta.env.VITE_API_HOST || "http://localhost:8080";
 const DATA_STORE_API_URL = `${API_HOST}/data-stores`;
 
-
 /**
- * Fetch a pageable list of data stores from the backend.
- * @param {Function} authFetch - The authenticated fetch function
- * @param {number} page - Page number (0-based)
- * @param {number} size - Page size
- * @returns {Promise<Object>} - The pageable response: { content, totalElements, totalPages, ... }
+ * List all data stores (paginated)
+ * @param {Function} authFetch
+ * @param {number} page
+ * @param {number} size
  */
 export async function listDataStores(authFetch, page = 0, size = 10) {
-    const url = new URL(`${DATA_STORE_API_URL}`);
+    const url = new URL(DATA_STORE_API_URL);
     url.searchParams.append("page", page);
     url.searchParams.append("size", size);
 
     const res = await authFetch(url, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" },
     });
 
     if (!res.ok) {
         throw new Error("Failed to fetch data stores");
     }
+
     return res.json();
 }
 
 /**
  * Create a new data store
- * @param {Function} authFetch - The authenticated fetch function
+ * @param {Function} authFetch
  * @param {Object} dataStore
- * @returns {Promise<Object>}
  */
-export const createDataStores = async (authFetch, dataStore) => {
-    const url = new URL(`${DATA_STORE_API_URL}`);
+export async function createDataStores(authFetch, dataStore) {
+    const url = new URL(DATA_STORE_API_URL);
     const res = await authFetch(url, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(dataStore)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataStore),
     });
 
     if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(errorText || "Failed to post data store");
+        throw new Error(errorText || "Failed to create data store");
     }
+
     return res.json();
-};
+}
 
 /**
- * Fetch a pageable list of data stores from the backend.
- * @param {Function} authFetch - The authenticated fetch function
- * @param dataStoreId
- * @param {number} page - Page number (0-based)
- * @param {number} size - Page size
- * @returns {Promise<Object>} - The pageable response: { content, totalElements, totalPages, ... }
+ * List records in a data store (paginated)
+ * @param {Function} authFetch
+ * @param {string} dataStoreId
+ * @param {number} page
+ * @param {number} size
  */
 export async function listDataStoresRecords(authFetch, dataStoreId, page = 0, size = 10) {
     const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records`);
-
     url.searchParams.append("page", page);
     url.searchParams.append("size", size);
 
     const res = await authFetch(url, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" },
     });
 
     if (!res.ok) {
         throw new Error("Failed to fetch data store records");
     }
+
     return res.json();
 }
 
 /**
  * Get a single data record by ID
- * @param {Function} authFetch - The authenticated fetch function
- * @param {string} dataStoreId - ID of the data store
- * @param {string} recordId - ID of the record
- * @returns {Promise<Object>} - The record details
+ * @param {Function} authFetch
+ * @param {string} dataStoreId
+ * @param {string} recordId
  */
 export async function getDataRecordById(authFetch, dataStoreId, recordId) {
     const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records/${recordId}`);
 
     const res = await authFetch(url, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        }
+        headers: { "Content-Type": "application/json" },
     });
 
     if (!res.ok) {
         throw new Error("Failed to fetch data record");
     }
+
     return res.json();
 }
 
+/**
+ * Update an existing data record
+ * @param {Function} authFetch
+ * @param {string} dataStoreId
+ * @param {string} recordId
+ * @param {Object} updatedData
+ */
 export async function updateDataRecord(authFetch, dataStoreId, recordId, updatedData) {
     const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records/${recordId}`);
+
     const res = await authFetch(url, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({recordData: updatedData})
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recordData: updatedData }),
     });
 
     if (!res.ok) {
         const err = await res.text();
         throw new Error(err || "Failed to update data record");
     }
+
     return res.json();
 }
 
-
 /**
- * Create a new data record in a data store.
- *
- * @param {Function} authFetch The authenticated fetch function
- * @param {string} dataStoreId ID of the data store
- * @param {Object} record An object containing `name` and `recordData`
- * @returns {Promise<any>} The created record response
+ * Create a new data record in a data store
+ * @param {Function} authFetch
+ * @param {string} dataStoreId
+ * @param {string} name
+ * @param {Object} record
  */
-export async function createDataRecord(authFetch, dataStoreId, record) {
+export async function createDataRecord(authFetch, dataStoreId, name, record) {
     const url = new URL(`${DATA_STORE_API_URL}/${dataStoreId}/records`);
+
     const res = await authFetch(url, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(record)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, record }),
     });
+
     if (!res.ok) {
         const err = await res.text();
+        if (res.status === 409) {
+            throw new Error("Record with the same name already exists.");
+        }
         throw new Error(err || "Failed to create data record");
     }
+
     return res.json();
 }
