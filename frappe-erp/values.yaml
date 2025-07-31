@@ -1,0 +1,66 @@
+# Use your preferred ERPNext version:
+image:
+  repository: frappe/erpnext
+  tag: v15.72.1
+
+nginx:
+  replicaCount: 1
+  service:
+    type: NodePort   # Expose as NodePort for local access
+    port: 8080
+
+worker:
+  gunicorn:
+    replicaCount: 1
+  default:
+    replicaCount: 1
+  short:
+    replicaCount: 1
+  long:
+    replicaCount: 1
+  scheduler:
+    replicaCount: 1
+
+socketio:
+  replicaCount: 1
+  service:
+    type: ClusterIP
+
+persistence:
+  worker:
+    enabled: false   # No persistence for local/dev test (optional)
+  logs:
+    enabled: false
+
+ingress:
+  enabled: false     # Disable ingress for NodePort test
+
+jobs:
+  createSite:
+    enabled: true
+    siteName: "test.local"
+    adminPassword: "MyAdminPwd123!"   # <- **Set your own password**
+    installApps:
+      - "erpnext"
+    dbType: "mariadb"
+
+mariadb:
+  enabled: true
+  auth:
+    rootPassword: "MariaDBRoot123!"   # <- **Set your own DB root password**
+    username: "erpnext"
+    password: "ErpUserPwd123!"
+    replicationPassword: "MariaDBRep123!"
+
+redis-cache:
+  enabled: true
+  auth:
+    enabled: false
+redis-queue:
+  enabled: true
+  auth:
+    enabled: false
+
+# Disable postgresql (we use mariadb for simplicity)
+postgresql:
+  enabled: false
