@@ -17,4 +17,7 @@ helm upgrade --install frappe-bench \
 -f values.yaml \
 frappe/erpnext
 
+
+helm uninstall frappe-bench -n frappe
+
 ```
